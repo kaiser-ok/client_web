@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id          String     @id @default(cuid())
+  name        String
+  contact     String?
+  phone       String?
+  email       String?
+  salesRep    String?
+  jiraProject String?    // Jira project key (e.g., "ABC")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  activities  Activity[]
+  openItems   OpenItem[]
+
+  @@map("customers")
+}
+
+model Activity {
+  id          String   @id @default(cuid())
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  source      String   // JIRA, MANUAL, MEETING, LINE, EMAIL, DOC
+  title       String
+  content     String?  @db.Text
+  tags        String[] // PostgreSQL array
+  attachments String[] // URLs
+  jiraKey     String?  // Related Jira issue key
+  createdBy   String
+  createdAt   DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+  @@map("activities")
+}
+
+model OpenItem {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  jiraKey     String    @unique
+  summary     String
+  status      String
+  priority    String?
+  assignee    String?
+  waitingOn   String?   // Customer, Sales, IT, RD, PM, Partner
+  nextAction  String?
+  dueDate     DateTime?
+  lastReply   String?   @db.Text
+  lastReplyBy String?
+  lastReplyAt DateTime?
+  jiraUpdated DateTime
+  syncedAt    DateTime  @default(now())
+
+  @@index([customerId])
+  @@index([status])
+  @@index([waitingOn])
+  @@map("open_items")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  image     String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
+}
