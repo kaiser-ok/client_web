@@ -8,7 +8,8 @@ export interface Customer {
   phone: string | null
   email: string | null
   salesRep: string | null
-  jiraProject: string | null
+  partner: string | null      // 經銷商
+  jiraLabel: string | null    // Jira label (e.g., "客戶:ABC公司")
   createdAt: Date
   updatedAt: Date
 }
@@ -28,7 +29,7 @@ export interface CreateCustomerInput {
   phone?: string
   email?: string
   salesRep?: string
-  jiraProject?: string
+  partner?: string
 }
 
 export interface UpdateCustomerInput extends Partial<CreateCustomerInput> {}

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
           OR: [
             { name: { contains: search, mode: 'insensitive' as const } },
             { contact: { contains: search, mode: 'insensitive' as const } },
-            { jiraProject: { contains: search, mode: 'insensitive' as const } },
+            { partner: { contains: search, mode: 'insensitive' as const } },
           ],
         }
       : {}
@@ -64,11 +64,14 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, contact, phone, email, salesRep, jiraProject } = body
+    const { name, contact, phone, email, salesRep, partner } = body
 
     if (!name) {
       return NextResponse.json({ error: '客戶名稱為必填' }, { status: 400 })
     }
+
+    // Auto-generate Jira label from customer name
+    const jiraLabel = `客戶:${name}`
 
     const customer = await prisma.customer.create({
       data: {
@@ -77,7 +80,8 @@ export async function POST(request: NextRequest) {
         phone,
         email,
         salesRep,
-        jiraProject,
+        partner,
+        jiraLabel,
       },
     })
 

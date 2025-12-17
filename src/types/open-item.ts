@@ -11,6 +11,7 @@ export interface OpenItem {
   waitingOn: WaitingOnType | null
   nextAction: string | null
   dueDate: Date | null
+  partner: string | null       // 經銷商
   lastReply: string | null
   lastReplyBy: string | null
   lastReplyAt: Date | null

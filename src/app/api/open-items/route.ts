@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
         customer: {
           select: {
             name: true,
-            jiraProject: true,
+            partner: true,
           },
         },
       },

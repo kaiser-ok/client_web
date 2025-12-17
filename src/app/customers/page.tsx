@@ -83,10 +83,10 @@ export default function CustomersPage() {
       responsive: ['md'],
     },
     {
-      title: 'Jira 專案',
-      dataIndex: 'jiraProject',
-      key: 'jiraProject',
-      render: (project) => project ? <Tag color="blue">{project}</Tag> : '-',
+      title: '經銷商',
+      dataIndex: 'partner',
+      key: 'partner',
+      render: (partner) => partner ? <Tag color="green">{partner}</Tag> : '-',
       responsive: ['lg'],
     },
     {
@@ -199,8 +199,8 @@ export default function CustomersPage() {
           <Form.Item name="salesRep" label="負責業務">
             <Input />
           </Form.Item>
-          <Form.Item name="jiraProject" label="Jira 專案代碼">
-            <Input placeholder="例如：ABC" />
+          <Form.Item name="partner" label="經銷商">
+            <Input placeholder="經銷商名稱" />
           </Form.Item>
         </Form>
       </Modal>

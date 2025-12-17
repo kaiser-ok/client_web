@@ -5,6 +5,7 @@ import {
   EditOutlined,
   SyncOutlined,
   PlusOutlined,
+  BugOutlined,
 } from '@ant-design/icons'
 import { CustomerWithRelations } from '@/types/customer'
 
@@ -16,6 +17,7 @@ interface CustomerHeaderProps {
   onEdit?: () => void
   onSync?: () => void
   onAddActivity?: () => void
+  onAddIssue?: () => void
 }
 
 export default function CustomerHeader({
@@ -24,6 +26,7 @@ export default function CustomerHeader({
   onEdit,
   onSync,
   onAddActivity,
+  onAddIssue,
 }: CustomerHeaderProps) {
   if (isLoading) {
     return <Skeleton active paragraph={{ rows: 2 }} />
@@ -46,9 +49,9 @@ export default function CustomerHeader({
         <div>
           <Title level={3} style={{ margin: 0 }}>
             {customer.name}
-            {customer.jiraProject && (
-              <Tag color="blue" style={{ marginLeft: 12, verticalAlign: 'middle' }}>
-                {customer.jiraProject}
+            {customer.partner && (
+              <Tag color="green" style={{ marginLeft: 12, verticalAlign: 'middle' }}>
+                {customer.partner}
               </Tag>
             )}
           </Title>
@@ -60,14 +63,15 @@ export default function CustomerHeader({
         </div>
 
         <Space wrap>
+          <Button type="primary" icon={<BugOutlined />} onClick={onAddIssue}>
+            新增報修
+          </Button>
           <Button icon={<PlusOutlined />} onClick={onAddActivity}>
             新增活動
           </Button>
-          {customer.jiraProject && (
-            <Button icon={<SyncOutlined />} onClick={onSync}>
-              同步 Jira
-            </Button>
-          )}
+          <Button icon={<SyncOutlined />} onClick={onSync}>
+            同步 Jira
+          </Button>
           <Button icon={<EditOutlined />} onClick={onEdit}>
             編輯
           </Button>
@@ -83,6 +87,9 @@ export default function CustomerHeader({
         )}
         {customer.salesRep && (
           <Descriptions.Item label="負責業務">{customer.salesRep}</Descriptions.Item>
+        )}
+        {customer.partner && (
+          <Descriptions.Item label="經銷商">{customer.partner}</Descriptions.Item>
         )}
         <Descriptions.Item label="待處理問題">
           <Tag color={customer._count?.openItems ? 'orange' : 'default'}>

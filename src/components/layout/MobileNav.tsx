@@ -58,10 +58,10 @@ export default function MobileNav({ open, onClose }: MobileNavProps) {
       placement="left"
       onClose={onClose}
       open={open}
-      width={280}
       closeIcon={<CloseOutlined />}
       styles={{
         body: { padding: 0 },
+        wrapper: { width: 280 },
       }}
     >
       <Menu

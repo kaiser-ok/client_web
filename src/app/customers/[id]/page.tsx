@@ -8,6 +8,9 @@ import AppLayout from '@/components/layout/AppLayout'
 import CustomerHeader from '@/components/customers/CustomerHeader'
 import OpenItemsTable from '@/components/open-items/OpenItemsTable'
 import ActivityTimeline from '@/components/timeline/ActivityTimeline'
+import AddActivityModal from '@/components/timeline/AddActivityModal'
+import AddIssueModal from '@/components/open-items/AddIssueModal'
+import DealsCard from '@/components/deals/DealsCard'
 import { useCustomer, updateCustomer } from '@/hooks/useCustomer'
 
 interface CustomerDetailPageProps {
@@ -20,6 +23,8 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   const { customer, isLoading, mutate } = useCustomer(id)
   const [activeTab, setActiveTab] = useState('overview')
   const [editModalOpen, setEditModalOpen] = useState(false)
+  const [addActivityOpen, setAddActivityOpen] = useState(false)
+  const [addIssueOpen, setAddIssueOpen] = useState(false)
   const [form] = Form.useForm()
 
   const handleEdit = () => {
@@ -41,29 +46,23 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
   }
 
   const handleSync = async () => {
-    if (!customer?.jiraProject) {
-      message.warning('此客戶尚未設定 Jira 專案')
-      return
-    }
-
     try {
       const response = await fetch(`/api/open-items/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          customerId: id,
-          projectKey: customer.jiraProject,
-        }),
+        body: JSON.stringify({ customerId: id }),
       })
 
       if (!response.ok) {
-        throw new Error('同步失敗')
+        const data = await response.json()
+        throw new Error(data.error || '同步失敗')
       }
 
-      message.success('Jira 同步完成')
+      const result = await response.json()
+      message.success(`Jira 同步完成，共 ${result.syncedCount} 筆`)
       mutate()
     } catch (error) {
-      message.error('Jira 同步失敗，請檢查設定')
+      message.error(error instanceof Error ? error.message : 'Jira 同步失敗')
     }
   }
 
@@ -76,9 +75,12 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
           <Card title="待處理問題" style={{ marginBottom: 16 }}>
             <OpenItemsTable customerId={id} compact />
           </Card>
-          <Card title="最近活動">
-            <ActivityTimeline customerId={id} limit={5} />
-          </Card>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
+            <DealsCard customerId={id} limit={5} />
+            <Card title="最近活動">
+              <ActivityTimeline customerId={id} limit={5} />
+            </Card>
+          </div>
         </div>
       ),
     },
@@ -110,6 +112,8 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
         isLoading={isLoading}
         onEdit={handleEdit}
         onSync={handleSync}
+        onAddActivity={() => setAddActivityOpen(true)}
+        onAddIssue={() => setAddIssueOpen(true)}
       />
 
       <Card>
@@ -151,11 +155,26 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
           <Form.Item name="salesRep" label="負責業務">
             <Input />
           </Form.Item>
-          <Form.Item name="jiraProject" label="Jira 專案代碼">
-            <Input placeholder="例如：ABC" />
+          <Form.Item name="partner" label="經銷商">
+            <Input placeholder="經銷商名稱" />
           </Form.Item>
         </Form>
       </Modal>
+
+      <AddActivityModal
+        open={addActivityOpen}
+        customerId={id}
+        onClose={() => setAddActivityOpen(false)}
+        onSuccess={mutate}
+      />
+
+      <AddIssueModal
+        open={addIssueOpen}
+        customerId={id}
+        customerName={customer?.name || ''}
+        onClose={() => setAddIssueOpen(false)}
+        onSuccess={mutate}
+      />
     </AppLayout>
   )
 }

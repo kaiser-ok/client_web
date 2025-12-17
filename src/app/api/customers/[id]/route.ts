@@ -50,7 +50,10 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { name, contact, phone, email, salesRep, jiraProject } = body
+    const { name, contact, phone, email, salesRep, partner } = body
+
+    // Auto-update Jira label if name changed
+    const jiraLabel = name ? `客戶:${name}` : undefined
 
     const customer = await prisma.customer.update({
       where: { id },
@@ -60,7 +63,8 @@ export async function PUT(
         phone,
         email,
         salesRep,
-        jiraProject,
+        partner,
+        ...(jiraLabel && { jiraLabel }),
       },
     })
 

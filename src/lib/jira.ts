@@ -31,7 +31,7 @@ const jiraFetch = async (endpoint: string, options: RequestInit = {}) => {
 
 export const jiraClient = {
   /**
-   * Search for issues using JQL
+   * Search for issues using JQL (using new /search/jql endpoint)
    */
   async searchIssues(jql: string, fields?: string[], maxResults = 50): Promise<JiraSearchResult> {
     const defaultFields = [
@@ -45,13 +45,15 @@ export const jiraClient = {
       'comment',
     ]
 
-    const response = await jiraFetch('/search', {
-      method: 'POST',
-      body: JSON.stringify({
-        jql,
-        fields: fields || defaultFields,
-        maxResults,
-      }),
+    const fieldsParam = (fields || defaultFields).join(',')
+    const params = new URLSearchParams({
+      jql,
+      fields: fieldsParam,
+      maxResults: String(maxResults),
+    })
+
+    const response = await jiraFetch(`/search/jql?${params.toString()}`, {
+      method: 'GET',
     })
 
     return response as JiraSearchResult
@@ -120,6 +122,24 @@ export const jiraClient = {
           ],
         },
       }),
+    })
+  },
+
+  /**
+   * Create a new issue
+   */
+  async createIssue(fields: {
+    project: { key: string }
+    summary: string
+    description?: unknown
+    issuetype: { name: string }
+    priority?: { name: string }
+    labels?: string[]
+    [key: string]: unknown
+  }): Promise<{ id: string; key: string; self: string }> {
+    return await jiraFetch('/issue', {
+      method: 'POST',
+      body: JSON.stringify({ fields }),
     })
   },
 

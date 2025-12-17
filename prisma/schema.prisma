@@ -14,11 +14,13 @@ model Customer {
   phone       String?
   email       String?
   salesRep    String?
-  jiraProject String?    // Jira project key (e.g., "ABC")
+  partner     String?    // 經銷商
+  jiraLabel   String?    // Jira label for this customer (e.g., "客戶:ABC公司")
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   activities  Activity[]
   openItems   OpenItem[]
+  deals       Deal[]
 
   @@map("customers")
 }
@@ -53,6 +55,7 @@ model OpenItem {
   waitingOn   String?   // Customer, Sales, IT, RD, PM, Partner
   nextAction  String?
   dueDate     DateTime?
+  partner     String?   // 經銷商 (from Jira custom field)
   lastReply   String?   @db.Text
   lastReplyBy String?
   lastReplyAt DateTime?
@@ -75,4 +78,32 @@ model User {
   updatedAt DateTime @updatedAt
 
   @@map("users")
+}
+
+model Deal {
+  id          String    @id @default(cuid())
+  customerId  String
+  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name        String    // 案件名稱
+  type        String    @default("PURCHASE") // PURCHASE, MA, LICENSE, SUBSCRIPTION
+  amount      Decimal?  @db.Decimal(12, 2) // 金額
+  products    String?   // 產品項目
+  salesRep    String?   // 負責業務
+  closedAt    DateTime  // 成交日期
+  startDate   DateTime? // 服務/保固開始日
+  endDate     DateTime? // 服務/保固結束日
+  autoRenew   Boolean   @default(false) // 是否自動續約
+  remindDays  Int?      // 到期前提醒天數
+  source      String    @default("MANUAL") // MANUAL, ODOO
+  odooId      String?   // Odoo 訂單 ID (for future sync)
+  notes       String?   @db.Text // 備註
+  attachments String[]  // 附件 URLs
+  createdBy   String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([customerId])
+  @@index([closedAt])
+  @@index([endDate])
+  @@map("deals")
 }
