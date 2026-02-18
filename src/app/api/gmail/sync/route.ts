@@ -8,7 +8,7 @@ import {
   findCustomerByEmail,
 } from '@/lib/gmail'
 import { summarizeEmail, identifyCustomerFromEmail } from '@/lib/llm'
-import { graphitiClient } from '@/lib/graphiti'
+import { normalizeEmail, enqueueMessage } from '@/lib/message-pipeline'
 import {
   GmailConfig,
   GMAIL_CONFIG_KEY,
@@ -463,27 +463,12 @@ export async function POST() {
           },
         })
 
-        // 送入 Graphiti 知識圖譜
+        // 送入 Unified Message Pipeline
         try {
-          await graphitiClient.ingestMessage({
-            platform: 'EMAIL',
-            external_id: email.messageId,
-            content: `主旨: ${email.subject}\n\n${email.body}`,
-            timestamp: email.date,
-            sender_email: email.fromEmail,
-            sender_name: email.from,
-            subject: email.subject,
-            partner_id: customer.id,
-            metadata: {
-              to: email.to,
-              cc: email.cc,
-              direction,
-              matchMethod,
-            },
-          })
-        } catch (graphitiError) {
-          console.error(`Failed to ingest email to Graphiti: ${email.messageId}`, graphitiError)
-          // 不影響主流程，只記錄錯誤
+          const unifiedMessage = normalizeEmail(email, customer.id, matchMethod)
+          await enqueueMessage(unifiedMessage)
+        } catch (pipelineError) {
+          console.error(`Failed to enqueue email to pipeline: ${email.messageId}`, pipelineError)
         }
 
         result.successCount++
