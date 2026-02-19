@@ -7,46 +7,122 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Customer {
-  id          String     @id @default(cuid())
-  name        String
-  contact     String?
-  phone       String?
-  email       String?
-  salesRep    String?
-  partner     String?    // 經銷商
-  jiraLabel   String?    // Jira label for this customer (e.g., "客戶:ABC公司")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  activities  Activity[]
-  openItems   OpenItem[]
-  deals       Deal[]
+// ============================================
+// Partner 統一模型（整合原 Customer 和 Supplier）
+// ============================================
 
-  @@map("customers")
+model Partner {
+  id             String     @id @default(cuid())
+  name           String
+  aliases        String[]   // 別名（用於匯入時比對，如：台積電、TSMC）
+  contact        String?
+  phone          String?
+  email          String?
+  website        String?
+  jiraLabel      String?    // Jira label for this partner (e.g., "客戶:ABC公司")
+  odooId         Int?       @unique // Odoo res_partner.id
+  odooTags       String[]   // Odoo 訂單標籤（用於比對 Jira labels）
+  slackChannelId String?    // Slack 頻道 ID
+  source         String     @default("MANUAL") // MANUAL, ODOO
+  notes          String?    @db.Text // 備註
+  isActive       Boolean    @default(true)
+  parentId       String?    // 母公司 ID
+  parent         Partner?   @relation("PartnerHierarchy", fields: [parentId], references: [id])
+  subsidiaries   Partner[]  @relation("PartnerHierarchy")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // 角色關聯
+  roles            PartnerRole[]
+
+  // 業務關聯
+  activities       Activity[]
+  openItems        OpenItem[]
+  deals            Deal[]
+  views            PartnerView[]
+  files            PartnerFile[]
+  technicalNotes   TechnicalNote[]
+  projects         Project[]
+  endUserProjects  Project[]        @relation("ProjectEndUser") // 作為最終用戶的專案
+  quotations       Quotation[]
+  contacts         Contact[]
+
+  // LINE 關聯
+  lineChannels              LineChannel[]
+  lineChannelAssociations   LineChannelAssociation[]
+  lineUsers                 LineUser[]
+
+  // 身分識別
+  identityMappings          IdentityMapping[]
+
+  @@index([parentId])
+  @@index([isActive])
+  @@index([name])
+  @@map("partners")
 }
 
-model Activity {
-  id          String   @id @default(cuid())
-  customerId  String
-  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  source      String   // JIRA, MANUAL, MEETING, LINE, EMAIL, DOC
-  title       String
-  content     String?  @db.Text
-  tags        String[] // PostgreSQL array
-  attachments String[] // URLs
-  jiraKey     String?  // Related Jira issue key
-  createdBy   String
-  createdAt   DateTime @default(now())
+model PartnerRole {
+  id        String   @id @default(cuid())
+  partnerId String
+  partner   Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  role      String   // CUSTOMER, SUPPLIER, PARTNER (經銷商/合作夥伴)
+  isPrimary Boolean  @default(false) // 主要角色（用於顯示）
+  metadata  Json?    // 角色特定資料 (如 salesRep, territory)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([customerId])
+  @@unique([partnerId, role])
+  @@index([role])
+  @@map("partner_roles")
+}
+
+model PartnerView {
+  id           String   @id @default(cuid())
+  partnerId    String
+  partner      Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  userEmail    String   // 使用者 email
+  viewCount    Int      @default(1)
+  lastViewedAt DateTime @default(now())
+
+  @@unique([partnerId, userEmail])
+  @@index([userEmail])
+  @@index([viewCount])
+  @@index([lastViewedAt])
+  @@map("partner_views")
+}
+
+// ============================================
+// 活動與待辦事項
+// ============================================
+
+model Activity {
+  id             String    @id @default(cuid())
+  partnerId      String
+  partner        Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  projectId      String?   // 關聯專案（選填）
+  project        Project?  @relation(fields: [projectId], references: [id])
+  source         String    // JIRA, MANUAL, MEETING, LINE, EMAIL, DOC, SLACK, ERP
+  title          String
+  content        String?   @db.Text
+  tags           String[]  // PostgreSQL array
+  attachments    String[]  // URLs
+  jiraKey        String?   // Related Jira issue key
+  eventDate      DateTime? // 預計事件發生日期
+  slackTimestamp String?   // Slack 資料時間（參考用）
+  createdBy      String
+  createdAt      DateTime  @default(now())
+
+  @@index([partnerId])
+  @@index([projectId])
   @@index([createdAt])
+  @@index([eventDate])
   @@map("activities")
 }
 
 model OpenItem {
   id          String    @id @default(cuid())
-  customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  partnerId   String
+  partner     Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   jiraKey     String    @unique
   summary     String
   status      String
@@ -55,55 +131,521 @@ model OpenItem {
   waitingOn   String?   // Customer, Sales, IT, RD, PM, Partner
   nextAction  String?
   dueDate     DateTime?
-  partner     String?   // 經銷商 (from Jira custom field)
+  dealer      String?   // 經銷商 (from Jira custom field)
   lastReply   String?   @db.Text
   lastReplyBy String?
   lastReplyAt DateTime?
   jiraUpdated DateTime
   syncedAt    DateTime  @default(now())
 
-  @@index([customerId])
+  @@index([partnerId])
   @@index([status])
   @@index([waitingOn])
   @@map("open_items")
 }
+
+// ============================================
+// 用戶管理
+// ============================================
 
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
   image     String?
-  role      String   @default("user")
+  role      String   @default("SUPPORT") // 預設角色為服務支援
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("users")
 }
 
-model Deal {
-  id          String    @id @default(cuid())
-  customerId  String
-  customer    Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  name        String    // 案件名稱
-  type        String    @default("PURCHASE") // PURCHASE, MA, LICENSE, SUBSCRIPTION
-  amount      Decimal?  @db.Decimal(12, 2) // 金額
-  products    String?   // 產品項目
-  salesRep    String?   // 負責業務
-  closedAt    DateTime  // 成交日期
-  startDate   DateTime? // 服務/保固開始日
-  endDate     DateTime? // 服務/保固結束日
-  autoRenew   Boolean   @default(false) // 是否自動續約
-  remindDays  Int?      // 到期前提醒天數
-  source      String    @default("MANUAL") // MANUAL, ODOO
-  odooId      String?   // Odoo 訂單 ID (for future sync)
-  notes       String?   @db.Text // 備註
-  attachments String[]  // 附件 URLs
-  createdBy   String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+// ============================================
+// 成交/合約管理
+// ============================================
 
-  @@index([customerId])
+model Deal {
+  id             String    @id @default(cuid())
+  partnerId      String
+  partner        Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  name           String    // 案件名稱（Odoo 單號如 S00293）
+  projectName    String?   // 專案名稱（Odoo project_name）
+  clientOrderRef String?   // 客戶參照（Odoo client_order_ref）
+  projectType    String?   // 專案類型（Odoo project_type: CHT共契, VOIP, 智慧網管, 維護案_SNM 等）
+  type           String    @default("PURCHASE") // PURCHASE, MA, LICENSE, SUBSCRIPTION
+  amount         Decimal?  @db.Decimal(12, 2) // 金額
+  products       String?   // 產品項目（文字）
+  productsJson   Json?     // 產品明細 JSON [{name, quantity, unitPrice, subtotal}]
+  salesRep       String?   // 負責業務
+  closedAt       DateTime  // 成交日期
+  startDate      DateTime? // 服務/保固開始日
+  endDate        DateTime? // 服務/保固結束日
+  autoRenew      Boolean   @default(false) // 是否自動續約
+  remindDays     Int?      // 到期前提醒天數
+  source         String    @default("MANUAL") // MANUAL, ODOO
+  odooId         Int?      @unique // Odoo sale_order.id
+  notes          String?   @db.Text // 備註
+  attachments    String[]  // 附件 URLs
+  createdBy      String
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  project        Project?  // 關聯專案
+
+  @@index([partnerId])
   @@index([closedAt])
   @@index([endDate])
   @@map("deals")
+}
+
+// ============================================
+// 專案管理
+// ============================================
+
+model Project {
+  id           String        @id @default(cuid())
+  partnerId    String
+  partner      Partner       @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  endUserId    String?       // 最終用戶 ID（選填）
+  endUser      Partner?      @relation("ProjectEndUser", fields: [endUserId], references: [id])
+  dealId       String?       @unique // 來源成交記錄 ID
+  deal         Deal?         @relation(fields: [dealId], references: [id])
+  name         String        // 專案名稱
+  type         String?       // 專案類型：PURCHASE, MA, LICENSE, SUBSCRIPTION
+  description  String?       @db.Text // 專案說明
+  products     Json?         // 產品明細 [{name, quantity, unitPrice, subtotal}]
+  status       String        @default("ACTIVE") // ACTIVE, COMPLETED, ON_HOLD, CANCELLED
+  startDate    DateTime?     // 開始日期
+  endDate      DateTime?     // 結束日期
+  createdBy    String        // 建立者 email
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  activities   Activity[]    // 相關活動
+  lineChannels LineChannel[] // 相關 LINE 頻道
+
+  @@index([partnerId])
+  @@index([endUserId])
+  @@index([status])
+  @@map("projects")
+}
+
+// ============================================
+// 報價單管理
+// ============================================
+
+model Quotation {
+  id           String          @id @default(cuid())
+  quotationNo  String          @unique // 報價單編號 YYMMDD[A-Z]，如 250103A
+  partnerId    String
+  partner      Partner         @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  projectName  String?         // 專案名稱
+  status       String          @default("DRAFT") // DRAFT, SENT, APPROVED, REJECTED, CONVERTED
+  totalAmount  Decimal         @db.Decimal(12, 2) // 含稅總金額
+  notes        String?         @db.Text
+  validUntil   DateTime?       // 報價有效期限
+  odooQuoteId  Int?            @unique // 同步到 Odoo 的報價單 ID
+  createdBy    String
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  items        QuotationItem[]
+
+  @@index([partnerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id           String    @id @default(cuid())
+  quotationId  String
+  quotation    Quotation @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  productId    String?   // 知識庫產品 ID（如 odoo-147）
+  sku          String?   // 產品 SKU（如 HW-MT-RT-CCR2004-16G）
+  productName  String    // 產品名稱
+  category     String?   // 產品分類
+  quantity     Int       @default(1)
+  unitPrice    Decimal   @db.Decimal(12, 2)
+  subtotal     Decimal   @db.Decimal(12, 2)
+  description  String?   // 產品說明/規格
+  sortOrder    Int       @default(0)
+
+  @@index([quotationId])
+  @@map("quotation_items")
+}
+
+// ============================================
+// 檔案管理
+// ============================================
+
+model PartnerFile {
+  id           String    @id @default(cuid())
+  partnerId    String
+  partner      Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  year         Int       // 年份（如 2025）
+  filename     String    // 原始檔名
+  storedPath   String    // 相對路徑如 "jira/ABC-123_screenshot.png"
+  fileSize     Int       // 檔案大小（bytes）
+  mimeType     String?   // MIME type
+  source       String    @default("MANUAL") // MANUAL, JIRA
+  jiraId       String?   // Jira attachment ID（去重用）
+  jiraIssueKey String?   // 來源 Jira issue key
+  uploadedBy   String    // 上傳者 email
+  uploadedAt   DateTime  @default(now())
+  deletedAt    DateTime? // 軟刪除
+
+  @@unique([partnerId, year, storedPath])
+  @@index([partnerId, year])
+  @@index([jiraId])
+  @@map("partner_files")
+}
+
+// ============================================
+// 技術文件
+// ============================================
+
+model TechnicalNote {
+  id             String   @id @default(cuid())
+  partnerId      String
+  partner        Partner  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  category       String   // technical, maintenance, security, speedtest 等
+  title          String   // 摘要標題
+  content        String   @db.Text // 原始討論內容
+  participants   String[] // 參與討論的人員
+  keywords       String[] // 關鍵字標籤
+  slackChannel   String?  // 來源 Slack 頻道
+  slackTimestamp String?  // Slack 訊息時間戳（去重用）
+  createdAt      DateTime @default(now())
+
+  @@unique([partnerId, slackTimestamp]) // 避免重複匯入
+  @@index([partnerId])
+  @@index([category])
+  @@index([createdAt])
+  @@map("technical_notes")
+}
+
+// ============================================
+// Slack 整合
+// ============================================
+
+model SlackChannelMapping {
+  id            String   @id @default(cuid())
+  channelId     String   @unique // Slack 頻道 ID
+  channelName   String   // Slack 頻道名稱
+  partnerId     String?  // 對應的 Partner ID（可為空表示未對應）
+  partnerName   String?  // Partner 名稱（快取，方便顯示）
+  matchType     String   @default("MANUAL") // AUTO, MANUAL
+  matchPattern  String?  // 自動比對時使用的 pattern
+  isActive      Boolean  @default(true)
+  lastSyncedAt  DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([partnerId])
+  @@index([channelName])
+  @@map("slack_channel_mappings")
+}
+
+model DeletedSlackActivity {
+  id                String   @id @default(cuid())
+  partnerId         String
+  partnerName       String   // 快取 Partner 名稱
+  originalId        String   // 原始 Activity ID
+  title             String
+  content           String?  @db.Text
+  tags              String[]
+  slackTimestamp    String?
+  slackChannel      String?  // 來源頻道名稱（方便分析）
+  createdBy         String   // 原始建立者
+  originalCreatedAt DateTime // 原始建立時間
+  deletedBy         String   // 刪除者 email
+  deletedAt         DateTime @default(now())
+  reason            String?  // 刪除原因（選填）
+
+  @@index([partnerId])
+  @@index([deletedAt])
+  @@map("deleted_slack_activities")
+}
+
+// ============================================
+// LINE 整合
+// ============================================
+
+model LineUser {
+  id               String    @id @default(cuid())
+  lineUserId       String    @unique              // LINE 提供的 userId
+  displayName      String                         // LINE 顯示名稱
+  pictureUrl       String?                        // 大頭貼 URL
+  identityType     String    @default("UNKNOWN")  // STAFF, PARTNER, CUSTOMER, UNKNOWN
+  staffEmail       String?                        // 若為員工，關聯 email
+  partnerId        String?                        // 關聯 Partner（客戶/供應商/經銷商）
+  partner          Partner?  @relation(fields: [partnerId], references: [id])
+  contactName      String?                        // 聯絡人姓名
+  contactPhone     String?                        // 聯絡人電話
+  note             String?                        // 備註
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([identityType])
+  @@index([partnerId])
+  @@map("line_users")
+}
+
+model LineChannel {
+  id              String        @id @default(cuid())
+  lineChannelId   String        @unique            // groupId 或 roomId 或 userId (1:1)
+  channelType     String                           // GROUP, ROOM, USER
+  channelName     String?                          // 群組名稱（若可取得）
+  partnerId       String?                          // 關聯 Partner
+  partner         Partner?      @relation(fields: [partnerId], references: [id])
+  projectId       String?                          // 關聯專案
+  project         Project?      @relation(fields: [projectId], references: [id])
+  isActive        Boolean       @default(true)
+  lastMessageAt   DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  messages        LineMessage[]
+  associations    LineChannelAssociation[]
+
+  @@index([partnerId])
+  @@index([projectId])
+  @@index([isActive])
+  @@map("line_channels")
+}
+
+model LineChannelAssociation {
+  id          String       @id @default(cuid())
+  channelId   String
+  channel     LineChannel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  partnerId   String
+  partner     Partner      @relation(fields: [partnerId], references: [id])
+  role        String       @default("CUSTOMER") // CUSTOMER, SUPPLIER, PARTNER
+  createdAt   DateTime     @default(now())
+
+  @@unique([channelId, partnerId])
+  @@index([channelId])
+  @@index([partnerId])
+  @@map("line_channel_associations")
+}
+
+model LineMessage {
+  id              String      @id @default(cuid())
+  lineMessageId   String      @unique              // LINE 訊息 ID
+  channelId       String                           // 關聯 LineChannel
+  channel         LineChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  lineUserId      String                           // 發送者 LINE userId
+  messageType     String                           // text, image, file, sticker, video, audio, location
+  content         String?     @db.Text             // 文字內容
+  mediaUrl        String?                          // 媒體檔案 URL
+  replyToken      String?                          // 回覆用 token（有效期短）
+  timestamp       DateTime                         // LINE 訊息時間
+  processed       Boolean     @default(false)      // 是否已由 LLM 處理
+  createdAt       DateTime    @default(now())
+
+  @@index([channelId, timestamp])
+  @@index([processed])
+  @@index([lineUserId])
+  @@map("line_messages")
+}
+
+// ============================================
+// 系統設定與統計
+// ============================================
+
+model DashboardStats {
+  id                String   @id @default("singleton")
+  partnerCount      Int      @default(0)
+  pendingIssues     Int      @default(0)  // 待處理問題
+  waitingCustomer   Int      @default(0)  // 等待客戶回覆
+  overdueIssues     Int      @default(0)  // 逾期問題
+  expiringContracts Int      @default(0)  // 即將到期合約
+  syncedAt          DateTime @default(now())
+
+  @@map("dashboard_stats")
+}
+
+model SystemConfig {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+
+  @@map("system_configs")
+}
+
+// ============================================
+// 產品與知識庫
+// ============================================
+
+model ProductPriority {
+  id          String   @id @default(cuid())
+  productId   String   @unique  // 對應 product-kb.json 的 id (如 odoo-147)
+  productName String              // 產品名稱（冗餘儲存方便查詢）
+  category    String?             // 產品分類
+  priority    Int      @default(50)  // 優先順序 1-100，預設 50
+  updatedBy   String              // 最後更新者 email
+  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now())
+
+  @@index([priority])
+  @@index([productName])
+  @@map("product_priorities")
+}
+
+model ProductCategory {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdBy String
+  createdAt DateTime @default(now())
+
+  @@index([name])
+  @@map("product_categories")
+}
+
+// ============================================
+// RAG 文檔
+// ============================================
+
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  sourceType  String   // LINE, EMAIL, FILE, ACTIVITY
+  sourceId    String   // lineMessageId, emailId, fileId, activityId
+  partnerId   String?  // 關聯 Partner（可選）
+  content     String   @db.Text // 文本內容
+  metadata    Json?    // 額外元數據（發送者、時間等）
+  // embedding 欄位需要在 pgvector 安裝後手動添加:
+  // ALTER TABLE document_chunks ADD COLUMN embedding vector(1536);
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sourceType])
+  @@index([sourceId])
+  @@index([partnerId])
+  @@map("document_chunks")
+}
+
+// ============================================
+// 聯絡人（跨通路人員身分）
+// ============================================
+
+model Contact {
+  id           String   @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  title        String?  // 職稱
+  lineUserId   String?  // LINE userId
+  slackUserId  String?  // Slack user ID
+  partnerId    String?
+  partner      Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  notes        String?  @db.Text
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // 身分識別
+  identityMappings IdentityMapping[]
+
+  @@index([partnerId])
+  @@index([email])
+  @@index([lineUserId])
+  @@index([slackUserId])
+  @@map("contacts")
+}
+
+// ============================================
+// Graph 同步日誌
+// ============================================
+
+model GraphSyncLog {
+  id         String   @id @default(cuid())
+  entityType String   // Partner, Deal, OpenItem, Project, Contact
+  entityId   String
+  operation  String   // CREATE, UPDATE, DELETE
+  status     String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  attempts   Int      @default(0)
+  error      String?  @db.Text
+  syncedAt   DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([entityType, entityId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("graph_sync_logs")
+}
+
+// ============================================
+// 身分識別（跨通路實體解析）
+// ============================================
+
+model IdentityMapping {
+  id              String    @id @default(cuid())
+  channel         String    // LINE, SLACK, EMAIL
+  channelUserId   String    // LINE userId, Slack userId, email address
+  displayName     String?
+  partnerId       String?
+  partner         Partner?  @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  contactId       String?
+  contact         Contact?  @relation(fields: [contactId], references: [id], onDelete: SetNull)
+  confidence      Float     @default(1.0)
+  method          String    // CACHED, EXACT_IDENTITY, EMAIL_MATCH, DOMAIN_MATCH, CONTACT_LOOKUP, ALIAS_MATCH, LLM, MANUAL
+  isVerified      Boolean   @default(false)
+  resolvedBy      String?   // User email if MANUAL, "system" otherwise
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([channel, channelUserId])
+  @@index([partnerId])
+  @@index([contactId])
+  @@index([isVerified])
+  @@map("identity_mappings")
+}
+
+model ResolutionLog {
+  id                  String    @id @default(cuid())
+  channel             String
+  channelUserId       String
+  displayName         String?
+  messageId           String?
+  partnerId           String?
+  contactId           String?
+  confidence          Float?
+  method              String?   // null = all strategies failed
+  strategiesAttempted String[]
+  duration            Int?      // ms
+  context             Json?
+  error               String?
+  createdAt           DateTime  @default(now())
+
+  @@index([channel, channelUserId])
+  @@index([partnerId])
+  @@index([createdAt])
+  @@map("resolution_logs")
+}
+
+// ============================================
+// 報價範本
+// ============================================
+
+model QuotationTemplate {
+  id            String   @id @default(cuid())
+  name          String                        // 範本名稱，如「VoIP 標準專案」
+  category      String                        // VOIP, SMART_NETWORK, EQUIPMENT, CUSTOM
+  description   String?  @db.Text             // 範本說明
+  items         Json                          // [{productId, sku, productName, category, quantity, unitPrice, description, sortOrder}]
+  defaultNotes  String?  @db.Text             // 預設備註
+  paymentTerms  String?  @db.Text             // 付款條件
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdBy     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("quotation_templates")
 }

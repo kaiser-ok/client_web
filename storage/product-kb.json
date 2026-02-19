@@ -1,0 +1,5146 @@
+{
+  "products": [
+    {
+      "id": "odoo-1040",
+      "name": "12POW150",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Hot Swap 12V 150W power supply for CCR1072-1G-8S+, CCR2216-1G-12XS-2XQ, CRS518-16XS-2XQ-RM",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-429",
+      "name": "24V4APOW 電源供應器",
+      "sku": "HW-MT-AS-24V4APOW",
+      "category": "MikroTik",
+      "listPrice": "740.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-991",
+      "name": "33W PD+QC 氮化鎵閃充器",
+      "sku": null,
+      "category": "手機周邊配件",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-428",
+      "name": "48V2A96W 電源供應器",
+      "sku": "HW-MT-AS-48V2A96W",
+      "category": "MikroTik",
+      "listPrice": "1400.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-430",
+      "name": "AFE600",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-431",
+      "name": "AFG800",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-213",
+      "name": "AFM400",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "1.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-211",
+      "name": "API開發",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-764",
+      "name": "AP管理擴充",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": "提供 EnGenius AP 認證+系統報表\n無線網路使用狀態總覽、流量統計",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-432",
+      "name": "ASG400",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-851",
+      "name": "AWS雲端服務",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-433",
+      "name": "AXM2400",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-435",
+      "name": "AXM800",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-434",
+      "name": "AXT2400",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-728",
+      "name": "Aruba 光轉電模組(RJ45)",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-719",
+      "name": "AudioCodes M800C 擴充1埠T1/E1授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "54000.00",
+      "description": "AudioCodes M800C 擴充1埠T1/E1",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-718",
+      "name": "Audiocodes M800C",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "76000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1031",
+      "name": "Audiocodes M800C/M1000B/VE 擴充10路SIP授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "15965.00",
+      "description": "Audiocodes 擴充30路SIP to SIP 語音通道授權\n支援Transcoding",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-921",
+      "name": "Audiocodes M800C/M1000B/VE 擴充30路SIP授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "69000.00",
+      "description": "Audiocodes 擴充30路SIP to SIP 語音通道授權\n支援Transcoding",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1017",
+      "name": "Audiocodes M800C/M1000B/VE擴充10路SIP授權-第二年起保固費用(含備品/每年)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "5700.00",
+      "description": "Audiocodes 擴充10路SIP to SIP 語音通道授權 \n-第二年起保固費用(含備品/每年)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1018",
+      "name": "Audiocodes M800C/M1000B/VE擴充30路SIP授權-第二年起保固費用(含備品/每年)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "17000.00",
+      "description": "Audiocodes 擴充30路SIP to SIP 語音通道授權\n-第二年起保固費用(含備品/每年)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-645",
+      "name": "Audiocodes SIP Session",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": "\"Siraya Radar  智慧網管偵測主機 (新款)\"",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-646",
+      "name": "Audiocodes VA SBA授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "122000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-644",
+      "name": "Audiocodes VE SBC",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "72000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-436",
+      "name": "BX816",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-941",
+      "name": "C52iG-5HaxD2HaxD-TC(hAP ax²)",
+      "sku": "HW-MT-WL-hAP ax²",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "hAP ax² with RouterOS L4 license, International version (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-956",
+      "name": "C53UiG+5HPaxD2HPaxD (hAP ax³)",
+      "sku": "HW-MT-WL-hAP ax³",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-388",
+      "name": "CCR1009-7G-1C-1S+",
+      "sku": "HW-MT-RT-CCR1009-7G",
+      "category": "MikroTik",
+      "listPrice": "18400.00",
+      "description": "1U rackmount, 7x Gigabit Ethernet, 1x Combo port (SFP or Gigabit Ethernet), 1xSFP+ cage, 9 cores x 1.2GHz CPU, 2GB RAM, LCD panel, Dual Power supplies, SmartCard slot, RouterOS L6",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-762",
+      "name": "CCR1009-8G-1S-1S+",
+      "sku": "HW-MT-RT-CCR1009-8G",
+      "category": "MikroTik",
+      "listPrice": "17700.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-389",
+      "name": "CCR1016-12S-1S+",
+      "sku": "HW-MT-RT-CCR1016",
+      "category": "MikroTik",
+      "listPrice": "28000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-390",
+      "name": "CCR1036-8G-2S+",
+      "sku": "HW-MT-RT-CCR1036",
+      "category": "MikroTik",
+      "listPrice": "39800.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-147",
+      "name": "CCR2004-16G-2S+",
+      "sku": "HW-MT-RT-CCR2004-16G",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Cloud Core Router 2004-16G-2S+ with RouterOS L6 license (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-148",
+      "name": "CCR2004-1G-12S+2XS",
+      "sku": "HW-MT-RT-CCR2004-1G",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Cloud Core Router 2004-1G-12S+2XS with RouterOS L6 license (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-149",
+      "name": "CCR2116-12G-4S+",
+      "sku": "HW-MT-RT-CCR2116",
+      "category": "MikroTik",
+      "listPrice": "34470.00",
+      "description": "13個10/100/1000 乙太網路連接埠\n4個 10G的光纖SFP+（不含光纖模組）\n16個 CPU核心 \n16G RAM",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-793",
+      "name": "CCR2216-1G-12XS-2XQ",
+      "sku": "HW-MT-RT-CCR2216",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "CPU (16-cores, 2GHz per core) and Marvell\nPrestera Aldrin2 switch-chip, 16GB RAM, 2x100G QSFP cages, 14x25G SFP28 cages, 1xGbit LAN, 2xM.2 SATA slots, RouterOS L6, 1U\nrackmount case, Dual-redundant hot-swap PSU's",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1030",
+      "name": "CHMP9X5-SBC_S80/YR",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-214",
+      "name": "CRS106-1C-5S",
+      "sku": "HW-MT-ST-CRS106",
+      "category": "MikroTik",
+      "listPrice": "2300.00",
+      "description": "QCA8511 400MHz CPU和128MB RAM\n1個 （10/100/1000 乙太網路連接埠或SFP）組合端口\n5個 SFP連接埠\nRouterOS L5",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-153",
+      "name": "CRS112-8P-4S-IN",
+      "sku": "HW-MT-ST-CRS112",
+      "category": "MikroTik",
+      "listPrice": "7600.00",
+      "description": "QCA8511 CPU，400MHz,128MB RAM\n8個 10/100/1000以乙太網路連接埠，支持PoE（Power over Ethernet）輸出\n4個 SFP鏈接埠\nRouterOS L5",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-391",
+      "name": "CRS125-24G-1S-RM",
+      "sku": "HW-MT-ST-CRS125",
+      "category": "MikroTik",
+      "listPrice": "7000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-392",
+      "name": "CRS212-1G-10S-1S+IN",
+      "sku": "HW-MT-ST-CRS212",
+      "category": "MikroTik",
+      "listPrice": "8000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-393",
+      "name": "CRS226-24G-2S+RM",
+      "sku": "HW-MT-ST-CRS226",
+      "category": "MikroTik",
+      "listPrice": "10600.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-896",
+      "name": "CRS305-1G-4S+IN",
+      "sku": "HW-MT-ST-CRS305",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Cloud Router Switch 305-1G-4S+IN (RouterOS L5), desktop enclosure\n(US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-158",
+      "name": "CRS312-4C+8XG-RM",
+      "sku": "HW-MT-ST-CRS312",
+      "category": "MikroTik",
+      "listPrice": "24700.00",
+      "description": "8個 多速率RJ45乙太網路連接埠（支持1G/2.5G/5G/10G）\n4個 組合端口（支持1G/2.5G/5G/10G RJ45或10G SFP+）\n1個 管理用LAN端口\nRouterOS L5或SwitchOS（雙啟動）\n1U機架安裝\n雙冗餘電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-154",
+      "name": "CRS317-1G-16S+RM",
+      "sku": "HW-MT-ST-CRS317",
+      "category": "MikroTik",
+      "listPrice": "17200.00",
+      "description": "CPU:800MHz,RAM:1GB\n1 個 10/100/1000 Mbps 乙太網路連接埠\n16個 SFP+ 插槽\nRouterOS L6或SwitchOS（雙啟動）\n被動冷卻\n1U機架安裝\n雙冗餘電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-394",
+      "name": "CRS326-24G-2S+RM",
+      "sku": "HW-MT-ST-CRS326G",
+      "category": "MikroTik",
+      "listPrice": "7620.00",
+      "description": "800MHz CPU,512MB RAM\n24個 10/100/1000以乙太網路連接埠\n2個 SFP+連接埠\nRouterOS L5或SwitchOS（雙啟動）\n1U機架安裝\n標準電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-156",
+      "name": "CRS326-24S+2Q+RM",
+      "sku": "HW-MT-ST-CRS326S",
+      "category": "MikroTik",
+      "listPrice": "21400.00",
+      "description": "2個  QSFP+插槽\n24個 SFP+插槽\n1個管理用LAN插槽\nRouterOS L5或SwitchOS（雙啟動）\n1U機架安裝\n雙冗餘電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-155",
+      "name": "CRS328-24P-4S+RM",
+      "sku": "HW-MT-ST-CRS328",
+      "category": "MikroTik",
+      "listPrice": "19000.00",
+      "description": "24個10/100/1000 乙太網路連接埠\n4個 SFP+連接埠\n800 MHz CPU/512MB RAM\n支援Switch硬體交換,支援802.1Q VLAN",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-157",
+      "name": "CRS354-48G-4S+2Q+RM",
+      "sku": "HW-MT-ST-CRS354G",
+      "category": "MikroTik",
+      "listPrice": "22000.00",
+      "description": "48個 10/100/1000 乙太網路連接埠\n4個  SFP+插槽\n2個 QSFP+插槽\nRouterOS L5\n1U機架安裝\n雙冗餘電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-396",
+      "name": "CRS354-48P-4S+2Q+RM",
+      "sku": "HW-MT-ST-CRS354P",
+      "category": "MikroTik",
+      "listPrice": "34500.00",
+      "description": "48 個 10/100/1000 RJ45 乙太網路連接埠（支援 PoE-out 功能）\n4 個 10G SFP+ 插槽\n2 個 40G QSFP+ 插槽\nRouterOS L5 / 1U 機架式安裝 / 750W PSU（電源供應單元）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-741",
+      "name": "CRS504-4XQ-IN",
+      "sku": "HW-MT-ST-CRS504",
+      "category": "MikroTik",
+      "listPrice": "28800.00",
+      "description": "QCA9531 650MHz CPU,64MB RAM\n16個 25G乙太網路連接埠，搭載98DX4310交換芯片\n4個 100G QSFP28連接埠\n1個 100Mbit乙太網路連接埠（用於管理）\nRouterOS L5\n雙熱插拔電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-790",
+      "name": "CRS520-4XS-16XQ-RM",
+      "sku": "HW-MT-ST-CRS520",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Cloud Router Switch 520-4XS-16XQ-RM with RouterOS L5 license,\nrackmount case (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-942",
+      "name": "E60iUGS(hEX S)",
+      "sku": "HW-MT-RT-HEX S",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "hEX S (2025 version) with RouterOS L4, desktop case (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-938",
+      "name": "EDGE-8500-RKMT-4POST",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-908",
+      "name": "EDGE-8500-STD-01-FIPS",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-660",
+      "name": "FAX/Recording MA",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-847",
+      "name": "FQ28-K7-L13-10D",
+      "sku": null,
+      "category": "硬體 / 光纖模組GBIC",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-732",
+      "name": "FSFP-CJ-T10-X1",
+      "sku": null,
+      "category": "硬體 / 光纖模組GBIC",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-686",
+      "name": "GEN-RADAR-PRO-1Y",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-426",
+      "name": "GPeR連接器",
+      "sku": "HW-MT-AS--G",
+      "category": "MikroTik",
+      "listPrice": "810.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-838",
+      "name": "IPPBX轉移VM費用",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": "VM環境客戶提供,僅提供遠端P2V移轉服務,\n報價不含版本及OS升級。",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-904",
+      "name": "M800B-ESBC",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-986",
+      "name": "M800B-ESBC-TAA",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-709",
+      "name": "M800C-ESBC",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-858",
+      "name": "M800C-V-1ET4S",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-161",
+      "name": "MP-J4125",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-162",
+      "name": "MP-J6412",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-811",
+      "name": "MP112/2S",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-882",
+      "name": "MPO-MPO-3M",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1038",
+      "name": "MT-HotSwapFan",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "Hot Swap Fan for CCR2216-1G-12XS-2XQ, CRS518-16XS-2XQ-RM and CRS812 DDQ",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-797",
+      "name": "MT-J6412",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1032",
+      "name": "MU-N150",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-452",
+      "name": "NA342-D4GI-1900-B-US",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-160",
+      "name": "NA342-D4GI-1900-B-US w/o LBP",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-457",
+      "name": "POE Injector(1G)",
+      "sku": null,
+      "category": "PoE Injector",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-458",
+      "name": "POE Injector(2.5G)",
+      "sku": null,
+      "category": "PoE Injector",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-427",
+      "name": "PW-12V150W 熱插拔電源",
+      "sku": "HW-MT-AS-PW48",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-423",
+      "name": "Q+DA0001",
+      "sku": "HW-MT-AS--Q",
+      "category": "MikroTik",
+      "listPrice": "1000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-412",
+      "name": "R11e-2HPnD",
+      "sku": "HW-MT-OT-R2",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-404",
+      "name": "RB1100AHx2",
+      "sku": "HW-MT-RT-1100AHx2",
+      "category": "MikroTik",
+      "listPrice": "10900.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-786",
+      "name": "RB1100AHx4",
+      "sku": "HW-MT-RT-1100AHx4",
+      "category": "MikroTik",
+      "listPrice": "11700.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-152",
+      "name": "RB1100AHx4 Dude Edition",
+      "sku": "HW-MT-RT-1100AHx4D",
+      "category": "MikroTik",
+      "listPrice": "13800.00",
+      "description": "4核心CPU ，1.4GHz，1GB RAM\n60GB M.2固態硬碟\n13個 10/100/1000乙太網路連接埠\nRouterOS L6（包含Dude Edition）\n1U機架安裝\n雙電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-397",
+      "name": "RB260GS",
+      "sku": "HW-MT-RT-RB260GS",
+      "category": "MikroTik",
+      "listPrice": "1530.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-794",
+      "name": "RB4011iGS+RM",
+      "sku": "HW-MT-RT-RB4011iGS",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-398",
+      "name": "RB450G",
+      "sku": "HW-MT-RT-RB450G",
+      "category": "MikroTik",
+      "listPrice": "4190.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-159",
+      "name": "RB450Gx4",
+      "sku": "HW-MT-RT-RB450Gx4",
+      "category": "MikroTik",
+      "listPrice": "4600.00",
+      "description": "CPU:4核心,716MHz,RAM:1GB\n5埠10/100/1000 Mbps 乙太網路連接埠\n原廠變壓器+原廠外殼\n原廠氣泡袋裸裝，無外盒",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-405",
+      "name": "RB5009UG+S+IN",
+      "sku": "HW-MT-RT-RB5009",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "CPU: 350-1400 (auto) MHz,RAM: 1GB\n7個10/100/1000 Mbps乙太網路連接埠\n1個2500 Mbps乙太網路連接埠\n1個 SFP+ 插槽",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-399",
+      "name": "RB750Gr3 (hEX)",
+      "sku": "HW-MT-RT-hEX",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "雙核心 CPU， 880MHz，256MB RAM\n5個10/100/1000乙太網路連接埠\n1個 USB端口\nRouterOS L4\n塑料外殼\n標準電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-527",
+      "name": "RB760iGS (hEX S)",
+      "sku": "HW-MT-RT-RB760",
+      "category": "MikroTik",
+      "listPrice": "3333.00",
+      "description": "雙核心 CPU， 880MHz，256MB RAM\n5個 10/100/1000乙太網路連接埠（第5個端口支持PoE OUT功能）\n1個 SFP連接埠\n1個 USB端口\nRouterOS L4\n塑料外殼\n標準電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-400",
+      "name": "RB850Gx2",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "3980.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-401",
+      "name": "RB912UAG-2HPnD",
+      "sku": "HW-MT-RT-RB912",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-402",
+      "name": "RB912UAG-2HPnD-OUT",
+      "sku": "HW-MT-RT-RB912-O",
+      "category": "MikroTik",
+      "listPrice": "4250.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-403",
+      "name": "RB951G-2HnD",
+      "sku": "HW-MT-RT-RB951",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-406",
+      "name": "RBD52G-5HacD2HnD-TC (hAP ac2)",
+      "sku": "HW-MT-WL-hAP ac2",
+      "category": "MikroTik",
+      "listPrice": "3800.00",
+      "description": "CPU: 716MHz CPU，128MB RAM\n5個 10/100/1000乙太網路連接埠\n1個 USB端口\n2.4GHz 802.11b/g/n 雙鏈路無線，內建天線\n5GHz 802.11an/ac 雙鏈路無線，內建天線\nRouterOS L4\n桌面/塔式機箱\n標準電源單元（PSU）",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-407",
+      "name": "RBD53G-5HacD2HnD-TC&EG12-EA (Chateau LTE12)",
+      "sku": "HW-MT-OT-CT LTE12",
+      "category": "MikroTik",
+      "listPrice": "10400.00",
+      "description": "四核心 CPU，716 MHz，256 MB RAM\n5 個  10/100/1000乙太網路連接埠\n2.4 GHz：802.11b/g/n，雙鏈路，內建天線\n5 GHz：802.11ac，雙鏈路，內建天線\nLTE 調變解調器：CAT12\n支持頻段：1、3、5、7、8、20、28、38、40、41（適用於國際使用）\nSMA 連接器/USB 端口/PSU/RouterOS L4",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-411",
+      "name": "RBFTC11",
+      "sku": "HW-MT-OT-RBFTC11",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-413",
+      "name": "RBM33G",
+      "sku": "HW-MT-OT-33G",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-409",
+      "name": "RBmAP2n (mAP)",
+      "sku": "HW-MT-WL-mAP",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-894",
+      "name": "RBmAP2nD (mAP)",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-410",
+      "name": "RBwAPG-5HacT2HnD (wAP ac)",
+      "sku": "HW-MT-WL-wAP ac",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-945",
+      "name": "RC-SPC-SP-SWE-EDGE-Q",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1036",
+      "name": "RDS2216-2XG-4S+4XS- 2XQ (ROSE Data Server)",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "ROSE Data Server (RouterOS L6) (US)",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-682",
+      "name": "RS100-E11-P12",
+      "sku": null,
+      "category": "ASUS",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-455",
+      "name": "RS300-E10-RS4",
+      "sku": null,
+      "category": "ASUS",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-717",
+      "name": "RS300-E11-RS4",
+      "sku": null,
+      "category": "ASUS",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-924",
+      "name": "Radar-LIC 網管偵測點擴充授權",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "1610.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-734",
+      "name": "RedHat Linux OS 訂閱制",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-668",
+      "name": "Ribbon SBC1000",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "80000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-557",
+      "name": "Ribbon SBC1000 擴充4埠FXO授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "24000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-947",
+      "name": "Ribbon SBC1000 硬體-第二年起保固費用(含備品/每年)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "19600.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-920",
+      "name": "Ribbon SBC1000/SBC2000 擴充30路SIP授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "67500.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-919",
+      "name": "Ribbon SBC1000/SBC2000 擴充5路SIP授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "11500.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-948",
+      "name": "Ribbon SBC1000/SBC2000-擴充1埠T1/E1授權-第二年起保固費用(含備品/每年)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "9800.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-917",
+      "name": "Ribbon SBC1000/SBC2000/SBC1000-GW 擴充1埠T1/E1授權",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "40000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-952",
+      "name": "Ribbon SBC2000",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "248000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-946",
+      "name": "Ribbon SBC2000-電源供應器(Optional)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "15000.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-416",
+      "name": "S+31DLC10D",
+      "sku": "HW-MT-AS--S+31",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-417",
+      "name": "S+85DLC03D",
+      "sku": "HW-MT-AS--S+85",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "SFP+光模組\nSFP+ (10Gbit), 300m, Multi Mode",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-421",
+      "name": "S+DA0001",
+      "sku": "HW-MT-AS--S+DA0001",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-422",
+      "name": "S+DA0003",
+      "sku": "HW-MT-AS--S+DA0003",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-420",
+      "name": "S+RJ10",
+      "sku": "HW-MT-AS--S+RJ10",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-414",
+      "name": "S-31DLC20D",
+      "sku": "HW-MT-AS--S-31",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "SFP 模組 1.25G SM 20km 1310nm 雙 LC 連接器",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-415",
+      "name": "S-85DLC05D",
+      "sku": "HW-MT-AS--S-85",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "1.25G SFP /550m 850nm多模式光纖",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-419",
+      "name": "S-RJ01",
+      "sku": "HW-MT-AS--S-RJ01",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "RJ45序列埠,光纖SFP 10/100/1000M",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-553",
+      "name": "SBC 1000 通話授權",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-721",
+      "name": "SBC SWe HA 系統",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-722",
+      "name": "SBC SWe HA 通話授權",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-723",
+      "name": "SBC SWe 硬體",
+      "sku": null,
+      "category": "DELL",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-441",
+      "name": "SBC-1K-R-2P-FXSFXO-GW",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-442",
+      "name": "SBC-1K-R-4P-FXSFXO-GW",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-932",
+      "name": "SBC-1K-R-FXO",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-443",
+      "name": "SBC-1K-R-P",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-444",
+      "name": "SBC-1K-R-SIP-E",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-927",
+      "name": "SBC-1K524161005",
+      "sku": null,
+      "category": "All",
+      "listPrice": "1.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-906",
+      "name": "SBC-2K-R-2",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-819",
+      "name": "SBC-2K-R-4",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-445",
+      "name": "SBC-2K-R-P",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-944",
+      "name": "SBC-SWEEDGE-LIC5SP",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-961",
+      "name": "SBC1000 會談邊界控制器軟體",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-965",
+      "name": "SBC1000 會談邊界控制器軟體-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-949",
+      "name": "SBC1000/SBC2000/擴充5路SIP授權-第二年起保固費用(含備品/每年)",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "2500.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-737",
+      "name": "SBC1000備品支援",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-450",
+      "name": "SIP-T23G",
+      "sku": null,
+      "category": "話機",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-598",
+      "name": "SIPProxy 轉移VM費用",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": "Linux 和 VM環境客戶準備",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-859",
+      "name": "SNM1000-AUTH認證模組",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-925",
+      "name": "SNM1000-RADAR-LIC Radar管理授權",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "11052.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1025",
+      "name": "SRV-DC-STD-A-E-Q",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1024",
+      "name": "SRV-SCMAINT-MISC-Q",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-560",
+      "name": "SS7 Server & Trunk Gateway  (三年租用服務)",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-750",
+      "name": "SSW-VOIP ENCS系統維護",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-897",
+      "name": "SVC-J6412",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "1.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-580",
+      "name": "SW/OVOC/M1KB",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": "OVOC license",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-587",
+      "name": "SW/SBC/10R/10-250",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": "SBC registered users license upgrade for 10 registered users, when\nordering within the 10-250 registered users range (1 to 25 units).",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1029",
+      "name": "SW/SBC/10S/10-250",
+      "sku": null,
+      "category": "AudioCodes",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-145",
+      "name": "Siraya AirZone 13W2",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "6000.00",
+      "description": "802.11AC Wave2 ， 2T2R，1300Mbps",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-448",
+      "name": "Siraya AirZone 13W2_V2",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-146",
+      "name": "Siraya AirZone 1750W",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "5500.00",
+      "description": "802.11AC， 3T3R，1750Mbps",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-446",
+      "name": "Siraya AirZone 1750W-I",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-447",
+      "name": "Siraya AirZone 1750W-O",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-144",
+      "name": "Siraya AirZone 3K",
+      "sku": null,
+      "category": "AP",
+      "listPrice": "8000.00",
+      "description": "802.11AX， 2T2R ， 3000Mbps",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-852",
+      "name": "Siraya EMS1000-BASE端點網管平台-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-855",
+      "name": "Siraya NST-BASE網路測速平台",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-856",
+      "name": "Siraya NST-C100用戶端網路測速軟體-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-757",
+      "name": "Siraya Radar-Basic-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1034",
+      "name": "Siraya Radar-Lite-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-618",
+      "name": "Siraya Radar-Pro - 1YLIC",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-854",
+      "name": "Siraya SNM1000 BASE-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "228218.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-853",
+      "name": "Siraya SNM1000-DB-1YLIC",
+      "sku": null,
+      "category": "軟體標",
+      "listPrice": "45359.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-730",
+      "name": "TMG800",
+      "sku": null,
+      "category": "Ribbon",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-950",
+      "name": "Teams案專用SBC遠端技術支援費用5*8",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "18000.00",
+      "description": "提供第二年起Ribbon / Audiocodes系列 SBC遠端技術支援費用(每台每年)\n提供5*8服務\nTeams 案專用",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1039",
+      "name": "UP1302C-12",
+      "sku": null,
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "12v 10.8A internal power supply for CRS326-24S+2Q+RM, CCR2116-12G-4S+, CCR1036-8G-2S+ new r2 revisions",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-837",
+      "name": "XQ+31LC02D",
+      "sku": "HW-MT-AS--XQ+31",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-836",
+      "name": "XQ+85MP01D",
+      "sku": "HW-MT-AS--XQ+85",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": "QSFP+/QSFP28光模組\n1x12 MTP/MPO\n40G/100Gbps 850nm optical QSFP+/QSFP28 module",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-418",
+      "name": "XS+31LC10D",
+      "sku": "HW-MT-AS--XS+31",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-795",
+      "name": "XS+85LC01D",
+      "sku": "HW-MT-AS--XS+85",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-425",
+      "name": "XS+DA0003",
+      "sku": "HW-MT-AS--XS+DA0003",
+      "category": "MikroTik",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-449",
+      "name": "Yealink SIP-T30P",
+      "sku": null,
+      "category": "話機",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-451",
+      "name": "Yealink VP-2009",
+      "sku": null,
+      "category": "話機",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-833",
+      "name": "保固",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-747",
+      "name": "備品服務",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-860",
+      "name": "外包",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-835",
+      "name": "安裝工程",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-683",
+      "name": "客製化作業-外包",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-700",
+      "name": "客製化軟體開發",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-641",
+      "name": "客製化開發",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-850",
+      "name": "專屬Android/iOS雙系統用戶端行動通訊APP",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-675",
+      "name": "專屬型行動通訊整合系統維保",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-514",
+      "name": "平台維運人力",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-725",
+      "name": "技術支援服務",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": "",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-726",
+      "name": "技術服務",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-770",
+      "name": "授權",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-756",
+      "name": "支援人力費用 (單次叫修)",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-798",
+      "name": "支架(耳朵)",
+      "sku": null,
+      "category": "Radar",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-637",
+      "name": "教育訓練",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-678",
+      "name": "智慧撥號系統維護",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-212",
+      "name": "智慧網管MA",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-699",
+      "name": "智慧網管系統",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-616",
+      "name": "智慧網管軟體訂閱制服務",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-840",
+      "name": "服務",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-766",
+      "name": "服務移轉",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1011",
+      "name": "標準19吋機櫃1U層板",
+      "sku": null,
+      "category": "電腦周邊配件",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-879",
+      "name": "海外簽帳手續費",
+      "sku": null,
+      "category": "其他",
+      "listPrice": "1.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-808",
+      "name": "測速系統",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-799",
+      "name": "測速系統維護",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-630",
+      "name": "無線AP設定與測試",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-629",
+      "name": "無線網路基地台",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-621",
+      "name": "無線網路基地台控制器 /網路存取管理器系統維護 1年維護",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-556",
+      "name": "現場人力支援費用",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-821",
+      "name": "租用",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-892",
+      "name": "系統升級",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-801",
+      "name": "系統程式碼維護",
+      "sku": null,
+      "category": "All",
+      "listPrice": "2400000.00",
+      "description": "測速系統維護",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-696",
+      "name": "系統維護",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-513",
+      "name": "系統軟體",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-861",
+      "name": "維修費",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-839",
+      "name": "維護",
+      "sku": null,
+      "category": "人力支援 / 系統維護",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-674",
+      "name": "維護服務一年",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-758",
+      "name": "維運服務",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1010",
+      "name": "網絡線 15m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1002",
+      "name": "網絡線 18m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1015",
+      "name": "網路線",
+      "sku": null,
+      "category": "中華共契料單",
+      "listPrice": "0.00",
+      "description": "1.2米 CAT6規格網路線",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1008",
+      "name": "網路線 1m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1006",
+      "name": "網路線 2m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1022",
+      "name": "網路線 3m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1009",
+      "name": "網路線 4m",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-1004",
+      "name": "網路線 50cm",
+      "sku": null,
+      "category": "線材",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-743",
+      "name": "網路跳接線",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-905",
+      "name": "耗材",
+      "sku": null,
+      "category": "All",
+      "listPrice": "1.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-742",
+      "name": "設備檢測費",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-893",
+      "name": "設備移機",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-677",
+      "name": "認證系統",
+      "sku": null,
+      "category": "All",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-512",
+      "name": "語音交換平台",
+      "sku": null,
+      "category": "All",
+      "listPrice": "2300000.00",
+      "description": "語音交換平台",
+      "source": "odoo"
+    },
+    {
+      "id": "odoo-822",
+      "name": "運費",
+      "sku": null,
+      "category": "其他",
+      "listPrice": "0.00",
+      "description": null,
+      "source": "odoo"
+    },
+    {
+      "id": "quote-sbc 1000 系統",
+      "name": "SBC 1000\r 系統",
+      "spec": "Ribbon SBC1000 系統 \r (台北、桃園、台南）",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 85680,
+        "max": 85680,
+        "avg": 85680
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-sbc 1000 技術支援",
+      "name": "SBC 1000\r 技術支援",
+      "spec": "5x8 技術支援服務一年\r 1.服務時間為工作日5x8\r 2.維護保固期間內提供必要性韌體(Firmware)更新服務(遠端)\r 3.提供初級技術服務: 提供產品資訊和授權查詢、一般性問題回覆 (不包括支援遠端障礙及現場端障礙查修服務)",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 5040,
+        "max": 5040,
+        "avg": 5040
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-ribbon edge 8500",
+      "name": "Ribbon Edge 8500",
+      "spec": "Ribbon Edge 8500 系統\r 1.內建 SBC（Session Border Controller）與 L3 VPN 功能\r 2.共振多組號碼功能機制\r 3.支援 240 同時通話數\r 4.20路SIP通話授權\r 5.提供 8 組 T1/E1 數位外線\r 6. 4 x 10Gb SFP+ 光纖介面\r 7. 6 x 10/100/1000 Mbps RJ-45（可靈活配置為 LAN 或 WAN）\r 8.AC redundant power(含電源線)",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 914286,
+        "max": 1152000,
+        "avg": 1033143
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-現場安裝支援",
+      "name": "現場安裝支援",
+      "spec": "提供現場安裝設定一式\r 1.中華電信（CHT）、台灣固網（TFN）、遠傳電信（FET）等三家電信業者之 E1 電路介接與配合電信業者 E1 線路切換等作業。\r 2. 與本所現有各據點 SBC、Avaya、語音及傳真系統之整合作業。\r 3.Teams 介接設定費用。\r 4.其他系統功能設定與測試。",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 161905,
+        "max": 204000,
+        "avg": 182952.5
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-通話紀錄報表系統介面修改",
+      "name": "通話紀錄報表系統介面修改",
+      "spec": "通話紀錄報表系統介面修改\r 程式修改工時一式",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 57143,
+        "max": 84000,
+        "avg": 70571.5
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-ippbx 路由切換 (上班時間)",
+      "name": "IPPBX 路由切換 (上班時間)",
+      "spec": "1.協助外撥下車路由設定 (E1 轉換為 IP Centrex) 2.遠端協助修改設定 (地點: 台中、高雄) 3.服務時間：週一至週五 09:00 - 18:00。 4.進行 IP Trunk相關功能測試 (包含E1線路拆線前及拆線後)",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 10000,
+        "max": 10000,
+        "avg": 10000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-ippbx 系統調整",
+      "name": "IPPBX 系統調整",
+      "spec": "1.人力配合業主需求,夜間功能調整測試。(AVAYA將外線移走) 2.IPPBX-E1外線路由、類比外線及分機號碼轉碼設定。 3.HA 架構同步調整設定。",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 30000,
+        "max": 30000,
+        "avg": 30000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-siraya radar 智慧網管偵測主",
+      "name": "Siraya Radar  智慧網管偵測主機(新款)",
+      "spec": "Siraya Radar 智慧網管偵測主機 (新購置) -Intel CPU 四核心  -8GB RAM / SSD -120GB -輸入: 100-240V~50/60Hz 1.7A  -輸出: 60W (12V/5A)  -自行安裝於學校 L3 Switch -尺寸約: 23.5 x 18.5 x 7 CM (長x寬x高) 保固時間: 五年",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 20000,
+        "max": 20000,
+        "avg": 20000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-siraya 智慧網管 radar 主機",
+      "name": "Siraya 智慧網管 Radar 主機(新款)",
+      "spec": "Siraya 智慧網管 Radar 主機",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 10500,
+        "max": 10500,
+        "avg": 10500
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-voip 專用 sbc audiocod",
+      "name": "VoIP 專用 SBC\r AudioCodes M Serious",
+      "spec": "•支援60 coucurrent  call ，1000 register。\r •支援TLS v1.2\r •支援Secure RTP (SRTP) 媒體加密\r •支援HA 備援\r •支援Topology hiding; User privacy\r •支援DoS/DDoS line rate protection, bandwidth throttling",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 1577500,
+        "max": 1577500,
+        "avg": 1577500
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-lcd kvm多電腦切換器 aten c",
+      "name": "LCD KVM多電腦切換器\r ATEN CL5716N",
+      "spec": "•模組式的LCD KVM切換器(螢幕/鍵盤/觸控板/KVM)\r •支援多媒體USB鍵盤(PC、Mac 及Sun)\r •標準工業級19寸1U高度\r •可翻轉LCD螢幕",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 70000,
+        "max": 70000,
+        "avg": 70000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-voip終端+ 通訊測試設備 (andr",
+      "name": "VoIP終端+\r 通訊測試設備\r (Android)",
+      "spec": "•參考廠牌型號:Samsung Galaxy'S25 優規或同等品\r •含保護殼及電源轉接器\r •通過NCC規範認證\r •RAM:8GB 或以上\r •ROM:256GB·或以上\r •CPU:Qualcomm·Snapdragon·8、Google Tensor-G4 \r 以上\r •預設出廠作業系統:Android·為 14 或以上\r •螢幕尺寸(英吋):6或以上\r •本項設備保固依原廠保固條款",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 28700,
+        "max": 28700,
+        "avg": 28700
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-voip 終端 通訊測試設備 (ios)",
+      "name": "VoIP 終端\r 通訊測試設備\r (ioS)",
+      "spec": "•參考廠牌型號:Apple iPhone 16 優規或同等品\r •含保護殼及電源轉接器\r •通過NCC規範認證\r •RAM:8GB 或以上\r •ROM:256GB·或以上\r •CPU:A18晶片或以上\r •預設出廠作業系統:i0S為18或以上\r •螢幕尺寸(英吋):6或以上\r •本項設備保固依原廠保固條款",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 34200,
+        "max": 34200,
+        "avg": 34200
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-voip平台系統(軟體)",
+      "name": "VoIP平台系統(軟體)",
+      "spec": "•更新系統設定。\r •動態網路port資源配置, Auto UDP Port Reset\r •相容性測試，底層系統架構部分微調。",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 1000000,
+        "max": 1000000,
+        "avg": 1000000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-wazuh siem 系統",
+      "name": "Wazuh SIEM 系統",
+      "spec": "•年度訂閱制，訂閱期間 (至~2028/12/31)\r •提供本案主機設備端點資安防護，提供入侵偵測及防•禦機制與資訊彙整，\r •資安事件處理與報告，惡意程式分析。\r •含Linux , windows  agent 授權",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 510000,
+        "max": 510000,
+        "avg": 510000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-gentrice snm 網管系統",
+      "name": "Gentrice SNM 網管系統",
+      "spec": "•內網Netflow 蒐集及網路設備管理\r •進階網路拓樸圖",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 1230000,
+        "max": 1230000,
+        "avg": 1230000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-客制化功能",
+      "name": "客制化功能",
+      "spec": "配合本案之相關客製化開發 : \r -系統備份之還原機制及告警開發\r -自動備份機制開發\r -納管設備開發 IP Part & Mobile Part。IP Part之GUI呈現及Mobile Part (撈取資料、轉換格式、北向拋出)\r -IP Part (juniper EX/SRX/SRR and A10 Thunder 1060s, Mobile Part Druid Raemis (SNMP + Curl) Ecisson BTS/Dell iDRAC/Proxmox VE/Rocky Linux)\r -整合客戶端OSS Splunk",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 2000000,
+        "max": 2000000,
+        "avg": 2000000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-網管系統建置",
+      "name": "網管系統建置",
+      "spec": "客戶端網管系統建置費用",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 100000,
+        "max": 100000,
+        "avg": 100000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-fax / recording (ma)",
+      "name": "FAX / Recording  (MA)",
+      "spec": "維護內容 :  FAX (含 FAX 擴充模組)/ Recording  1.hdd 空間檢查 2.檢查網路流量是否異常 3.檢查記憶體使用狀況 4.防火牆狀況確認 3.檢查有無異常程式執行中 5.檢查有無異常登入 6.檢查系統loading 7.測試傳真是否正常接收與下載 8.檢查錄音檔案是否正常產生與下載 9.檢查UI是否有異常登入記錄 10. 檢查DB Service 是否正常",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 25000,
+        "max": 25000,
+        "avg": 25000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-ippbx-主系統",
+      "name": "IPPBX-主系統",
+      "spec": "提供 500 路 註冊授權 支援標準  SIP RFC 3261 格式 500 路錄音授權(管理者可以聽取錄音） 500 路語音信箱授權 錄音資料保存天數依照硬碟和使用量而有所不同。 1組自動總機錄音問候語 IPPBX主機硬體一台",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 2000000,
+        "max": 2000000,
+        "avg": 2000000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-conference phone",
+      "name": "Conference  Phone",
+      "spec": "型號: hp poly Trio8300  POE電源、延伸MIC 選配 麥克風收音範圍 : 3.7m / 12' Wi-Fi calls：Get started faster and more easily with Wi-Fi audio calling supported on 2.4GHz and 5GHz  Poly NoiseBlock technology to reduce background noise 硬體保固 1年",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 15000.000000000002,
+        "max": 29000,
+        "avg": 17800
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-系統安裝及設定",
+      "name": "系統安裝及設定",
+      "spec": "IPPBX系統安裝及設定 SBC VoIP Gateway 安裝及設定 分機相關功能設定(代接、語音信箱等)",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 40000,
+        "max": 60000,
+        "avg": 44000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-recording system",
+      "name": "Recording System",
+      "spec": "系統軟體: CM 專用版 Recording System MA 一年\t (10 路授權)",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 9999.6,
+        "max": 15000,
+        "avg": 12499.8
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-sipproxy+ippbx 主機轉移v",
+      "name": "SIPProxy+IPPBX \r 主機轉移VM費用",
+      "spec": "IPPBX 和 SIPProxy主機轉移至VM的服務說明如下：\r (僅限移轉在線主機)\r 1.VM 環境由客戶提供，本公司僅提供 P2V 移轉服務。\r 2.報價不含 IPPBX及SIPProxy 版本及 Linux OS 重建費用 –(CentOS 平台改為 Ubuntu 平台)。\r 3.本服務不包含HA備援機同步或移轉。",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 95000,
+        "max": 95000,
+        "avg": 95000
+      },
+      "customers": [],
+      "source": "quotation"
+    },
+    {
+      "id": "quote-sip server trunk ip修",
+      "name": "SIP Server Trunk IP修改",
+      "spec": "SIP Server Trunk IP 修改\r 路由調整及防火牆規則修正\r 註: 過保無約客戶",
+      "category": "From Quotations",
+      "priceRange": {
+        "min": 9524,
+        "max": 9524,
+        "avg": 9524
+      },
+      "customers": [],
+      "source": "quotation"
+    }
+  ],
+  "aliases": {},
+  "priceHistory": {
+    "po-1": {
+      "prices": [
+        80000
+      ],
+      "min": 80000,
+      "max": 80000,
+      "avg": 80000
+    },
+    "po-2": {
+      "prices": [
+        14400
+      ],
+      "min": 14400,
+      "max": 14400,
+      "avg": 14400
+    },
+    "po-3": {
+      "prices": [
+        180000
+      ],
+      "min": 180000,
+      "max": 180000,
+      "avg": 180000
+    },
+    "po-4": {
+      "prices": [
+        135000
+      ],
+      "min": 135000,
+      "max": 135000,
+      "avg": 135000
+    },
+    "sbc swe ha 系統": {
+      "prices": [
+        105040
+      ],
+      "min": 105040,
+      "max": 105040,
+      "avg": 105040
+    },
+    "sbc swe ha 通話授權": {
+      "prices": [
+        40400
+      ],
+      "min": 40400,
+      "max": 40400,
+      "avg": 40400
+    },
+    "sbc swe 硬體": {
+      "prices": [
+        360570
+      ],
+      "min": 360570,
+      "max": 360570,
+      "avg": 360570
+    },
+    "sbc 1000 系統": {
+      "prices": [
+        85680
+      ],
+      "min": 85680,
+      "max": 85680,
+      "avg": 85680
+    },
+    "sbc 1000 通話授權": {
+      "prices": [
+        20400
+      ],
+      "min": 20400,
+      "max": 20400,
+      "avg": 20400
+    },
+    "sbc 1000 硬體安裝工程": {
+      "prices": [
+        21216
+      ],
+      "min": 21216,
+      "max": 21216,
+      "avg": 21216
+    },
+    "sbc swe 硬體安裝工程": {
+      "prices": [
+        18720
+      ],
+      "min": 18720,
+      "max": 18720,
+      "avg": 18720
+    },
+    "技術服務": {
+      "prices": [
+        19968
+      ],
+      "min": 19968,
+      "max": 19968,
+      "avg": 19968
+    },
+    "第2~5年，延長技術服務": {
+      "prices": [
+        49440
+      ],
+      "min": 49440,
+      "max": 49440,
+      "avg": 49440
+    },
+    "美光集團專案使用- sbc swe ha 延長保固": {
+      "prices": [
+        183763.44
+      ],
+      "min": 183763.44,
+      "max": 183763.44,
+      "avg": 183763
+    },
+    "美光集團專案使用- sbc 1000 延長保固": {
+      "prices": [
+        60175.120319999995
+      ],
+      "min": 60175.120319999995,
+      "max": 60175.120319999995,
+      "avg": 60175
+    },
+    "sbc 1000系統 延長保固": {
+      "prices": [
+        84000,
+        84000
+      ],
+      "min": 84000,
+      "max": 84000,
+      "avg": 84000
+    },
+    "sbc 1000 技術支援": {
+      "prices": [
+        5040,
+        5040
+      ],
+      "min": 5040,
+      "max": 5040,
+      "avg": 5040
+    },
+    "ribbon edge 8500": {
+      "prices": [
+        1152000,
+        914286
+      ],
+      "min": 914286,
+      "max": 1152000,
+      "avg": 1033143
+    },
+    "現場安裝支援": {
+      "prices": [
+        204000,
+        161905
+      ],
+      "min": 161905,
+      "max": 204000,
+      "avg": 182953
+    },
+    "通話紀錄報表系統介面修改": {
+      "prices": [
+        84000,
+        57143
+      ],
+      "min": 57143,
+      "max": 84000,
+      "avg": 70572
+    },
+    "教育訓練": {
+      "prices": [
+        12000,
+        9523
+      ],
+      "min": 9523,
+      "max": 12000,
+      "avg": 10762
+    },
+    "軟體維護": {
+      "prices": [
+        47619,
+        57143
+      ],
+      "min": 47619,
+      "max": 57143,
+      "avg": 52381
+    },
+    "ippbx 路由切換 (上班時間)": {
+      "prices": [
+        10000
+      ],
+      "min": 10000,
+      "max": 10000,
+      "avg": 10000
+    },
+    "ippbx 系統調整": {
+      "prices": [
+        30000
+      ],
+      "min": 30000,
+      "max": 30000,
+      "avg": 30000
+    },
+    "ribbon sbc1000": {
+      "prices": [
+        180000
+      ],
+      "min": 180000,
+      "max": 180000,
+      "avg": 180000
+    },
+    "mikrotik crs326-24s+2q+rm": {
+      "prices": [
+        17250
+      ],
+      "min": 17250,
+      "max": 17250,
+      "avg": 17250
+    },
+    "mikrotik crs326-24g-2s+rm": {
+      "prices": [
+        6500
+      ],
+      "min": 6500,
+      "max": 6500,
+      "avg": 6500
+    },
+    "無線網路基地台": {
+      "prices": [
+        6800,
+        6800,
+        5,
+        6800
+      ],
+      "min": 5,
+      "max": 6800,
+      "avg": 5101
+    },
+    "sip server 維護": {
+      "prices": [
+        85000
+      ],
+      "min": 85000,
+      "max": 85000,
+      "avg": 85000
+    },
+    "ippbx維護": {
+      "prices": [
+        40000
+      ],
+      "min": 40000,
+      "max": 40000,
+      "avg": 40000
+    },
+    "智慧網管ma": {
+      "prices": [
+        460000,
+        460000
+      ],
+      "min": 460000,
+      "max": 460000,
+      "avg": 460000
+    },
+    "校園網路韌性設備日誌分析系統 (netflow)-訂閱制": {
+      "prices": [
+        500000
+      ],
+      "min": 500000,
+      "max": 500000,
+      "avg": 500000
+    },
+    "siraya radar 智慧網管偵測主機(新款)": {
+      "prices": [
+        20000
+      ],
+      "min": 20000,
+      "max": 20000,
+      "avg": 20000
+    },
+    "智慧網管系統 (南投)": {
+      "prices": [
+        700000,
+        868000
+      ],
+      "min": 700000,
+      "max": 868000,
+      "avg": 784000
+    },
+    "零信任認證系統": {
+      "prices": [
+        300000,
+        372000,
+        300000,
+        372000
+      ],
+      "min": 300000,
+      "max": 372000,
+      "avg": 336000
+    },
+    "智慧網管系統 (竹東)": {
+      "prices": [
+        740000,
+        917600
+      ],
+      "min": 740000,
+      "max": 917600,
+      "avg": 828800
+    },
+    "plc可程式控制器 客製化開發": {
+      "prices": [
+        200000,
+        248000
+      ],
+      "min": 200000,
+      "max": 248000,
+      "avg": 224000
+    },
+    "switch管理授權擴充": {
+      "prices": [
+        142857,
+        1200
+      ],
+      "min": 1200,
+      "max": 142857,
+      "avg": 72029
+    },
+    "無線網路認證系統維護費用": {
+      "prices": [
+        100000
+      ],
+      "min": 100000,
+      "max": 100000,
+      "avg": 100000
+    },
+    "維護條件：": {
+      "prices": [
+        100000,
+        105600,
+        85000
+      ],
+      "min": 85000,
+      "max": 105600,
+      "avg": 96867
+    },
+    "dell r230 相容記憶體 (金士頓)": {
+      "prices": [
+        2000
+      ],
+      "min": 2000,
+      "max": 2000,
+      "avg": 2000
+    },
+    "保固：": {
+      "prices": [
+        4000,
+        380000,
+        499187.52,
+        9016400,
+        438000
+      ],
+      "min": 4000,
+      "max": 9016400,
+      "avg": 2067518
+    },
+    "智慧網管ma (gr-gen-shg-ma)": {
+      "prices": [
+        31104
+      ],
+      "min": 31104,
+      "max": 31104,
+      "avg": 31104
+    },
+    "維護期間：": {
+      "prices": [
+        31104,
+        302400,
+        262499.5800000001,
+        135000
+      ],
+      "min": 31104,
+      "max": 302400,
+      "avg": 182751
+    },
+    "siraya radar-lic 網管偵測點擴充授權": {
+      "prices": [
+        236
+      ],
+      "min": 236,
+      "max": 236,
+      "avg": 236
+    },
+    "siraya snm1000 base - 1ylic": {
+      "prices": [
+        6
+      ],
+      "min": 6,
+      "max": 6,
+      "avg": 6
+    },
+    "siraya siraya snm1000-db - 1ylic": {
+      "prices": [
+        6
+      ],
+      "min": 6,
+      "max": 6,
+      "avg": 6
+    },
+    "siraya snm1000-radar-lic radar 管理授權": {
+      "prices": [
+        472
+      ],
+      "min": 472,
+      "max": 472,
+      "avg": 472
+    },
+    "mikrotik ccr2004-1g-12s+2xs": {
+      "prices": [
+        19000,
+        20600,
+        21900
+      ],
+      "min": 19000,
+      "max": 21900,
+      "avg": 20500
+    },
+    "智慧網管系統 一年授權 (gen-shgbl)": {
+      "prices": [
+        499187.52
+      ],
+      "min": 499187.52,
+      "max": 499187.52,
+      "avg": 499188
+    },
+    "智慧網管系統 兩年ma (gen-shgbl)": {
+      "prices": [
+        144000,
+        124999.80000000002
+      ],
+      "min": 124999.80000000002,
+      "max": 144000,
+      "avg": 134500
+    },
+    "siraya 智慧網管 radar 主機(新款)": {
+      "prices": [
+        10500
+      ],
+      "min": 10500,
+      "max": 10500,
+      "avg": 10500
+    },
+    "voip系統軟體維護": {
+      "prices": [
+        105600
+      ],
+      "min": 105600,
+      "max": 105600,
+      "avg": 105600
+    },
+    "crs326-24g-2s+rm": {
+      "prices": [
+        5400,
+        5100,
+        5100
+      ],
+      "min": 5100,
+      "max": 5400,
+      "avg": 5200
+    },
+    "rb5009ug+s+in": {
+      "prices": [
+        5700,
+        5700
+      ],
+      "min": 5700,
+      "max": 5700,
+      "avg": 5700
+    },
+    "e60iugs(hex s)": {
+      "prices": [
+        1700
+      ],
+      "min": 1700,
+      "max": 1700,
+      "avg": 1700
+    },
+    "mikrotik rb450gx4": {
+      "prices": [
+        4452
+      ],
+      "min": 4452,
+      "max": 4452,
+      "avg": 4452
+    },
+    "智慧網管系統 第一年 (3-1)": {
+      "prices": [
+        133300
+      ],
+      "min": 133300,
+      "max": 133300,
+      "avg": 133300
+    },
+    "智慧網管系統 第二年 (3-2)": {
+      "prices": [
+        133300
+      ],
+      "min": 133300,
+      "max": 133300,
+      "avg": 133300
+    },
+    "智慧網管系統 第三年 (3-3)": {
+      "prices": [
+        133400
+      ],
+      "min": 133400,
+      "max": 133400,
+      "avg": 133400
+    },
+    "系統維護": {
+      "prices": [
+        57500,
+        57500
+      ],
+      "min": 57500,
+      "max": 57500,
+      "avg": 57500
+    },
+    "voip 專用 sbc audiocodes m serious": {
+      "prices": [
+        1577500
+      ],
+      "min": 1577500,
+      "max": 1577500,
+      "avg": 1577500
+    },
+    "mikrotik 路由器 ccr2004-16g-2s+": {
+      "prices": [
+        26250
+      ],
+      "min": 26250,
+      "max": 26250,
+      "avg": 26250
+    },
+    "機架型固定式維運終端機 dell r260": {
+      "prices": [
+        73500
+      ],
+      "min": 73500,
+      "max": 73500,
+      "avg": 73500
+    },
+    "2u server (網管主機) dell r760": {
+      "prices": [
+        520000
+      ],
+      "min": 520000,
+      "max": 520000,
+      "avg": 520000
+    },
+    "固定式維運終端機dell optiplex tower 7020 xcto": {
+      "prices": [
+        37000
+      ],
+      "min": 37000,
+      "max": 37000,
+      "avg": 37000
+    },
+    "固定式維運終端機顯示器 samsung s24d362gac": {
+      "prices": [
+        3000
+      ],
+      "min": 3000,
+      "max": 3000,
+      "avg": 3000
+    },
+    "lcd kvm多電腦切換器 aten cl5716n": {
+      "prices": [
+        70000
+      ],
+      "min": 70000,
+      "max": 70000,
+      "avg": 70000
+    },
+    "sonicwall 防火牆建置及維護 (tz-570)": {
+      "prices": [
+        305000
+      ],
+      "min": 305000,
+      "max": 305000,
+      "avg": 305000
+    },
+    "ribbon sbc1000 e1 gateway": {
+      "prices": [
+        1224000
+      ],
+      "min": 1224000,
+      "max": 1224000,
+      "avg": 1224000
+    },
+    "voip終端+ 通訊測試設備 (android)": {
+      "prices": [
+        28700
+      ],
+      "min": 28700,
+      "max": 28700,
+      "avg": 28700
+    },
+    "voip 終端 通訊測試設備 (ios)": {
+      "prices": [
+        34200
+      ],
+      "min": 34200,
+      "max": 34200,
+      "avg": 34200
+    },
+    "voip平台系統(軟體)": {
+      "prices": [
+        1000000
+      ],
+      "min": 1000000,
+      "max": 1000000,
+      "avg": 1000000
+    },
+    "wazuh siem 系統": {
+      "prices": [
+        510000
+      ],
+      "min": 510000,
+      "max": 510000,
+      "avg": 510000
+    },
+    "gentrice snm 網管系統": {
+      "prices": [
+        1230000
+      ],
+      "min": 1230000,
+      "max": 1230000,
+      "avg": 1230000
+    },
+    "ippbx系統維護": {
+      "prices": [
+        85000
+      ],
+      "min": 85000,
+      "max": 85000,
+      "avg": 85000
+    },
+    "poe injector(1g)": {
+      "prices": [
+        260
+      ],
+      "min": 260,
+      "max": 260,
+      "avg": 260
+    },
+    "專屬型通訊整合系統維護 案號:109m13090152": {
+      "prices": [
+        990000
+      ],
+      "min": 990000,
+      "max": 990000,
+      "avg": 990000
+    },
+    "check point 防火牆維護 checkpoint license 軟體訂閱制服務 (2024": {
+      "prices": [
+        2400000
+      ],
+      "min": 2400000,
+      "max": 2400000,
+      "avg": 2400000
+    },
+    "dx2030維護": {
+      "prices": [
+        26000
+      ],
+      "min": 26000,
+      "max": 26000,
+      "avg": 26000
+    },
+    "遠端技術服務": {
+      "prices": [
+        9500
+      ],
+      "min": 9500,
+      "max": 9500,
+      "avg": 9500
+    },
+    "智慧網管系統 (license)": {
+      "prices": [
+        3200000
+      ],
+      "min": 3200000,
+      "max": 3200000,
+      "avg": 3200000
+    },
+    "客制化功能": {
+      "prices": [
+        2000000
+      ],
+      "min": 2000000,
+      "max": 2000000,
+      "avg": 2000000
+    },
+    "網管系統建置": {
+      "prices": [
+        100000
+      ],
+      "min": 100000,
+      "max": 100000,
+      "avg": 100000
+    },
+    "專案管理及教育訓練": {
+      "prices": [
+        150000
+      ],
+      "min": 150000,
+      "max": 150000,
+      "avg": 150000
+    },
+    "mikrotik ccr1009-7g-1c-1s+ cloud router switch (良品": {
+      "prices": [
+        13500
+      ],
+      "min": 13500,
+      "max": 13500,
+      "avg": 13500
+    },
+    "crs326-24g-2s+rm switch": {
+      "prices": [
+        9000
+      ],
+      "min": 9000,
+      "max": 9000,
+      "avg": 9000
+    },
+    "勤業 ribbon sbc1000 平台維護": {
+      "prices": [
+        6250
+      ],
+      "min": 6250,
+      "max": 6250,
+      "avg": 6250
+    },
+    "勤業 mvpn 跨群撥號系統 red hat linux os 升級改版服務": {
+      "prices": [
+        60000
+      ],
+      "min": 60000,
+      "max": 60000,
+      "avg": 60000
+    },
+    "系統軟體維護保固": {
+      "prices": [
+        161905
+      ],
+      "min": 161905,
+      "max": 161905,
+      "avg": 161905
+    },
+    "fax / recording (ma)": {
+      "prices": [
+        25000
+      ],
+      "min": 25000,
+      "max": 25000,
+      "avg": 25000
+    },
+    "ippbx-主系統": {
+      "prices": [
+        2000000
+      ],
+      "min": 2000000,
+      "max": 2000000,
+      "avg": 2000000
+    },
+    "ribbon sbc1000 gateway": {
+      "prices": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "min": 1,
+      "max": 1,
+      "avg": 1
+    },
+    "ip phone": {
+      "prices": [
+        2500,
+        3000,
+        3000,
+        3000,
+        3000
+      ],
+      "min": 2500,
+      "max": 3000,
+      "avg": 2900
+    },
+    "conference phone": {
+      "prices": [
+        29000,
+        15000.000000000002,
+        15000.000000000002,
+        15000.000000000002,
+        15000.000000000002
+      ],
+      "min": 15000.000000000002,
+      "max": 29000,
+      "avg": 17800
+    },
+    "系統安裝及設定": {
+      "prices": [
+        60000,
+        40000,
+        40000,
+        40000,
+        40000
+      ],
+      "min": 40000,
+      "max": 60000,
+      "avg": 44000
+    },
+    "ippbx-主系統 (不含ha)": {
+      "prices": [
+        700000
+      ],
+      "min": 700000,
+      "max": 700000,
+      "avg": 700000
+    },
+    "2~5年維護費用": {
+      "prices": [
+        150000,
+        150000,
+        120000,
+        150000
+      ],
+      "min": 120000,
+      "max": 150000,
+      "avg": 142500
+    },
+    "recording": {
+      "prices": [
+        300000
+      ],
+      "min": 300000,
+      "max": 300000,
+      "avg": 300000
+    },
+    "recording system": {
+      "prices": [
+        15000,
+        9999.6
+      ],
+      "min": 9999.6,
+      "max": 15000,
+      "avg": 12500
+    },
+    "ippbx-主系統 (含ha)": {
+      "prices": [
+        1200000,
+        1200000,
+        1200000
+      ],
+      "min": 1200000,
+      "max": 1200000,
+      "avg": 1200000
+    },
+    "維護": {
+      "prices": [
+        25000
+      ],
+      "min": 25000,
+      "max": 25000,
+      "avg": 25000
+    },
+    "sipproxy+ippbx 主機轉移vm費用": {
+      "prices": [
+        95000
+      ],
+      "min": 95000,
+      "max": 95000,
+      "avg": 95000
+    },
+    "sip server trunk ip修改": {
+      "prices": [
+        9524
+      ],
+      "min": 9524,
+      "max": 9524,
+      "avg": 9524
+    }
+  },
+  "categories": [
+    "行動裝置(手機、平板)",
+    "MikroTik",
+    "手機周邊配件",
+    "Ribbon",
+    "顯示器、電腦",
+    "All",
+    "欣揚",
+    "中華共契料單",
+    "AudioCodes",
+    "硬碟",
+    "話機",
+    "D-Link",
+    "DELL",
+    "硬體 / 光纖模組GBIC",
+    "Gigabyte、Giga",
+    "軟體標",
+    "授權",
+    "人力支援 / 系統維護",
+    "網卡",
+    "記憶體",
+    "Radar",
+    "線材",
+    "硬體 / 原價屋",
+    "PoE Injector",
+    "ASUS",
+    "SANGOMA",
+    "記憶卡",
+    "AP",
+    "電腦周邊配件",
+    "其他",
+    "Expenses"
+  ],
+  "customers": [
+    {
+      "id": "cmjaxj4xb000812glly0kljmq",
+      "name": "HTC",
+      "email": "Ziv_Chin@htc.com",
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjrntttm000b12zb85wf0pcp",
+      "name": "Radiator Software Oy",
+      "email": "billing@radiatorsoftware.com",
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj4xq000d12glzmubddum",
+      "name": "U.3",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmkdbzb9s0000ha278zel68vg",
+      "name": "admin",
+      "email": "service@gentrice.net",
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj505001612gl6c24tge2",
+      "name": "一二三生活科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj508001712gluiwxbf11",
+      "name": "上福事務機器企業社 ",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinem00gwpe3ds4ahk3gl",
+      "name": "上銀科技",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50b001812glk83dg2jd",
+      "name": "中央研究院",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "中研院",
+        "數學所"
+      ]
+    },
+    {
+      "id": "cmjaxj50d001912glcthhhknx",
+      "name": "中芯數據股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50g001a12glx2ntymkw",
+      "name": "中華資安國際股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50j001b12glxticcfl2",
+      "name": "中華電信(臨時名稱)",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50m001c12gltpy21q54",
+      "name": "中華電信股份有限公司企業客戶分公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50p001d12glj1tu69t6",
+      "name": "中華電信股份有限公司南投營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50s001e12gldgzkl7n8",
+      "name": "中華電信股份有限公司台中營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50v001f12gl22bbzwxv",
+      "name": "中華電信股份有限公司台北營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj50z001g12glfro2q608",
+      "name": "中華電信股份有限公司台東營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj512001h12glpmnxmk3t",
+      "name": "中華電信股份有限公司嘉義營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj515001i12glcjd7bf0k",
+      "name": "中華電信股份有限公司宜蘭營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj518001j12glen9i6wk3",
+      "name": "中華電信股份有限公司彰化營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51b001k12glo2r5ykd3",
+      "name": "中華電信股份有限公司新北營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51e001l12glujt1032q",
+      "name": "中華電信股份有限公司新竹營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51h001m12gljhh4klfs",
+      "name": "中華電信股份有限公司桃園營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51k001n12glqd6hpzxz",
+      "name": "中華電信股份有限公司臺南營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51n001o12gllmpxir1e",
+      "name": "中華電信股份有限公司苗栗營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51q001p12glfpmyfeu8",
+      "name": "中華電信股份有限公司雲林營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51t001q12glvjl99hv1",
+      "name": "中華電信股份有限公司高雄營運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51w001r12glgej4v7nu",
+      "name": "交通部觀光局東北角暨宜蘭海岸國家風景區管理處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj51z001s12glc6m49tp6",
+      "name": "仁通資訊股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimeo002tpe3dfu3a5etj",
+      "name": "何建增",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj522001t12glwi4bonau",
+      "name": "個人",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj525001u12glv7qkyq5a",
+      "name": "傑昇通信",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj528001v12gly3pxfkne",
+      "name": "傳典工程股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinjv00iape3d6xrzxdg2",
+      "name": "優洋企業",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkina000gape3d0322i469",
+      "name": "全興創新科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52b001w12glo9nv8osy",
+      "name": "凌群電腦股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52e001x12gl1j81mrnd",
+      "name": "創勝科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52i001y12glzlv2z94u",
+      "name": "創意電子股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52o002012gl1b00766d",
+      "name": "力新網通商行",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkin7r00fbpe3d8o8qftts",
+      "name": "力旺電子",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52r002112gl973912cb",
+      "name": "力麗科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52u002212glhm9t833j",
+      "name": "勤業眾信聯合會計師事務所",
+      "email": "yuyang@deloitte.com.tw",
+      "phone": "02-2725-9988",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj52x002312gl453cag1w",
+      "name": "南投縣埔里鎮南光國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj530002412glsj9bgwfd",
+      "name": "南投縣教育網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj539002712glno77etqo",
+      "name": "博聯資訊有限公司",
+      "email": null,
+      "phone": "(03) 9568441",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53c002812gls3ojjxny",
+      "name": "原價屋電腦股份有限公司八德二店",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53e002912gl1ig5qdw6",
+      "name": "友訊科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinmv00jnpe3d38zpsj6x",
+      "name": "台北國家圖書館",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjav8r330000y0nzgx4r2zq7",
+      "name": "台北市教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkin8k00fnpe3dib9nt5fg",
+      "name": "台南市政府公運處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53k002a12gl38b0dcl5",
+      "name": "台南市教網中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53n002b12glmnmrfg1m",
+      "name": "台灣二版有限公司",
+      "email": null,
+      "phone": "(02)7722-6899",
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinit00hspe3dl56w5bwt",
+      "name": "台灣大哥大",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53s002d12glfyrvfs56",
+      "name": "台灣拜耳",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53v002e12glkmnmlkj7",
+      "name": "台灣純水科技股份有限公司",
+      "email": null,
+      "phone": "04 2699 2308",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj53y002f12glp09z5gi6",
+      "name": "台灣谷米數位科技有限公司",
+      "email": null,
+      "phone": "(02)2731-0910",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj540002g12glklwfwqn3",
+      "name": "司安網路科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj543002h12glloes5p3j",
+      "name": "名人電腦股份有限公司",
+      "email": "lala@mren.com.tw",
+      "phone": "03-5737772#12",
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimfr003bpe3d7m8d0i0s",
+      "name": "吳宗憲",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimav0017pe3dxlqjrpfd",
+      "name": "呂翊寧 Sylvia",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim7x0007pe3dmpych1lx",
+      "name": "周家妃 Shelly",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj546002i12glx9ujpk18",
+      "name": "嘉義縣中埔鄉頂六國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj548002j12glc8n6sb7u",
+      "name": "嘉義縣網",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54b002k12glkjuykmj4",
+      "name": "國光電信網路有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54e002l12glgvjbn18q",
+      "name": "國家實驗研究院國家高速網路與計算中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54g002m12glmbfpmrsb",
+      "name": "國泰世華商業銀行股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54j002n12glrboqs8h6",
+      "name": "國眾電腦股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54m002o12glpllt5w5m",
+      "name": "國立中央大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "中央",
+        "中大",
+        "NCU"
+      ]
+    },
+    {
+      "id": "cmjaxj54p002p12gluibzh45y",
+      "name": "國立公共資訊圖書館",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj54s002q12glux9ggcg4",
+      "name": "國立台灣大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "台大",
+        "NTU",
+        "國立臺灣大學",
+        "臺大"
+      ]
+    },
+    {
+      "id": "cmjaxj54u002r12glwci83n2t",
+      "name": "國立政治大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "政大",
+        "NCCU"
+      ]
+    },
+    {
+      "id": "cmjaxj54x002s12gl68dg3u76",
+      "name": "國立東華大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "東華",
+        "NDHU"
+      ]
+    },
+    {
+      "id": "cmjaxj550002t12gl1wikqft7",
+      "name": "國立海洋生物博物館",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj552002u12glcamz6bct",
+      "name": "國立科學工藝博物館",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkin8d00fkpe3d92b7kdbm",
+      "name": "國立臺灣大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "台大",
+        "NTU",
+        "國立台灣大學",
+        "臺大"
+      ]
+    },
+    {
+      "id": "cmjaxj556002v12glbc5nflyh",
+      "name": "國立臺灣師範大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "台師大",
+        "師大",
+        "NTNU"
+      ]
+    },
+    {
+      "id": "cmjaxj559002w12glvkr2hswj",
+      "name": "國立苗栗高級農工職業學校",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55c002x12gl3vxb1tii",
+      "name": "國立陽明交通大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "陽交大",
+        "交大",
+        "陽明交大",
+        "NYCU"
+      ]
+    },
+    {
+      "id": "cmjaxj55f002y12gll5pot3y1",
+      "name": "國衛院",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55i002z12gl5sn8p2ie",
+      "name": "圓碟資訊科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55k003012gl4e8nxtwd",
+      "name": "大同世界科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55n003112glz2xnwcdu",
+      "name": "大同股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55q003212gli7pox32x",
+      "name": "大和國泰",
+      "email": null,
+      "phone": "(02)2723-9698",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55s003312glzq707rrv",
+      "name": "天天實業有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55v003412glqunbf6ky",
+      "name": "天鉞科技股份有限公司",
+      "email": null,
+      "phone": "02-27903560",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj55y003512glgtlhendb",
+      "name": "太奇雲端股份有限公司 Touch Cloud Inc.",
+      "email": "Jack.lai@touchcloud.com.tw",
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj561003612gl40fxf6f4",
+      "name": "奇毅資訊股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj564003712gla98f23ih",
+      "name": "奇藝科技實業有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj566003812glue9yb5z8",
+      "name": "如梭世代股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimnd006ppe3df80us1hl",
+      "name": "姚榮輝",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj569003912glp6xke5do",
+      "name": "威策電腦股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56c003a12gl4hghnm2f",
+      "name": "威麥克健康生技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56f003b12glj8xk6xvi",
+      "name": "孚通科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56h003c12glupr8btaj",
+      "name": "安侯企業管理股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56k003d12gl7ojyvlpy",
+      "name": "安侯國際財務顧問股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56n003e12glad4q2b4k",
+      "name": "安智銀行",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56p003f12glv53zlxrf",
+      "name": "安資科技有限公司",
+      "email": null,
+      "phone": "(049)222-7601",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56s003g12glmv31v1y7",
+      "name": "宏瓏科技工程有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56v003h12glj05yjc4d",
+      "name": "宏碁股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj56x003i12gl3brm40sk",
+      "name": "宏電科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj570003j12glvkjbgoo3",
+      "name": "宜蘭縣政府",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjth0tol0056sgmzqwdubx5s",
+      "name": "宜蘭縣教育局智慧網管",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj578003m12gldpsox2fa",
+      "name": "宜蘭縣教育資訊網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57b003n12glihufniv8",
+      "name": "宜蘭縣立吳沙國民中學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57g003p12gl2unoa8g5",
+      "name": "富鍍錸有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57j003q12glrzuxivje",
+      "name": "實力科技服務有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57m003r12glk4qkz3p5",
+      "name": "屏東科技大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "屏科大",
+        "NPUST"
+      ]
+    },
+    {
+      "id": "cmjaxj57o003s12gl6ia0vguk",
+      "name": "屏東縣教育網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57r003t12glc7otqdix",
+      "name": "山上",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57u003u12glq3vzi67m",
+      "name": "師大附中",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj57x003v12gl4kmm4eeu",
+      "name": "康迅數位整合股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj580003w12gl5lnr1af0",
+      "name": "建順煉鋼股份有限公司",
+      "email": null,
+      "phone": "037-753411",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj583003x12gl1bw95xwi",
+      "name": "弘展資訊有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimap0014pe3drqlaqnh8",
+      "name": "張彥中 Ken",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimkk005gpe3dvibkbev2",
+      "name": "張玉滿",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58b003y12glk19wisrc",
+      "name": "彰化教網",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58f003z12glpzjlawni",
+      "name": "微可有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58i004012glhnh2enuf",
+      "name": "德耀資訊有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58k004112glj8uha6zm",
+      "name": "忠合資訊企業社",
+      "email": null,
+      "phone": "(02)2517-6066#806",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58n004212glp4928kmc",
+      "name": "恩嘉科技",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58q004312gl1mztshzj",
+      "name": "恩麒資訊有限公司",
+      "email": null,
+      "phone": "(04)2262-7666",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58t004412glmtdtgwf5",
+      "name": "愷華資訊有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58w004512gl2ex6jyrp",
+      "name": "慧鴻資訊科技有限公司",
+      "email": null,
+      "phone": "(03)550-8776",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj58z004612gly8mbhflu",
+      "name": "成雅企業有限公司",
+      "email": null,
+      "phone": "(02)8511-0123",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj595004812glhu30xfun",
+      "name": "揚智科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj597004912glg5yu89r3",
+      "name": "教育部",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59a004a12gll2iefgs7",
+      "name": "教育部國民及學前教育署臺北辦公室",
+      "email": null,
+      "phone": "(02)7736-7499",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59d004b12gly0gyqeur",
+      "name": "教育部資科司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59g004c12gl9g5t2o0g",
+      "name": "文曄科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59i004d12glm3cdcxg0",
+      "name": "新世紀資通股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59l004e12gleflubbfb",
+      "name": "新加坡商蝦皮娛樂電商有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59o004f12glgbwez3fk",
+      "name": "新北市三重區二重國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59r004g12gle5uh4vb4",
+      "name": "新北市中和區積穗國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj59x004i12gl1hznilqb",
+      "name": "新北市政府警察局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjx2htcs0002ik6cx1a0y4if",
+      "name": "新北市教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbp2tnc001c12acb9cauuhz",
+      "name": "新北市教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5a3004j12glcu0ve9ig",
+      "name": "新北市淡水區淡海國小",
+      "email": null,
+      "phone": "(02)2805-1698",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5a5004k12gl0lkvmsyj",
+      "name": "新北市秀山國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ab004m12glsx99cta9",
+      "name": "新竹縣教育研究發展暨網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ae004n12glnhro5ktd",
+      "name": "新竹縣立湖口高級中學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjth0tsm0057sgmzmckfzckb",
+      "name": "新竹縣網",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5aj004p12glg91chfax",
+      "name": "旭鴻資通股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5am004q12glqeeyu36u",
+      "name": "昀達企業社",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5aw004t12gl6ctv57mx",
+      "name": "星宇精密企業有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5b4004w12glfuc0rryd",
+      "name": "晶成半導體股份有限公司",
+      "email": null,
+      "phone": ":03-5635666",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5be004x12glwu55xy8e",
+      "name": "智僚資訊顧問有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjx2htdg0003ik6cks7ng98y",
+      "name": "智匯亞洲科技股份有限公司",
+      "email": "sabrinasun@commverge.com",
+      "phone": "02-8502-7258",
+      "aliases": []
+    },
+    {
+      "id": "cmjx13cxh00011za0payujibz",
+      "name": "智慧亞洲",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim9f000ppe3dvsf9izs5",
+      "name": "曾恕彰",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5bh004y12glnthjfhd1",
+      "name": "東北角國家風景區管理處",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5bk004z12glc1j5oert",
+      "name": "東森得意購股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5bn005012glw6mod55b",
+      "name": "東豐科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5br005112gl5yo0wybi",
+      "name": "松霖興業社",
+      "email": null,
+      "phone": "(04)2246-2200",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5bt005212gluaaxc1ce",
+      "name": "林大志 Kevin",
+      "email": "kevin@gentrice.net",
+      "phone": "0933-030-309",
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinbj00ghpe3dtkkphbxo",
+      "name": "林宥辰",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjrmx4ff000079lz7xxw0kaj",
+      "name": "林煜庭",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimeb002npe3drebcrenm",
+      "name": "林科呈",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkingn00h1pe3dgn9jrof0",
+      "name": "林銘志",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5bw005312gltngw0ksr",
+      "name": "柏可揚實業有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5c1005512glqo688b2o",
+      "name": "欣揚電腦股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5c4005612gldskb4qnz",
+      "name": "歐斯資訊科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5c7005712gl30h97hym",
+      "name": "歐森科技有限公司",
+      "email": null,
+      "phone": "02-22183822",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ca005812glcozid46s",
+      "name": "正瀚生技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cd005912gl3sea8mt1",
+      "name": "武漢機械",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cg005a12glmblazizi",
+      "name": "殷諾科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cj005b12gll7g4f4o8",
+      "name": "永慶房屋仲介股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cl005c12glxfr3pyk3",
+      "name": "泰北高中",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5co005d12gl79junwmq",
+      "name": "深圳市豐潤達科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim7q0004pe3d531fm0sa",
+      "name": "潘皓鈞",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cr005e12glih0jqrtn",
+      "name": "潤鴻企業股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cw005g12gly68b2hlb",
+      "name": "澎湖縣教育網路中心(澎湖縣立文光國民中學)",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5cz005h12glpm21308z",
+      "name": "澎湖縣立文光國民中學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5d2005i12glo8jdetmb",
+      "name": "澤威科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5d4005j12glzdbdyvc1",
+      "name": "炬識科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim99000mpe3dbljy2ee5",
+      "name": "王琮文",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5d7005k12glw22fj47t",
+      "name": "王登儀",
+      "email": "deyi@gm.ntct.edu.tw",
+      "phone": "(049)224-1043#12",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5da005l12glncnv2123",
+      "name": "瑪凱電信股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5dk005n12glufjyioi1",
+      "name": "百貨公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5dn005o12gl82aei30j",
+      "name": "神坊資訊股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinoh00kcpe3d3v64vxht",
+      "name": "秦正浩",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5dp005p12gl3c95ywt1",
+      "name": "立威通訊有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ds005q12glk2cczm74",
+      "name": "竑瑞科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjs42a8d001z5cbqz5lhox68",
+      "name": "米立方",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5e1005t12gl7omjsteb",
+      "name": "線上探索科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5e3005u12glthkdjd5s",
+      "name": "美光集團(台中后里)",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5e6005v12gltg353dlf",
+      "name": "美商世偉洛克科技有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5e9005w12gl1fgrgksb",
+      "name": "群曜數位科技股份有限公司",
+      "email": "cet066@chyunyao.com",
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ec005x12glz4hvcgae",
+      "name": "聖泉興業有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ef005y12glzomfy19t",
+      "name": "聯合大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "聯大",
+        "NUU"
+      ]
+    },
+    {
+      "id": "cmjaxj5ei005z12glwam71a2b",
+      "name": "聯和科創股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ek006012glvgkyd3mo",
+      "name": "聯強國際股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5en006112globx3c8q8",
+      "name": "聯慷資訊科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5eq006212gluy1ba5k5",
+      "name": "聯浚電訊股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5et006312gl8bl7qoeh",
+      "name": "聲勢科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ev006412gl8qwj2gxf",
+      "name": "聲威網際科技股份有限公司",
+      "email": null,
+      "phone": "(02)8226-9968",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ey006512gl0o3ocm5k",
+      "name": "職涯力股份有限公司",
+      "email": null,
+      "phone": "02-25218885",
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimfk0038pe3d33zszpqs",
+      "name": "胡柏升",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5f1006612gl3xwlti5s",
+      "name": "自由時報企業股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5f4006712glkobc5nij",
+      "name": "至興精機股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5f6006812gl4dr3uz20",
+      "name": "至興資通股份有限公司",
+      "email": null,
+      "phone": "04-23205186",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5f9006912glufl3jymj",
+      "name": "臺中市南區忠明南路760號38樓A2",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fc006a12glslgufr77",
+      "name": "臺南市政府教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fe006b12gll6i9j8a2",
+      "name": "臺灣港務股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fh006c12glkstntb7b",
+      "name": "花蓮縣教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fk006d12glzx02w89u",
+      "name": "苗栗縣後龍鎮後龍國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fn006e12glqzvbrp80",
+      "name": "苗栗縣造橋鄉談文國民小學",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fp006f12glkbgdq58u",
+      "name": "苗栗縣教育網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fs006g12gly6tjinyl",
+      "name": "英特威資訊股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fv006h12gldqf4aerg",
+      "name": "草屯商工",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5fy006i12glj5q5qu3p",
+      "name": "菁智科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5g0006j12glwsoex2om",
+      "name": "華厚股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5g3006k12gl1yokqfcn",
+      "name": "華廣生技",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5g6006l12glj80iwsdx",
+      "name": "華泰電子",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimdu002gpe3dlshtn890",
+      "name": "蔡承志",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimei002qpe3dt59i1pt5",
+      "name": "蕭彰志",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkims30080pe3dexjfjr4d",
+      "name": "蕭銘華",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimeu002wpe3dbp78z22d",
+      "name": "薛乃榮 Willie",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim9x000xpe3drnuu6pus",
+      "name": "蘇湧皓",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjrntu76000y12zbz7fuos7m",
+      "name": "西拉雅網路股份有限公司",
+      "email": null,
+      "phone": "0255787688",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gf006o12glhcl2nk7r",
+      "name": "西河科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gk006q12glrh1z9oif",
+      "name": "豐康科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gn006r12gl4tg4vkdy",
+      "name": "豪勉科技股份有限公司",
+      "email": "andrewh@hauman.com.tw",
+      "phone": "02-2559-6163 # 2231",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gq006s12gljur1oxfi",
+      "name": "財團法人國家實驗研究院國家高速網路與計算中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gt006t12glud74vfzl",
+      "name": "財團法人天帝教",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5gw006u12glph1avh4e",
+      "name": "財團法人銘傳大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "銘傳",
+        "銘傳大學",
+        "MCU"
+      ]
+    },
+    {
+      "id": "cmjaxj5gz006v12glh8flwi4q",
+      "name": "財政部臺北國稅局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5h2006w12glsv5d9uwl",
+      "name": "財政部財政資訊中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5h5006x12glz7cteleg",
+      "name": "購物平台網站",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjth0u0l0058sgmzpolohmap",
+      "name": "辛文義",
+      "email": null,
+      "phone": "0987152900",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hb006z12glgsxaufcv",
+      "name": "逢甲大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "逢甲",
+        "FCU"
+      ]
+    },
+    {
+      "id": "cmjaxj5hd007012glqqj248dw",
+      "name": "連江縣政府",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hg007112gl8g8g8trr",
+      "name": "連江縣教育網路中心",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hj007212gla7xrio1n",
+      "name": "連盈網通股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hl007312gl0qmlmxfw",
+      "name": "遠傳電信股份有限公司系統整合分公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimfe0035pe3ddo8cpt71",
+      "name": "鄧中荃",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5ho007412gl9yvixtl8",
+      "name": "金門縣政府",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hr007512glh8ybi8e6",
+      "name": "金門縣教育網路中心",
+      "email": null,
+      "phone": "082-318823",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hu007612glp5wygr84",
+      "name": "長峰資訊股份有限公司",
+      "email": null,
+      "phone": "(02)2788-9761",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hw007712glpiwgsw3y",
+      "name": "阿逸多資訊有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimhr0049pe3dwsiro559",
+      "name": "陳亭卉",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkim9q000upe3d7h7p8nzv",
+      "name": "陳其鋒",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5hz007812gl67a97j5l",
+      "name": "陳文祥",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5i2007912glkk5qwpl8",
+      "name": "雲林縣教網",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5i4007a12gl0imvvwfp",
+      "name": "露天",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5im007b12gls624o2fu",
+      "name": "靜宜大學",
+      "email": null,
+      "phone": null,
+      "aliases": [
+        "靜宜",
+        "PU"
+      ]
+    },
+    {
+      "id": "cmjaxj5iz007c12gl2p9r2vkr",
+      "name": "顯赫資訊股份有限公司",
+      "email": "service@gentrice.net",
+      "phone": "0282269200",
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5j9007d12gl4dcdjwlc",
+      "name": "高雄市政府教育局",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5jk007e12gluiwn4n45",
+      "name": "鴻揚半導體股份有限公司",
+      "email": null,
+      "phone": "(03)564-3888",
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimf80032pe3dkji4h7za",
+      "name": "黃奇甫",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimf1002zpe3dqep9kf08",
+      "name": "黃建誠",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkinjc00i1pe3dom39pat5",
+      "name": "黃掀芸",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjbkimhl0046pe3d7hpv6tgo",
+      "name": "黃詩軒",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    },
+    {
+      "id": "cmjaxj5jr007f12glhzkmiex2",
+      "name": "鼎原科技股份有限公司",
+      "email": null,
+      "phone": null,
+      "aliases": []
+    }
+  ]
+}
