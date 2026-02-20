@@ -135,9 +135,8 @@ async function handleMessageEvent(
         await mkdir(uploadDir, { recursive: true })
         await writeFile(filePath, imageBuffer)
 
-        // 使用 API 路由提供圖片
-        const baseUrl = process.env.NEXTAUTH_URL || 'https://localhost:3000'
-        mediaUrl = `${baseUrl}/api/uploads/line/${filename}`
+        // 使用相對路徑，讓瀏覽器自動解析正確的 host
+        mediaUrl = `/api/uploads/line/${filename}`
 
         console.log(`LINE image saved: ${filename}`)
       } catch (err) {
