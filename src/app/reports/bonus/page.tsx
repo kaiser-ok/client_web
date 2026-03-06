@@ -20,7 +20,8 @@ const { Text } = Typography
 const fetcher = (url: string) => fetch(url).then(r => r.json())
 
 const currentYear = new Date().getFullYear()
-const yearOptions = Array.from({ length: 5 }, (_, i) => currentYear - i)
+// 過去 2 年 + 當年 + 未來 5 年，由新到舊排列
+const yearOptions = Array.from({ length: 8 }, (_, i) => currentYear + 5 - i)
 
 interface ProjectSummary {
   evalId: string

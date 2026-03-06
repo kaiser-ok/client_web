@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
-  Modal, Form, InputNumber, Input, Select, Button, Table, Space,
+  Modal, Form, InputNumber, Input, Select, Button, Table, Space, Collapse,
   Slider, Card, Statistic, Row, Col, Tag, Divider, message, Popconfirm, Tabs,
 } from 'antd'
 import {
   PlusOutlined, DeleteOutlined, DollarOutlined, PercentageOutlined,
-  TrophyOutlined, CheckCircleOutlined, CloudDownloadOutlined,
+  TrophyOutlined, CheckCircleOutlined, CloudDownloadOutlined, RollbackOutlined,
 } from '@ant-design/icons'
 import {
   COST_CATEGORIES, MEMBER_ROLES, DEFAULT_ALLOCATION, SCORE_ADJUSTMENTS,
@@ -29,8 +29,9 @@ interface Props {
 export default function BonusEvalModal({
   open, onClose, projectId, projectName, projectType, dealAmount: initialDealAmount, dealName,
 }: Props) {
-  const { can } = useUser()
-  const canApprove = can('APPROVE_BONUS')
+  const { role, can } = useUser()
+  const canApproveBase = can('APPROVE_BONUS')
+  const canEdit = can('EDIT_BONUS')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -46,6 +47,7 @@ export default function BonusEvalModal({
   const [warrantyYears, setWarrantyYears] = useState(1)
   const [scoreSpreadPcts, setScoreSpreadPcts] = useState<number[]>([100])
   const [activeYearTab, setActiveYearTab] = useState('0')
+  const [costCollapseKeys, setCostCollapseKeys] = useState<string[]>([])
 
   // Fetch eval data + users
   useEffect(() => {
@@ -61,12 +63,14 @@ export default function BonusEvalModal({
         const ev = evalRes.eval
         setEvalData(ev)
         setDealAmount(Number(ev.dealAmount))
-        setCosts(ev.costs.map((c: ProjectCostItem) => ({
+        const loadedCosts = ev.costs.map((c: ProjectCostItem) => ({
           id: c.id,
           category: c.category,
           description: c.description,
           amount: Number(c.amount),
-        })))
+        }))
+        setCosts(loadedCosts)
+        setCostCollapseKeys(loadedCosts.length > 0 && loadedCosts.length <= 5 ? ['costs'] : [])
         // Group members by yearOffset
         const grouped: Record<number, BonusMember[]> = {}
         const wYears = ev.warrantyYears || 1
@@ -98,6 +102,7 @@ export default function BonusEvalModal({
         // New eval - set defaults
         setDealAmount(initialDealAmount || (evalRes.project?.deal?.amount ? Number(evalRes.project.deal.amount) : 0))
         setCosts([])
+        setCostCollapseKeys([])
         setMembersByYear({ 0: [] })
         setImportanceAdj(0)
         setQualityAdj(0)
@@ -356,7 +361,7 @@ export default function BonusEvalModal({
         message.error(data.error || '操作失敗')
         return
       }
-      message.success(action === 'approve' ? '已核准' : action === 'paid' ? '已標記發放' : '已退回')
+      message.success(action === 'approve' ? '已核准' : action === 'revert' ? '已退回草稿' : '已退回')
       onClose()
     } catch {
       message.error('操作失敗')
@@ -365,7 +370,10 @@ export default function BonusEvalModal({
     }
   }
 
-  const isReadOnly = evalData?.status === 'PAID'
+  // FINANCE can approve when dealAmount < 300000
+  const canApprove = canApproveBase || (role === 'FINANCE' && dealAmount < 300000)
+
+  const isReadOnly = !canEdit || evalData?.status === 'APPROVED' || evalData?.status === 'PAID'
 
   // Render member table for a specific yearOffset
   const renderMemberTable = (yearOffset: number) => {
@@ -670,68 +678,75 @@ export default function BonusEvalModal({
         </Row>
 
         {/* External Costs */}
-        <Divider style={{ margin: '12px 0 8px' }}>
-          外部成本
-          {!isReadOnly && (
-            <>
-              <Button type="link" icon={<PlusOutlined />} onClick={addCost} size="small">
-                新增
-              </Button>
-              <Button
-                type="link"
-                icon={<CloudDownloadOutlined />}
-                onClick={importOdooCosts}
-                loading={importingOdoo}
+        <Divider style={{ margin: '12px 0 8px' }}>外部成本</Divider>
+        <Collapse
+          size="small"
+          activeKey={costCollapseKeys}
+          onChange={keys => setCostCollapseKeys(keys as string[])}
+          style={{ marginBottom: 16 }}
+          items={[{
+            key: 'costs',
+            label: (
+              <Space>
+                <span>外部成本明細</span>
+                <Tag>{costs.length} 筆</Tag>
+                {totalCost > 0 && <Tag color="red">合計 ${totalCost.toLocaleString()}</Tag>}
+              </Space>
+            ),
+            extra: !isReadOnly ? (
+              <Space onClick={e => e.stopPropagation()}>
+                <Button type="link" icon={<PlusOutlined />} onClick={addCost} size="small">新增</Button>
+                <Button type="link" icon={<CloudDownloadOutlined />} onClick={importOdooCosts} loading={importingOdoo} size="small">
+                  從 Odoo 帶入
+                </Button>
+              </Space>
+            ) : undefined,
+            children: costs.length > 0 ? (
+              <Table
+                dataSource={costs}
+                rowKey={(_, i) => String(i)}
+                pagination={false}
                 size="small"
-              >
-                從 Odoo 帶入
-              </Button>
-            </>
-          )}
-        </Divider>
-        {costs.length > 0 && (
-          <Table
-            dataSource={costs}
-            rowKey={(_, i) => String(i)}
-            pagination={false}
-            size="small"
-            style={{ marginBottom: 16 }}
-            columns={[
-              {
-                title: '類別', dataIndex: 'category', width: 150,
-                render: (val: string, _: ProjectCostItem, i: number) => (
-                  <Select value={val} onChange={v => updateCost(i, 'category', v)} style={{ width: '100%' }} disabled={isReadOnly}>
-                    {COST_CATEGORIES.map(c => <Select.Option key={c.value} value={c.value}>{c.label}</Select.Option>)}
-                  </Select>
-                ),
-              },
-              {
-                title: '說明', dataIndex: 'description',
-                render: (val: string, _: ProjectCostItem, i: number) => (
-                  <Input value={val} onChange={e => updateCost(i, 'description', e.target.value)} disabled={isReadOnly} />
-                ),
-              },
-              {
-                title: '金額', dataIndex: 'amount', width: 150,
-                render: (val: number, _: ProjectCostItem, i: number) => (
-                  <InputNumber
-                    value={val}
-                    onChange={v => updateCost(i, 'amount', v || 0)}
-                    style={{ width: '100%' }}
-                    formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                    disabled={isReadOnly}
-                  />
-                ),
-              },
-              ...(!isReadOnly ? [{
-                title: '', width: 40,
-                render: (_: unknown, __: ProjectCostItem, i: number) => (
-                  <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCost(i)} size="small" />
-                ),
-              }] : []),
-            ]}
-          />
-        )}
+                columns={[
+                  {
+                    title: '類別', dataIndex: 'category', width: 150,
+                    render: (val: string, _: ProjectCostItem, i: number) => (
+                      <Select value={val} onChange={v => updateCost(i, 'category', v)} style={{ width: '100%' }} disabled={isReadOnly}>
+                        {COST_CATEGORIES.map(c => <Select.Option key={c.value} value={c.value}>{c.label}</Select.Option>)}
+                      </Select>
+                    ),
+                  },
+                  {
+                    title: '說明', dataIndex: 'description',
+                    render: (val: string, _: ProjectCostItem, i: number) => (
+                      <Input value={val} onChange={e => updateCost(i, 'description', e.target.value)} disabled={isReadOnly} />
+                    ),
+                  },
+                  {
+                    title: '金額', dataIndex: 'amount', width: 150,
+                    render: (val: number, _: ProjectCostItem, i: number) => (
+                      <InputNumber
+                        value={val}
+                        onChange={v => updateCost(i, 'amount', v || 0)}
+                        style={{ width: '100%' }}
+                        formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        disabled={isReadOnly}
+                      />
+                    ),
+                  },
+                  ...(!isReadOnly ? [{
+                    title: '', width: 40,
+                    render: (_: unknown, __: ProjectCostItem, i: number) => (
+                      <Button type="text" danger icon={<DeleteOutlined />} onClick={() => removeCost(i)} size="small" />
+                    ),
+                  }] : []),
+                ]}
+              />
+            ) : (
+              <div style={{ textAlign: 'center', padding: '8px 0', color: '#999' }}>尚無外部成本</div>
+            ),
+          }]}
+        />
 
         {/* Members - Per Year Tabs */}
         <Divider style={{ margin: '12px 0 8px' }}>成員分配</Divider>
@@ -796,6 +811,11 @@ export default function BonusEvalModal({
                   <Button danger loading={saving}>退回</Button>
                 </Popconfirm>
               </>
+            )}
+            {evalData?.status === 'APPROVED' && canEdit && (
+              <Popconfirm title="確定退回草稿重新編輯？核准狀態將被撤銷。" onConfirm={() => handleApprove('revert')}>
+                <Button icon={<RollbackOutlined />} loading={saving}>退回草稿</Button>
+              </Popconfirm>
             )}
             {!isReadOnly && (
               <>
