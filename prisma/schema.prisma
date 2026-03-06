@@ -157,6 +157,8 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  bonusAllocations ProjectBonusMember[]
+
   @@map("users")
 }
 
@@ -223,11 +225,77 @@ model Project {
 
   activities   Activity[]    // 相關活動
   lineChannels LineChannel[] // 相關 LINE 頻道
+  bonusEval    ProjectBonusEval? // 獎金評估
 
   @@index([partnerId])
   @@index([endUserId])
   @@index([status])
   @@map("projects")
+}
+
+// ============================================
+// 專案獎金評估
+// ============================================
+
+model ProjectBonusEval {
+  id              String   @id @default(cuid())
+  projectId       String   @unique
+  project         Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  year            Int      // 評估年度
+  dealAmount      Decimal  @db.Decimal(12, 2) // 成案金額（從 Deal 帶入）
+  totalCost       Decimal  @db.Decimal(12, 2) @default(0) // 外部成本合計
+  projectAmount   Decimal  @db.Decimal(12, 2) // 專案金額 = dealAmount - totalCost
+  baseScore       Decimal  @db.Decimal(8, 2)  // 基礎分 = projectAmount / 100000
+  importanceAdj   Decimal  @db.Decimal(5, 2) @default(0)  // 重要性加成 (0~20%)
+  qualityAdj      Decimal  @db.Decimal(5, 2) @default(0)  // 質量加減 (-10~+10%)
+  efficiencyAdj   Decimal  @db.Decimal(5, 2) @default(0)  // 時效加減 (-10~+10%)
+  totalScore      Decimal  @db.Decimal(8, 2)  // 總分 = baseScore × (100% + adj%)
+  warrantyYears   Int      @default(1)        // 保固年數（1=不攤分）
+  scoreSpreadPcts Json?                       // 攤分比例 JSON，例如 [70, 15, 15]，加總需 = 100
+  status          String   @default("DRAFT")  // DRAFT, EVALUATED, APPROVED, PAID
+  evaluatedBy     String?  // 評估人
+  approvedBy      String?  // 核准人（總經理）
+  notes           String?  @db.Text
+  createdBy       String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  costs           ProjectCost[]
+  members         ProjectBonusMember[]
+
+  @@index([year])
+  @@index([status])
+  @@map("project_bonus_evals")
+}
+
+model ProjectCost {
+  id          String           @id @default(cuid())
+  evalId      String
+  eval        ProjectBonusEval @relation(fields: [evalId], references: [id], onDelete: Cascade)
+  category    String           // LABOR, HARDWARE, LICENSE, CONSULTING, OTHER
+  description String
+  amount      Decimal          @db.Decimal(12, 2)
+  createdAt   DateTime         @default(now())
+
+  @@index([evalId])
+  @@map("project_costs")
+}
+
+model ProjectBonusMember {
+  id             String           @id @default(cuid())
+  evalId         String
+  eval           ProjectBonusEval @relation(fields: [evalId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User             @relation(fields: [userId], references: [id])
+  role           String           // PM, SALES, ENGINEER, SUPPORT
+  yearOffset     Int              @default(0) // 0=第一年, 1=第二年(保固), ...
+  contributionPct Decimal         @db.Decimal(5, 2) // 該年度貢獻比例 (%)
+  score          Decimal?         @db.Decimal(8, 2) // 個人專案分 = totalScore × spreadPct × contributionPct
+  createdAt      DateTime         @default(now())
+
+  @@unique([evalId, userId, yearOffset])
+  @@index([userId])
+  @@map("project_bonus_members")
 }
 
 // ============================================
@@ -408,6 +476,7 @@ model LineChannel {
 
   messages        LineMessage[]
   associations    LineChannelAssociation[]
+  summaries       LineSummary[]
 
   @@index([partnerId])
   @@index([projectId])
@@ -448,6 +517,21 @@ model LineMessage {
   @@index([processed])
   @@index([lineUserId])
   @@map("line_messages")
+}
+
+model LineSummary {
+  id          String      @id @default(cuid())
+  channelId   String
+  channel     LineChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  month       String                           // YYYY-MM
+  data        Json                             // MonthlySummary JSON
+  createdBy   String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([channelId, month])
+  @@index([channelId])
+  @@map("line_summaries")
 }
 
 // ============================================

@@ -42,6 +42,7 @@ import {
   ToolOutlined,
   CheckCircleOutlined,
   PlusCircleOutlined,
+  SaveOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
@@ -156,6 +157,8 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   const [summaryModalOpen, setSummaryModalOpen] = useState(false)
   const [summaries, setSummaries] = useState<MonthlySummary[]>([])
   const [loadingSummary, setLoadingSummary] = useState(false)
+  const [savingSummary, setSavingSummary] = useState(false)
+  const [hasSavedSummary, setHasSavedSummary] = useState(false)
   const [addingToTimeline, setAddingToTimeline] = useState<string | null>(null)
 
   // User identity editing
@@ -376,13 +379,41 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
     }
   }
 
-  // Generate summary
-  const generateSummary = async () => {
+  // Load saved summary
+  const loadSavedSummary = async () => {
     if (!activeChannel) return
 
     setLoadingSummary(true)
     setSummaryModalOpen(true)
     setSummaries([])
+
+    try {
+      const res = await fetch(`/api/line/channels/${activeChannel.id}/summary`)
+      const data = await res.json()
+
+      if (res.ok && data.summaries && data.summaries.length > 0) {
+        setSummaries(data.summaries)
+        setHasSavedSummary(true)
+      } else {
+        // No saved summary, generate new
+        setHasSavedSummary(false)
+        await doGenerateSummary()
+      }
+    } catch {
+      setHasSavedSummary(false)
+      await doGenerateSummary()
+    } finally {
+      setLoadingSummary(false)
+    }
+  }
+
+  // Generate summary (actual LLM call)
+  const doGenerateSummary = async () => {
+    if (!activeChannel) return
+
+    setLoadingSummary(true)
+    setSummaries([])
+    setHasSavedSummary(false)
 
     try {
       const res = await fetch(`/api/line/channels/${activeChannel.id}/summary`, {
@@ -404,6 +435,32 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
       message.error('生成摘要失敗')
     } finally {
       setLoadingSummary(false)
+    }
+  }
+
+  // Save summary
+  const saveSummary = async () => {
+    if (!activeChannel || summaries.length === 0) return
+
+    setSavingSummary(true)
+    try {
+      const res = await fetch(`/api/line/channels/${activeChannel.id}/summary`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ summaries }),
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        message.success(`已儲存 ${data.count} 個月份的摘要`)
+        setHasSavedSummary(true)
+      } else {
+        message.error(data.error || '儲存失敗')
+      }
+    } catch {
+      message.error('儲存失敗')
+    } finally {
+      setSavingSummary(false)
     }
   }
 
@@ -644,7 +701,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
             <Button
               type="text"
               icon={<FileTextOutlined />}
-              onClick={generateSummary}
+              onClick={loadSavedSummary}
               loading={loadingSummary}
             />
           </Tooltip>
@@ -1012,6 +1069,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
 
       {/* User identity editing modal */}
       <Modal
+        forceRender
         title={
           <Space>
             <Avatar src={editingUser?.pictureUrl} icon={<UserOutlined />} size="small" />
@@ -1072,8 +1130,26 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
         }
         open={summaryModalOpen}
         onCancel={() => setSummaryModalOpen(false)}
-        footer={null}
         width={800}
+        footer={summaries.length > 0 ? (
+          <Space>
+            <Button
+              onClick={() => doGenerateSummary()}
+              loading={loadingSummary}
+              icon={<ReloadOutlined />}
+            >
+              重新生成
+            </Button>
+            <Button
+              type="primary"
+              onClick={saveSummary}
+              loading={savingSummary}
+              icon={<SaveOutlined />}
+            >
+              {hasSavedSummary ? '更新儲存' : '儲存摘要'}
+            </Button>
+          </Space>
+        ) : null}
       >
         {loadingSummary ? (
           <div style={{ textAlign: 'center', padding: 60 }}>
