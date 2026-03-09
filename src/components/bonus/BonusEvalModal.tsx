@@ -416,6 +416,30 @@ export default function BonusEvalModal({
             rowKey={(_, i) => String(i)}
             pagination={false}
             size="small"
+            summary={() => {
+              const totalMemberScore = yearMembers.reduce((s, m) => s + yearScore * (m.contributionPct || 0) / 100, 0)
+              const pctOk = Math.abs(totalPct - 100) < 0.01
+              const pctOver = totalPct > 100
+              return (
+                <Table.Summary.Row style={{ background: '#fafafa', fontWeight: 'bold' }}>
+                  <Table.Summary.Cell index={0} colSpan={2} align="right">
+                    小計
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={2}>
+                    <span style={{ color: pctOk ? '#52c41a' : pctOver ? '#ff4d4f' : '#faad14' }}>
+                      {totalPct.toFixed(1)}%
+                      {!pctOk && <span style={{ fontSize: 12, marginLeft: 4 }}>（{pctOver ? '超過' : '剩餘'} {Math.abs(100 - totalPct).toFixed(1)}%）</span>}
+                    </span>
+                  </Table.Summary.Cell>
+                  <Table.Summary.Cell index={3}>
+                    <span style={{ color: '#722ed1' }}>
+                      {totalMemberScore.toFixed(2)}
+                    </span>
+                  </Table.Summary.Cell>
+                  {!isReadOnly && <Table.Summary.Cell index={4} />}
+                </Table.Summary.Row>
+              )
+            }}
             columns={[
               {
                 title: '成員', dataIndex: 'userId', width: 200,

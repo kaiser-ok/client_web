@@ -476,32 +476,33 @@ export const odooClient = {
    * Returns products shipped out with valuation cost
    */
   async getDeliveryCosts(saleOrderId: number): Promise<Array<{
-    picking_name: string
-    date_done: string | null
     product_name: string
     qty: number
     unit_cost: number
     total_cost: number
+    date_done: string | null
   }>> {
     const query = `
       SELECT
-        sp.name as picking_name,
-        sp.date_done::date::text as date_done,
-        COALESCE(pt.name->>'zh_TW', pt.name->>'en_US', sm.name) as product_name,
-        sm.product_uom_qty as qty,
-        COALESCE(ABS(svl.unit_cost), 0) as unit_cost,
-        COALESCE(ABS(svl.value), 0) as total_cost
-      FROM stock_move sm
-      JOIN stock_picking sp ON sm.picking_id = sp.id
-      LEFT JOIN product_product pp ON sm.product_id = pp.id
+        COALESCE(pt.name->>'zh_TW', pt.name->>'en_US', sol.name) as product_name,
+        sol.product_uom_qty as qty,
+        COALESCE(sol.purchase_price, 0) as unit_cost,
+        COALESCE(sol.purchase_price * sol.product_uom_qty, 0) as total_cost,
+        (SELECT sp.date_done::date::text
+         FROM stock_picking sp
+         JOIN stock_move sm ON sm.picking_id = sp.id
+         WHERE sp.sale_id = sol.order_id
+           AND sm.product_id = sol.product_id
+           AND sp.state = 'done'
+         ORDER BY sp.date_done DESC LIMIT 1
+        ) as date_done
+      FROM sale_order_line sol
+      LEFT JOIN product_product pp ON sol.product_id = pp.id
       LEFT JOIN product_template pt ON pp.product_tmpl_id = pt.id
-      LEFT JOIN stock_valuation_layer svl ON svl.stock_move_id = sm.id
-      WHERE sp.sale_id = $1
-        AND sp.state = 'done'
-        AND sp.picking_type_id IN (
-          SELECT id FROM stock_picking_type WHERE code = 'outgoing'
-        )
-      ORDER BY sp.date_done, sm.id
+      WHERE sol.order_id = $1
+        AND sol.product_uom_qty > 0
+        AND sol.purchase_price > 0
+      ORDER BY sol.sequence, sol.id
     `
     const result = await odooPool.query(query, [saleOrderId])
     return result.rows.map(r => ({
