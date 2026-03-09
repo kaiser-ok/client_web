@@ -22,6 +22,8 @@ import {
   SearchOutlined,
   LinkOutlined,
   AppstoreOutlined,
+  TrophyOutlined,
+  AudioOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
@@ -43,12 +45,17 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
   const menuItems: MenuProps['items'] = useMemo(() => {
     const settingsChildren: MenuProps['items'] = []
 
-    // ADMIN + SUPPORT 都可存取 LINE 整合
+    // ADMIN + SUPPORT 都可存取 LINE / Slack 整合
     if (role === 'ADMIN' || role === 'SUPPORT') {
       settingsChildren.push({
         key: '/settings/line',
         icon: <MessageOutlined />,
         label: 'LINE 整合',
+      })
+      settingsChildren.push({
+        key: '/settings/slack',
+        icon: <SlackOutlined />,
+        label: 'Slack 整合',
       })
     }
 
@@ -63,11 +70,6 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         key: '/settings/file-storage',
         icon: <FolderOutlined />,
         label: '檔案存儲',
-      })
-      settingsChildren.push({
-        key: '/settings/slack',
-        icon: <SlackOutlined />,
-        label: 'Slack 整合',
       })
       settingsChildren.push({
         key: '/settings/llm',
@@ -138,13 +140,23 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         label: '知識圖譜',
       },
       {
+        key: '/transcriptions',
+        icon: <AudioOutlined />,
+        label: '會議記錄',
+      },
+      {
         key: 'reports-menu',
         icon: <FileTextOutlined />,
         label: '報表',
         children: [
           {
-            key: '/reports/issues',
+            key: '/reports/activity-stats',
             icon: <LineChartOutlined />,
+            label: '活動統計',
+          },
+          {
+            key: '/reports/issues',
+            icon: <FileTextOutlined />,
             label: 'Issue 統計',
           },
           {
@@ -159,6 +171,16 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
                   key: '/reports/sales',
                   icon: <DollarOutlined />,
                   label: '銷售報表',
+                },
+              ]
+            : []),
+          // 獎金報表 - 需要 VIEW_BONUS 權限
+          ...(hasPermission(role, 'VIEW_BONUS')
+            ? [
+                {
+                  key: '/reports/bonus',
+                  icon: <TrophyOutlined />,
+                  label: '專案獎金',
                 },
               ]
             : []),
@@ -205,6 +227,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
     if (pathname.startsWith('/reports/')) return pathname
     if (pathname.startsWith('/quotations')) return '/quotations'
     if (pathname.startsWith('/knowledge')) return '/knowledge'
+    if (pathname.startsWith('/transcriptions')) return '/transcriptions'
     if (pathname === '/') return '/'
     // Find menu item that matches the pathname (excluding root)
     const match = menuItems?.find(
