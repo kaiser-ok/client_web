@@ -154,6 +154,7 @@ model User {
   name      String?
   image     String?
   role      String   @default("SUPPORT") // 預設角色為服務支援
+  active    Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

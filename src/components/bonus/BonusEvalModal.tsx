@@ -141,7 +141,7 @@ export default function BonusEvalModal({
   }, [warrantyYears, scoreSpreadPcts, totalScore, membersByYear])
 
   const addCost = useCallback(() => {
-    setCosts(prev => [...prev, { category: 'HARDWARE', description: '', amount: 0 }])
+    setCosts(prev => [{ category: 'HARDWARE', description: '', amount: 0 }, ...prev])
   }, [])
 
   const removeCost = useCallback((index: number) => {
@@ -340,7 +340,9 @@ export default function BonusEvalModal({
         return
       }
       message.success('儲存成功')
-      onClose()
+      if (submitStatus !== 'DRAFT') {
+        onClose()
+      }
     } catch {
       message.error('儲存失敗')
     } finally {
@@ -515,7 +517,7 @@ export default function BonusEvalModal({
       onCancel={onClose}
       width={900}
       footer={null}
-      destroyOnClose={false}
+      destroyOnHidden={false}
       forceRender
     >
       <Form form={form} layout="vertical" disabled={loading}>
@@ -528,7 +530,7 @@ export default function BonusEvalModal({
                 value={dealAmount}
                 prefix={<DollarOutlined />}
                 precision={0}
-                valueStyle={{ fontSize: 16 }}
+                styles={{ content: { fontSize: 16 } }}
               />
             </Col>
             <Col span={4}>
@@ -536,7 +538,7 @@ export default function BonusEvalModal({
                 title="外部成本"
                 value={totalCost}
                 precision={0}
-                valueStyle={{ fontSize: 16, color: totalCost > 0 ? '#cf1322' : undefined }}
+                styles={{ content: { fontSize: 16, color: totalCost > 0 ? '#cf1322' : undefined } }}
               />
             </Col>
             <Col span={4}>
@@ -544,7 +546,7 @@ export default function BonusEvalModal({
                 title="專案金額"
                 value={projectAmount}
                 precision={0}
-                valueStyle={{ fontSize: 16, color: '#1890ff' }}
+                styles={{ content: { fontSize: 16, color: '#1890ff' } }}
               />
             </Col>
             <Col span={4}>
@@ -552,7 +554,7 @@ export default function BonusEvalModal({
                 title="基礎分"
                 value={baseScore}
                 precision={2}
-                valueStyle={{ fontSize: 16 }}
+                styles={{ content: { fontSize: 16 } }}
               />
             </Col>
             <Col span={4}>
@@ -561,7 +563,7 @@ export default function BonusEvalModal({
                 value={multiplier * 100}
                 suffix="%"
                 precision={0}
-                valueStyle={{ fontSize: 16, color: multiplier >= 1 ? '#3f8600' : '#cf1322' }}
+                styles={{ content: { fontSize: 16, color: multiplier >= 1 ? '#3f8600' : '#cf1322' } }}
               />
             </Col>
             <Col span={4}>
@@ -570,7 +572,7 @@ export default function BonusEvalModal({
                 value={totalScore}
                 prefix={<TrophyOutlined />}
                 precision={2}
-                valueStyle={{ fontSize: 18, color: '#722ed1', fontWeight: 'bold' }}
+                styles={{ content: { fontSize: 18, color: '#722ed1', fontWeight: 'bold' } }}
               />
             </Col>
           </Row>
