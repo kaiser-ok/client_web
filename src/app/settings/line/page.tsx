@@ -35,6 +35,7 @@ import {
   CustomerServiceOutlined,
   QuestionOutlined,
   SwapOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -123,6 +124,14 @@ export default function LineSettingsPage() {
   const [importChannelId, setImportChannelId] = useState<string | null>(null)
   const [importContent, setImportContent] = useState('')
   const [importing, setImporting] = useState(false)
+
+  // Preview modal
+  const [previewChannel, setPreviewChannel] = useState<LineChannel | null>(null)
+  const [previewMessages, setPreviewMessages] = useState<Array<{
+    id: string; lineUserId: string; displayName: string; pictureUrl: string | null
+    identityType: string; messageType: string; content: string | null; mediaUrl: string | null; timestamp: string
+  }>>([])
+  const [previewLoading, setPreviewLoading] = useState(false)
 
   // ===== User state =====
   const [users, setUsers] = useState<LineUser[]>([])
@@ -247,6 +256,21 @@ export default function LineSettingsPage() {
     }
   }
 
+  // ===== Preview channel messages =====
+  const handlePreviewChannel = async (channel: LineChannel) => {
+    setPreviewChannel(channel)
+    setPreviewMessages([])
+    setPreviewLoading(true)
+    try {
+      const res = await fetch(`/api/line/channels/${channel.id}?limit=30`)
+      const data = await res.json()
+      if (res.ok) {
+        setPreviewMessages((data.messages || []).reverse())
+      }
+    } catch { /* ignore */ }
+    finally { setPreviewLoading(false) }
+  }
+
   // ===== User actions =====
   const handleEditUser = (user: LineUser) => {
     setEditingUser(user)
@@ -350,7 +374,9 @@ export default function LineSettingsPage() {
           {getChannelTypeIcon(record.channelType)}
           <div>
             <div>
-              <Text strong>{name || record.lineChannelId}</Text>
+              <a onClick={() => handlePreviewChannel(record)} style={{ fontWeight: 500 }}>
+                {name || record.lineChannelId}
+              </a>
               {record.projectName && (
                 <Tag color="purple" style={{ marginLeft: 8 }}>{record.projectName}</Tag>
               )}
@@ -403,7 +429,7 @@ export default function LineSettingsPage() {
         const hasAssociations = record.associations && record.associations.length > 0
         const isMapped = hasPartnerId || hasAssociations
         return (
-          <Space direction="vertical" size={4}>
+          <Space orientation="vertical" size={4}>
             {isMapped ? (
               <>
                 <Tag color="green">已對應</Tag>
@@ -429,13 +455,18 @@ export default function LineSettingsPage() {
       key: 'actions',
       width: 100,
       render: (_: unknown, record) => (
-        <Tooltip title="匯入聊天記錄">
-          <Button type="text" icon={<ImportOutlined />} onClick={() => {
-            setImportChannelId(record.id)
-            setImportContent('')
-            setImportModalOpen(true)
-          }} />
-        </Tooltip>
+        <Space size={0}>
+          <Tooltip title="預覽訊息">
+            <Button type="text" icon={<EyeOutlined />} onClick={() => handlePreviewChannel(record)} />
+          </Tooltip>
+          <Tooltip title="匯入聊天記錄">
+            <Button type="text" icon={<ImportOutlined />} onClick={() => {
+              setImportChannelId(record.id)
+              setImportContent('')
+              setImportModalOpen(true)
+            }} />
+          </Tooltip>
+        </Space>
       ),
     },
   ]
@@ -475,7 +506,7 @@ export default function LineSettingsPage() {
         const info = getIdentityInfo(record.identityType)
         if (record.identityType === 'STAFF') {
           return (
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               <Tag icon={info.icon} color={info.color}>{info.label}</Tag>
               {record.staffEmail && <Text type="secondary" style={{ fontSize: 12 }}>{record.staffEmail}</Text>}
             </Space>
@@ -483,7 +514,7 @@ export default function LineSettingsPage() {
         }
         if (record.identityType === 'PARTNER') {
           return (
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               {record.partnerName ? (
                 <Tag icon={info.icon} color={info.color}>{record.partnerName}</Tag>
               ) : (
@@ -495,7 +526,7 @@ export default function LineSettingsPage() {
         }
         if (record.identityType === 'CUSTOMER') {
           return (
-            <Space direction="vertical" size={2}>
+            <Space orientation="vertical" size={2}>
               {record.partnerName ? (
                 <Tag icon={info.icon} color={info.color}>{record.partnerName}</Tag>
               ) : (
@@ -692,7 +723,7 @@ export default function LineSettingsPage() {
         style={{ marginTop: 16 }}
         type="info"
         showIcon
-        message="LINE 整合說明"
+        title="LINE 整合說明"
         description={
           <ul style={{ margin: 0, paddingLeft: 20 }}>
             <li>LINE 頻道會在收到訊息時自動建立</li>
@@ -719,7 +750,7 @@ export default function LineSettingsPage() {
           type="info"
           showIcon
           style={{ marginBottom: 16 }}
-          message="匯入說明"
+          title="匯入說明"
           description={
             <>
               請將 LINE 匯出的聊天記錄 .txt 檔案內容貼上，或上傳檔案。
@@ -757,6 +788,94 @@ export default function LineSettingsPage() {
         )}
       </Modal>
 
+      {/* Preview Messages Modal */}
+      <Modal
+        title={
+          <Space>
+            <MessageOutlined style={{ color: '#00B900' }} />
+            {previewChannel?.channelName || '頻道訊息預覽'}
+            <Text type="secondary" style={{ fontSize: 12 }}>（最近 30 則）</Text>
+          </Space>
+        }
+        open={!!previewChannel}
+        onCancel={() => setPreviewChannel(null)}
+        footer={
+          <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+            <div>
+              {previewChannel && !previewChannel.partnerId && (!previewChannel.associations || previewChannel.associations.length === 0) && (
+                <Select
+                  style={{ width: 250 }}
+                  placeholder="對應到客戶..."
+                  allowClear
+                  showSearch
+                  optionFilterProp="label"
+                  options={customerOptions}
+                  onChange={(value) => {
+                    if (previewChannel) {
+                      handleUpdateChannel(previewChannel.id, value || null)
+                      setPreviewChannel(null)
+                    }
+                  }}
+                />
+              )}
+            </div>
+            <Button onClick={() => setPreviewChannel(null)}>關閉</Button>
+          </Space>
+        }
+        width={600}
+      >
+        {previewLoading ? (
+          <div style={{ textAlign: 'center', padding: 40 }}>載入中...</div>
+        ) : previewMessages.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 40, color: '#999' }}>此頻道尚無訊息</div>
+        ) : (
+          <div style={{ maxHeight: 500, overflowY: 'auto', padding: '8px 0' }}>
+            {previewMessages.map((msg) => {
+              const isStaff = msg.identityType === 'STAFF'
+              return (
+                <div key={msg.id} style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+                  <Avatar
+                    src={msg.pictureUrl}
+                    icon={<UserOutlined />}
+                    size={32}
+                    style={{ flexShrink: 0, backgroundColor: isStaff ? '#1677ff' : undefined }}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ marginBottom: 2 }}>
+                      <Text strong style={{ fontSize: 12 }}>{msg.displayName}</Text>
+                      <Text type="secondary" style={{ fontSize: 11, marginLeft: 8 }}>
+                        {dayjs(msg.timestamp).format('MM/DD HH:mm')}
+                      </Text>
+                    </div>
+                    {msg.messageType === 'image' && msg.mediaUrl ? (
+                      <img
+                        src={msg.mediaUrl}
+                        alt="image"
+                        style={{ maxWidth: 200, maxHeight: 150, borderRadius: 8, cursor: 'pointer' }}
+                        onClick={() => window.open(msg.mediaUrl!, '_blank')}
+                      />
+                    ) : msg.messageType === 'sticker' ? (
+                      <Tag>貼圖</Tag>
+                    ) : (
+                      <div style={{
+                        background: isStaff ? '#e6f4ff' : '#f5f5f5',
+                        borderRadius: 8,
+                        padding: '6px 10px',
+                        fontSize: 13,
+                        wordBreak: 'break-word',
+                        whiteSpace: 'pre-wrap',
+                      }}>
+                        {msg.content || `[${msg.messageType}]`}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </Modal>
+
       {/* Edit User Modal */}
       <Modal
         title={
@@ -771,6 +890,7 @@ export default function LineSettingsPage() {
         okText="儲存"
         cancelText="取消"
         destroyOnHidden={false}
+        forceRender
       >
         <Form form={form} layout="vertical" style={{ marginTop: 16 }}>
           <Form.Item

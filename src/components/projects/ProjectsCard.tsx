@@ -375,7 +375,7 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Space wrap>
             <ProjectOutlined />
             <span style={{ fontWeight: 500 }}>{name}</span>
@@ -549,7 +549,7 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
       dataIndex: 'name',
       key: 'name',
       render: (name: string, record) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Space wrap>
             <ProjectOutlined />
             <span style={{ fontWeight: 500 }}>{name}</span>
@@ -696,6 +696,7 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
         onOk={() => form.submit()}
         okText="儲存"
         cancelText="取消"
+        forceRender
         destroyOnHidden={false}
         width={700}
       >

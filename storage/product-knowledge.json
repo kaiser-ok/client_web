@@ -1,0 +1,1042 @@
+[
+  {
+    "name": "2~5年維護費用",
+    "spec": "第 2~5年系統硬體及人力維護費用，單價以年計算。(7x8)",
+    "priceUnit": 150000,
+    "quantity": 4,
+    "subtotal": 600000,
+    "source": "至興資通_ IPPBX_20251208-01_7x8.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "2U Server (網管主機)\r DELL R760",
+    "spec": "•標準19\"吋機架 2U伺服器\r •intel Intel® Xeon® CPU x 2\r •256 GB RAM\r •4TB SSD HDD x 4 RAID 5\r •雙電源供應器 \r •支援資料庫備援\r 此主機安裝SONIC WALL CONTROLLER、SIEM、網管軟體",
+    "priceUnit": 520000,
+    "quantity": 1,
+    "subtotal": 520000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "技術服務",
+    "spec": "SBC SWe HA 系統設定服務。\r 與美光雲端 SBC 介接設定",
+    "priceUnit": 19968,
+    "quantity": 2,
+    "subtotal": 39936,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "系統安裝及設定",
+    "spec": "IPPBX系統安裝及設定 SBC VoIP Gateway 安裝及設定 分機相關功能設定(代接、語音信箱等)",
+    "priceUnit": 60000,
+    "quantity": 1,
+    "subtotal": 60000,
+    "source": "至興資通 IPPBX_20251103-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "系統軟體維護保固",
+    "spec": "師大系統維護一式\r 軟體技術支援",
+    "priceUnit": 161905,
+    "quantity": 1,
+    "subtotal": 161905,
+    "source": "聯慷資訊_台師大MA_1140923-1150922_1140819.xlsx",
+    "customer": "聯浚電訊股份有限公司",
+    "project": "台師大 MA"
+  },
+  {
+    "name": "系統維護",
+    "spec": "SIP / SBC / Skype 軟體維護\r 5x8技術支援服務\r 系統維護 / 功能調整 / 界接整合",
+    "priceUnit": 57500,
+    "quantity": 1,
+    "subtotal": 57500,
+    "source": "大同世界(屏科大)_115年度維護_報價單_1141218.xlsx",
+    "customer": "大同世界科技股份有限公司",
+    "project": "屏科大115年度MA"
+  },
+  {
+    "name": "固定式維運終端機顯示器\r Samsung S24D362GAC",
+    "spec": "•螢幕尺寸:24吋\r •螢幕比例:16:9\r •解析度:FHD (1920 x 1080)\r •亮度 (典型值):250 cd/㎡",
+    "priceUnit": 3000,
+    "quantity": 5,
+    "subtotal": 15000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "固定式維運終端機DELL OptiPlex Tower 7020 XCTO",
+    "spec": "•Intel CPU,\r •8G RAM(含)以上\r •512G 硬碟空間(含)以上，\r •W11 隨機版作業系統\r •滑鼠、鍵盤",
+    "priceUnit": 37000,
+    "quantity": 5,
+    "subtotal": 185000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "保固：",
+    "spec": "一年",
+    "priceUnit": 9016400,
+    "quantity": null,
+    "subtotal": null,
+    "source": "友訊科技_草屯商工_Dell R230 Ram_20250520-01.xlsx",
+    "customer": "友訊科技股份有限公司台灣分公司",
+    "project": "國立草屯高級商工職業學校"
+  },
+  {
+    "name": "客制化功能",
+    "spec": "配合本案之相關客製化開發 : \r -系統備份之還原機制及告警開發\r -自動備份機制開發\r -納管設備開發 IP Part & Mobile Part。IP Part之GUI呈現及Mobile Part (撈取資料、轉換格式、北向拋出)\r -IP Part (juniper EX/SRX/SRR and A10 Thunder 1060s, Mobile Part Druid Raemis (SNM",
+    "priceUnit": 2000000,
+    "quantity": 1,
+    "subtotal": 2000000,
+    "source": "智匯亞洲科技_2025122401.xlsm",
+    "customer": "智匯亞洲科技股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "美光集團專案使用- SBC 1000 延長保固",
+    "spec": "美光集團專案使用-延長保固第二 ~ 第五年，共 4年\r SBC 1000 延長保固 (項次 4 +項次 5)。",
+    "priceUnit": 60175.120319999995,
+    "quantity": 4,
+    "subtotal": 240700.48127999998,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "美光集團專案使用- SBC SWe HA 延長保固",
+    "spec": "美光集團專案使用-延長保固第二 ~ 第五年，共 4年\r SBC SWe HA延長保固 (項次 1 +項次 2)。",
+    "priceUnit": 183763.44,
+    "quantity": 4,
+    "subtotal": 735051.76,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "校園網路韌性設備日誌分析系統 (netflow)-訂閱制",
+    "spec": "-系统功能须能介接於中心智慧網管系统 -系統帳號驗證除本機帳號可使用外,亦可以使用LDAP方式連接中心帳號 流量統計與監控 - 即時監控和分析網路流量統計 -流量指標顯示  主要顯示 PPS (Packets Per Second)  輔助顯示 Gbps 流量數據 網路健康度監控 -網路健康度計算與顯示：  基於多項指標的綜合健康度評分 如流量處理能力 (M pps) -各校流量監控 各校對外和入",
+    "priceUnit": 500000,
+    "quantity": 1,
+    "subtotal": 500000,
+    "source": "博聯_宜蘭縣網日誌分析系統案_20250626-01.xls",
+    "customer": "博聯資訊有限公司",
+    "project": ""
+  },
+  {
+    "name": "專案管理及教育訓練",
+    "spec": "網管系統安全開發文件, 專案文件, 測試及驗證計劃書、驗收計劃書等文件製作, \r 專案開發管理, 會議參與。並包含此案完成後之教育訓練",
+    "priceUnit": 150000,
+    "quantity": 1,
+    "subtotal": 150000,
+    "source": "智匯亞洲科技_2025122401.xlsm",
+    "customer": "智匯亞洲科技股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "專屬型通訊整合系統維護 案號:109M13090152",
+    "spec": "IPPBX 軟體(G-320) SBC 軟體 (G-SBC) APP 軟體(iOS / Android) 案號:109M13090152 (990,000元) 一年維護",
+    "priceUnit": 990000,
+    "quantity": 2,
+    "subtotal": 1980000,
+    "source": "投標前的初版報價金額_山上_113-114維護報價_$459萬9,000_1121201.xls",
+    "customer": "山 上",
+    "project": "山上 - 維護案"
+  },
+  {
+    "name": "教育訓練",
+    "spec": "8 HR 教育訓練",
+    "priceUnit": 12000,
+    "quantity": 1,
+    "subtotal": 12000,
+    "source": "KPMG_SBC_20250421-投標用_.xlsx",
+    "customer": "安侯企業管理股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "現場安裝支援",
+    "spec": "提供現場安裝設定一式\r 1.中華電信（CHT）、台灣固網（TFN）、遠傳電信（FET）等三家電信業者之 E1 電路介接與配合電信業者 E1 線路切換等作業。\r 2. 與本所現有各據點 SBC、Avaya、語音及傳真系統之整合作業。\r 3.Teams 介接設定費用。\r 4.其他系統功能設定與測試。",
+    "priceUnit": 204000,
+    "quantity": 1,
+    "subtotal": 204000,
+    "source": "KPMG_SBC_20250421-投標用_.xlsx",
+    "customer": "安侯企業管理股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "第2~5年，延長技術服務",
+    "spec": "第2~5年，5x8 延長技術服務\r 提供初級技術服務: 提供產品資訊和授權查詢、一般性問題: 例如使用者帳密名稱、Web GUI選單操作、安裝問題。\r (不包括支援遠端及現場端障礙查修服務)",
+    "priceUnit": 49440,
+    "quantity": 4,
+    "subtotal": 197760,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "軟體維護",
+    "spec": "SIP Server(TANet 專案)\r 維護費用(共兩套)",
+    "priceUnit": 57143,
+    "quantity": 1,
+    "subtotal": 47619,
+    "source": "Quotation - S00423.xlsx",
+    "customer": "國立東華大學",
+    "project": "區網 軟體維護"
+  },
+  {
+    "name": "通話紀錄報表系統介面修改",
+    "spec": "通話紀錄報表系統介面修改\r 程式修改工時一式",
+    "priceUnit": 84000,
+    "quantity": 1,
+    "subtotal": 84000,
+    "source": "KPMG_SBC_20250421-投標用_.xlsx",
+    "customer": "安侯企業管理股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "智慧網管系統\r 一年授權\r (GEN-SHGBL)",
+    "spec": "Siraya 智慧網管系統軟體維護授權\r (GEN-SHGBL)\r 維護期間: 1年 (2026/01/16~2027/01/15)\r 建置價: 2773264 x18% = 499,188 元 (授權)",
+    "priceUnit": 499187.52,
+    "quantity": 1,
+    "subtotal": 499187.52,
+    "source": "友訊科技股份有限公司_嘉義縣教網智慧網管MA_20251024-01.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "114年度嘉義縣教網 MA"
+  },
+  {
+    "name": "智慧網管系統\r 兩年MA\r (GEN-SHGBL)",
+    "spec": "Siraya 智慧網管系統軟體維護兩年MA\r (GEN-SHGBL)\r (2024/01/20~2025/1/19)\r 建置價: 1,200,000 x12% = 144,000 元 (一年MA)",
+    "priceUnit": 144000,
+    "quantity": 2,
+    "subtotal": 288000,
+    "source": "友訊科技股份有限公司_國北教大 GEN-SHGBL_MA_20250411-01.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "國北教大 GEN-SHGBL MA"
+  },
+  {
+    "name": "智慧網管系統\r 第一年 (3-1)",
+    "spec": "智慧網管系統 x2 (含關係企業)\r 提供 PowerEdge R230 機架式伺服器 一台。\r 設備管理授權150台。\r 設備3年租斷，分三期付款，每年2月，開發票請款。\r 起始日: 2024/02/01~2025/01/31",
+    "priceUnit": 133300,
+    "quantity": 1,
+    "subtotal": 133300,
+    "source": "報價單_建順鋼鐵_智慧網管20240205-01 (2).xlsx",
+    "customer": "司安網路科技有限公司",
+    "project": "苗栗通宵-建順煉鋼案"
+  },
+  {
+    "name": "智慧網管系統\r 第二年 (3-2)",
+    "spec": "智慧網管系統 x2 (含關係企業)\r PowerEdge R230 機架式伺服器 一台。\r 設備管理授權150台。\r 設備3年租斷，分三期付款，每年2月，開發票請款。\r 起始日: 2025/02/01~2026/01/31",
+    "priceUnit": 133300,
+    "quantity": 1,
+    "subtotal": 133300,
+    "source": "報價單_建順鋼鐵_智慧網管20240205-01 (2).xlsx",
+    "customer": "司安網路科技有限公司",
+    "project": "苗栗通宵-建順煉鋼案"
+  },
+  {
+    "name": "智慧網管系統\r 第三年 (3-3)",
+    "spec": "智慧網管系統 x2 (含關係企業)\r PowerEdge R230 機架式伺服器 一台。\r 設備管理授權150台。\r 設備3年租斷，分三期付款，每年2月，開發票請款。\r 起始日: 2026/02/01~2027/01/31",
+    "priceUnit": 133400,
+    "quantity": 1,
+    "subtotal": 133400,
+    "source": "報價單_建順鋼鐵_智慧網管20240205-01 (2).xlsx",
+    "customer": "司安網路科技有限公司",
+    "project": "苗栗通宵-建順煉鋼案"
+  },
+  {
+    "name": "智慧網管系統 (竹東)",
+    "spec": "Siraya Radar Pro 智慧網管系統  -提供 200 台PLC可程式控制器MAC納管授權 -L2 交換器網管- 200 台納管授權 -提供智慧網管硬體伺服器主機 -邊際運算系統收集資訊。 -HA系統主機及HA機制另外報價，不包含在本報價單內。",
+    "priceUnit": 917600,
+    "quantity": 1,
+    "subtotal": 740000,
+    "source": "友訊_工研院智慧網管_竹東院區_20250325_01 (1).xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "工研院智慧網管案-竹東院區"
+  },
+  {
+    "name": "智慧網管系統 (南投)",
+    "spec": "Siraya Radar Pro 智慧網管系統  -提供600 台終端設備 MAC 偵測授權(門禁/攝影機等) -L2 交換器網管- 60 台納管授權 -提供智慧網管硬體伺服器主機 -HA系統主機及機制另外報價，不包含在本報價單內。 -邊際運算系統收集資訊。 -當連續 10 分鐘無法 Ping 到攝影機時，系統將自動透過 PoE Switch 重新啟動攝影機所連接的網路埠，以恢復連線。(客製化討論",
+    "priceUnit": 868000,
+    "quantity": 1,
+    "subtotal": 700000,
+    "source": "友訊_工研院智慧網管_20250313_01 (1).xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "工研院智慧網管案-南投"
+  },
+  {
+    "name": "智慧網管系統 (License)",
+    "spec": "Siraya Radar Pro 智慧網管系統 \r -客製化網管系統 \r -日誌系統分析模組、關鍵字告警\r -NetFlow/sFlow 產生、接收、分析、統計、再傳送\r -支援HTML5 及RESTful\r -網路拓樸進階功能 (含本專案之拓譜客製)\r -即時警訊通知\r - HA: Service and DB High Availablity license",
+    "priceUnit": 3200000,
+    "quantity": 1,
+    "subtotal": 3200000,
+    "source": "智匯亞洲科技_2025122401.xlsm",
+    "customer": "智匯亞洲科技股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "智慧網管MA",
+    "spec": "智慧網管MA一式 (中心端系統軟體維護/樹莓派返修設備之檢測與處理) 維護期間: 202501~20291231 維護時間: 五年",
+    "priceUnit": 460000,
+    "quantity": 5,
+    "subtotal": 2300000,
+    "source": "博聯_宜蘭SNM_MA五年保_20250424-01.xls",
+    "customer": "博聯資訊",
+    "project": ""
+  },
+  {
+    "name": "智慧網管MA\r (GR-GEN-SHG-MA)",
+    "spec": "Siraya Radar Pro 智慧網管系統軟體維護保固，MA一年。\r 建置價: 259,200 元 x 12% 計算",
+    "priceUnit": 31104,
+    "quantity": 1,
+    "subtotal": 31104,
+    "source": "友訊科技_草屯商工_SNM_20251223-01.xlsx",
+    "customer": "友訊科技股份有限公司台灣分公司",
+    "project": "國立草屯高級商工職業學校"
+  },
+  {
+    "name": "無線網路基地台",
+    "spec": "型號: Siraya AirZone 3K 2x2 MU-MIMO，2T2R 提供 2.4G / 5G 同時上線 支援 IEEE 802.11 a/b/g/n/ac/ax 支援WPA3及WPA2-AES身份驗證 含PoE Injector  保固時間: 五年",
+    "priceUnit": 6800,
+    "quantity": 700,
+    "subtotal": 4760000,
+    "source": "博聯_宜蘭AirZone 3K_20250224-01.xls",
+    "customer": "博聯資訊",
+    "project": ""
+  },
+  {
+    "name": "無線網路認證系統維護費用",
+    "spec": "無線網路認證系統維護 1.提供縣網中心無線網路認證系統SSID (eduroam; ichcedu ; ichc三種 SSID)認證服務機制 2.提供全縣212校既有AP認證介接服務 3.無線網路認證系統軟體維護 4.整合既有廠牌及新加入廠牌無線AP認證服務。",
+    "priceUnit": 100000,
+    "quantity": 1,
+    "subtotal": 100000,
+    "source": "友訊_彰化無線認證系統_20250708-001.xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "彰化縣114年前瞻校園網路設備維護案"
+  },
+  {
+    "name": "勤業 MVPN \r 跨群撥號系統\r Red Hat Linux OS 升級改版服務",
+    "spec": "跨群撥號系統 Red Hat Linux OS (兩台主機)\r 維護期間如遇到RedHat OS 版本需要升級或更新修補，提供必要性升級服務。",
+    "priceUnit": 60000,
+    "quantity": 1,
+    "subtotal": 60000,
+    "source": "立威_勤業眾信SBC1000平台維護+MVPN系統OS升級_20250724-01.xlsx",
+    "customer": "立威通信有限公司",
+    "project": ""
+  },
+  {
+    "name": "勤業 Ribbon\r SBC1000 平台維護",
+    "spec": "工作日：\r 1.遠端查修服務 (上班時間09:00~18:00)2小時上線，4小時內完修 (最多 3 次)\r 2.維護人員到場 (上班時間09:00~18:00)8小時內到場，12小時內完修 (最多 3 次)",
+    "priceUnit": 6250,
+    "quantity": 12,
+    "subtotal": 75000,
+    "source": "立威_勤業眾信SBC1000平台維護+MVPN系統OS升級_20250724-01.xlsx",
+    "customer": "立威通信有限公司",
+    "project": ""
+  },
+  {
+    "name": "零信任認證系統",
+    "spec": "零信任認證系統 -僅允許經過授權的設備接入內部網路，防止未授權設備入侵。 -使用 RADIUS 伺服器進行設備的身份驗證，確保每個設備接入網路時都進行授權檢查。 -支援 MAC 白名單，將授權設備的 MAC 位址加入名單中，確保只有已授權設備可以連接。",
+    "priceUnit": 372000,
+    "quantity": 1,
+    "subtotal": 300000,
+    "source": "友訊_工研院智慧網管_20250313_01 (1).xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "工研院智慧網管案-南投"
+  },
+  {
+    "name": "維護",
+    "spec": "錄音系統Recording\r [CM 專用版, 提供30路授權Recording System MA 一年]",
+    "priceUnit": 25000,
+    "quantity": 1,
+    "subtotal": 25000,
+    "source": "至興資通_消防署MA_1140211.xlsx",
+    "customer": "至興資通股份有限公司",
+    "project": "消防署MA(期間:2025/10/24-2026/10/23)"
+  },
+  {
+    "name": "維護條件：",
+    "spec": "一年 (決標日起至115年7月31日止)",
+    "priceUnit": 105600,
+    "quantity": null,
+    "subtotal": null,
+    "source": "友訊_彰化無線認證系統_20250708-001.xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "彰化縣114年前瞻校園網路設備維護案"
+  },
+  {
+    "name": "維護期間：",
+    "spec": "一年，2026/01/01~2026/12/31",
+    "priceUnit": 302400,
+    "quantity": null,
+    "subtotal": null,
+    "source": "友訊科技_草屯商工_SNM_20251223-01.xlsx",
+    "customer": "友訊科技股份有限公司台灣分公司",
+    "project": "國立草屯高級商工職業學校"
+  },
+  {
+    "name": "網管系統建置",
+    "spec": "客戶端網管系統建置費用",
+    "priceUnit": 100000,
+    "quantity": 1,
+    "subtotal": 100000,
+    "source": "智匯亞洲科技_2025122401.xlsm",
+    "customer": "智匯亞洲科技股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "遠端技術服務",
+    "spec": "遠端技術支援 (6小時)\r 上班日：5x8",
+    "priceUnit": 9500,
+    "quantity": 1,
+    "subtotal": 9500,
+    "source": "揚智科技MA_1140515-1150514_報價單_1140221.xlsx",
+    "customer": "揚智科技股份有限公司",
+    "project": "DX2030維護"
+  },
+  {
+    "name": "機架型固定式維運終端機\r Dell R260",
+    "spec": "•標準工業級19寸1U高度\r •Intel CPU,8G RAM(含)以上/512G 硬碟空間(含)以上，\r 含W11 隨機版作業系統",
+    "priceUnit": 73500,
+    "quantity": 2,
+    "subtotal": 147000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "Check Point 防火牆維護 CheckPoint License 軟體訂閱制服務 (2024/8/23~2025/12/31)  Check Point 防火牆人力維護  (2024/1/1~2025/12/31)",
+    "spec": "Check Point 防火牆維護 - 更新授權期間 (2024/8/23~2025/12/31)，共14個月。 1. CheckPoint FW *5          S/N: 2118BA0253 / 2118BA0116 / 2118BA0168 / 2112BA2418 / 2118BA0044 2. CheckPoint Controller *1       S/N: 2032BA0",
+    "priceUnit": 2400000,
+    "quantity": 1,
+    "subtotal": 2400000,
+    "source": "投標前的初版報價金額_山上_113-114維護報價_$459萬9,000_1121201.xls",
+    "customer": "山 上",
+    "project": "山上 - 維護案"
+  },
+  {
+    "name": "Conference  Phone",
+    "spec": "型號: Yealink CP965  Android 9.0  720x1280 像素 多點觸控螢幕  超高清音訊，全雙工技術  噪音消除技術  收音半徑達6M  內建12個麥克風，360°收音範圍 不含安裝及設定",
+    "priceUnit": 29000,
+    "quantity": 10,
+    "subtotal": 290000,
+    "source": "至興資通 IPPBX_20251103-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "CRS326-24G-2S+RM",
+    "spec": "800MHz CPU,512MB RAM\r 24個 10/100/1000以乙太網路連接埠\r 2個 SFP+連接埠\r RouterOS L5或SwitchOS（雙啟動）\r 1U機架安裝\r 標準電源單元（PSU）",
+    "priceUnit": 5400,
+    "quantity": 6,
+    "subtotal": 32400,
+    "source": "台大計中網路組_報價單_1140520.xlsx",
+    "customer": "國立台灣大學計資中心網路組",
+    "project": "採購 MikroTik 設備"
+  },
+  {
+    "name": "CRS326-24G-2S+RM\r  Switch",
+    "spec": "1. CPU:800MHz,RAM: 512MB\r 2. 24埠10/100/1000 乙太網路連接埠\r 3. 2埠SFP+  插槽",
+    "priceUnit": 9000,
+    "quantity": 16,
+    "subtotal": 144000,
+    "source": "澎湖縣教育網路中心_MikroTik_20251226-01.xlsx",
+    "customer": "澎湖縣教育網路中心",
+    "project": "澎湖縣教網"
+  },
+  {
+    "name": "Dell R230 相容記憶體 \r (金士頓)",
+    "spec": "Kingston DDR4 2666 8GB ECC U-DIMM for Dell R230",
+    "priceUnit": 2000,
+    "quantity": 2,
+    "subtotal": 4000,
+    "source": "友訊科技_草屯商工_Dell R230 Ram_20250520-01.xlsx",
+    "customer": "友訊科技股份有限公司台灣分公司",
+    "project": "國立草屯高級商工職業學校"
+  },
+  {
+    "name": "DX2030維護",
+    "spec": "DX2030維護\r TPE(台北)：A021-01318B",
+    "priceUnit": 26000,
+    "quantity": 1,
+    "subtotal": 26000,
+    "source": "揚智科技MA_1140515-1150514_報價單_1140221.xlsx",
+    "customer": "揚智科技股份有限公司",
+    "project": "DX2030維護"
+  },
+  {
+    "name": "E60iUGS(hEX S)",
+    "spec": "E60iUGS(hEX S)\r hEX S (2025 version) with RouterOS L4, desktop case (US)",
+    "priceUnit": 1700,
+    "quantity": 4,
+    "subtotal": 6800,
+    "source": "台大計中網路組_報價單_1141110.xlsx",
+    "customer": "國立台灣大學計資中心網路組",
+    "project": "採購 MikroTik 設備"
+  },
+  {
+    "name": "FAX / Recording  (MA)",
+    "spec": "維護內容 :  FAX (含 FAX 擴充模組)/ Recording  1.hdd 空間檢查 2.檢查網路流量是否異常 3.檢查記憶體使用狀況 4.防火牆狀況確認 3.檢查有無異常程式執行中 5.檢查有無異常登入 6.檢查系統loading 7.測試傳真是否正常接收與下載 8.檢查錄音檔案是否正常產生與下載 9.檢查UI是否有異常登入記錄 10. 檢查DB Service 是否正常",
+    "priceUnit": 25000,
+    "quantity": 1,
+    "subtotal": 25000,
+    "source": "至興_ 華廣MA_20250326-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "Gentrice SNM 網管系統",
+    "spec": "•內網Netflow 蒐集及網路設備管理\r •進階網路拓樸圖",
+    "priceUnit": 1230000,
+    "quantity": 1,
+    "subtotal": 1230000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "IP Phone",
+    "spec": "型號: Yealink T31W, 支援 PoE 標準 SIP RFC 3261 IP 話機  2.4G/5G 無線網路連接 支援TLS1.3 / WPA3  IP Phone 專用變壓器 不含安裝及設定",
+    "priceUnit": 3000,
+    "quantity": 50,
+    "subtotal": 125000,
+    "source": "至興資通 IPPBX_20251103-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "IPPBX 系統調整",
+    "spec": "1.人力配合業主需求,夜間功能調整測試。(AVAYA將外線移走) 2.IPPBX-E1外線路由、類比外線及分機號碼轉碼設定。 3.HA 架構同步調整設定。",
+    "priceUnit": 30000,
+    "quantity": 1,
+    "subtotal": 30000,
+    "source": "仁通_港務局_IPPBX_20230825-01.xls",
+    "customer": "仁通資訊股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "IPPBX 路由切換 (上班時間)",
+    "spec": "1.協助外撥下車路由設定 (E1 轉換為 IP Centrex) 2.遠端協助修改設定 (地點: 台中、高雄) 3.服務時間：週一至週五 09:00 - 18:00。 4.進行 IP Trunk相關功能測試 (包含E1線路拆線前及拆線後)",
+    "priceUnit": 10000,
+    "quantity": 1,
+    "subtotal": 10000,
+    "source": "Yes123 路由切換_20250521-01.xls",
+    "customer": "自由時報企業股份有限公司",
+    "project": "Yes123下車路由切換"
+  },
+  {
+    "name": "IPPBX-主系統",
+    "spec": "提供 500 路 註冊授權 支援標準  SIP RFC 3261 格式 500 路錄音授權(管理者可以聽取錄音） 500 路語音信箱授權 錄音資料保存天數依照硬碟和使用量而有所不同。 1組自動總機錄音問候語 IPPBX主機硬體一台",
+    "priceUnit": 2000000,
+    "quantity": 1,
+    "subtotal": 2000000,
+    "source": "至興資通 IPPBX_20251103-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "IPPBX-主系統 (不含HA)",
+    "spec": "提供 500 路 註冊授權 支援標準  SIP RFC 3261 格式 1組自動總機錄音問候語 IPPBX主機硬體一台",
+    "priceUnit": 700000,
+    "quantity": 1,
+    "subtotal": 700000,
+    "source": "至興資通_ IPPBX_20251208-01_7x8.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "IPPBX-主系統 (含HA)",
+    "spec": "提供 500 路 註冊授權 支援標準  SIP RFC 3261 格式 1組自動總機錄音問候語 IPPBX主機硬體一台(含HA軟體，客戶自備主機一台)",
+    "priceUnit": 1200000,
+    "quantity": 1,
+    "subtotal": 1200000,
+    "source": "至興資通_含HA_ IPPBX_20251208-02_7x8.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "IPPBX系統維護",
+    "spec": "IPPBX系統維護一式：\r IPPBX交換機系統軟體。數量：1套。\r 維護期間：(2025/06/01～2026/05/31）",
+    "priceUnit": 85000,
+    "quantity": 1,
+    "subtotal": 85000,
+    "source": "康迅數位整合股份有限公司_IPPBX_20250409-01.xlsx",
+    "customer": "康迅數位整合股份有限公司",
+    "project": "PayEasy MA"
+  },
+  {
+    "name": "IPPBX維護",
+    "spec": "1、IPPBX 網路電話系統軟體一套 2、技術支援、軟體維護 3、不含Server主機及VoIP Gateway硬體保固",
+    "priceUnit": 40000,
+    "quantity": 1,
+    "subtotal": 40000,
+    "source": "博聯_宜蘭SIPProxy+IPPBX MA_20250207-01.xls",
+    "customer": "博聯資訊",
+    "project": ""
+  },
+  {
+    "name": "LCD KVM多電腦切換器\r ATEN CL5716N",
+    "spec": "•模組式的LCD KVM切換器(螢幕/鍵盤/觸控板/KVM)\r •支援多媒體USB鍵盤(PC、Mac 及Sun)\r •標準工業級19寸1U高度\r •可翻轉LCD螢幕",
+    "priceUnit": 70000,
+    "quantity": 1,
+    "subtotal": 70000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "MikroTik\r  RB450Gx4",
+    "spec": "CPU:716MHz,RAM:1GB\r 5埠10/100/1000 Mbps 乙太網路連接埠\r 原廠變壓器+原廠外殼+無外盒氣泡袋裝",
+    "priceUnit": 4452,
+    "quantity": 6,
+    "subtotal": 26712,
+    "source": "嘉義縣教育網路中心_MikroTik_20250709-01.xlsx",
+    "customer": "嘉義縣教育網路中心",
+    "project": ""
+  },
+  {
+    "name": "MikroTik\r CRS326-24G-2S+RM",
+    "spec": "CPU:800 MHz \r RAM:512MB\r 24個 Gigabit LAN連接埠\r 2個 10G SFP+ 連接埠,\r 作業系統：RouterOS L5 或 SwitchOS",
+    "priceUnit": 6500,
+    "quantity": 8,
+    "subtotal": 52000,
+    "source": "創勝科技股份有限公司＿MikroTik_20250528.xlsx",
+    "customer": "創勝科技股份有限公司",
+    "project": "MikroTik"
+  },
+  {
+    "name": "MikroTik\r CRS326-24S+2Q+RM",
+    "spec": "2個 40G QSFP+ 連接埠 \r 24個  10G SFP+ 連接埠 \r 1個 管理用 LAN 連接埠\r 作業系統：RouterOS L5 或 SwitchOS",
+    "priceUnit": 17250,
+    "quantity": 1,
+    "subtotal": 17250,
+    "source": "創勝科技股份有限公司＿MikroTik_20250528.xlsx",
+    "customer": "創勝科技股份有限公司",
+    "project": "MikroTik"
+  },
+  {
+    "name": "MikroTik \r CCR1009-7G-1C-1S+\r Cloud Router Switch\r (良品）",
+    "spec": "9核心 CPU:1.2GHz,RAM:2GB                                                                 \r 7 個 10/100/1000 Mbps 乙太網路連接埠\r 1 個 SFP 插槽                                                               \r 1 個 SF",
+    "priceUnit": 13500,
+    "quantity": 1,
+    "subtotal": 13500,
+    "source": "東豐科技股份有限公司_MikroTik CCR1009-7G__20250704-01.xlsx",
+    "customer": "東豐科技股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "MikroTik \r CCR2004-1G-12S+2XS",
+    "spec": "4核心，CPU:1700MHz,RAM:4GB\r 1 個 10/100/1000 Mbps 乙太網路連接埠\r 12個SFP+ 插槽\r 2個25G SFP28 插槽",
+    "priceUnit": 21900,
+    "quantity": 20,
+    "subtotal": 380000,
+    "source": "友訊科技股份有限公司_嘉義縣教網MikoTik CCR2004_20250721-01.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "嘉義縣教網 MikroTik"
+  },
+  {
+    "name": "Mikrotik 路由器\r CCR2004-16G-2S+",
+    "spec": "•網路交換器，含正式服務區與管理網路區所需的乙太網路交換器\r •支援netflow v9\r •支援1G*16,10Gbps *2 \r 支援Vlan 設定",
+    "priceUnit": 26250,
+    "quantity": 4,
+    "subtotal": 105000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "PLC可程式控制器 客製化開發",
+    "spec": "PLC可程式控制器客製化開發，定期檢測PLC 控制器是否在線。",
+    "priceUnit": 248000,
+    "quantity": 1,
+    "subtotal": 200000,
+    "source": "友訊_工研院智慧網管_竹東院區_20250325_01 (1).xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "工研院智慧網管案-竹東院區"
+  },
+  {
+    "name": "PO-1",
+    "spec": "2007/05 PO:A300016827 ENCS 主系統($950,000)",
+    "priceUnit": 80000,
+    "quantity": 1,
+    "subtotal": 80000,
+    "source": "2025年度ENCS MA_報價單_1130925.xls",
+    "customer": "NCIC",
+    "project": ""
+  },
+  {
+    "name": "PO-2",
+    "spec": "2008/04 PO:A300019775 ENCS功能新增(＄144,000)",
+    "priceUnit": 14400,
+    "quantity": 1,
+    "subtotal": 14400,
+    "source": "2025年度ENCS MA_報價單_1130925.xls",
+    "customer": "NCIC",
+    "project": ""
+  },
+  {
+    "name": "PO-3",
+    "spec": "2010/12 PO:A300031202 TDM 110/119 ($744,500)",
+    "priceUnit": 180000,
+    "quantity": 1,
+    "subtotal": 180000,
+    "source": "2025年度ENCS MA_報價單_1130925.xls",
+    "customer": "NCIC",
+    "project": ""
+  },
+  {
+    "name": "PO-4",
+    "spec": "2011/12 PO:A300034829 ENCS Enhancement($900,000)",
+    "priceUnit": 135000,
+    "quantity": 1,
+    "subtotal": 135000,
+    "source": "2025年度ENCS MA_報價單_1130925.xls",
+    "customer": "NCIC",
+    "project": ""
+  },
+  {
+    "name": "POE Injector(1G)",
+    "spec": "POE Injector(1G)",
+    "priceUnit": 260,
+    "quantity": 30,
+    "subtotal": 7800,
+    "source": "弘展資訊-報價單_1140812.xlsx",
+    "customer": "弘展資訊有限公司",
+    "project": "採購30個PoE Injector(1G)"
+  },
+  {
+    "name": "RB5009UG+S+IN",
+    "spec": "CPU: 350-1400 (auto) MHz,RAM: 1GB\r 7個10/100/1000 Mbps乙太網路連接埠\r 1個2500 Mbps乙太網路連接埠\r 1個 SFP+ 插槽",
+    "priceUnit": 5700,
+    "quantity": 4,
+    "subtotal": 22800,
+    "source": "台大計中網路組_報價單_1140520.xlsx",
+    "customer": "國立台灣大學計資中心網路組",
+    "project": "採購 MikroTik 設備"
+  },
+  {
+    "name": "Recording",
+    "spec": "CM 專用版, 提供 30 路授權",
+    "priceUnit": 300000,
+    "quantity": 1,
+    "subtotal": 300000,
+    "source": "至興資通_ Recording_20211227-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "Recording System",
+    "spec": "CM 專用版 Recording System MA 一年",
+    "priceUnit": 15000,
+    "quantity": 1,
+    "subtotal": 15000,
+    "source": "至興資通_ 力旺電子 MA_20250314-01.xlsx",
+    "customer": "至興資通股份有限公司",
+    "project": "力旺電子MA"
+  },
+  {
+    "name": "Ribbon Edge 8500",
+    "spec": "Ribbon Edge 8500 系統\r 1.內建 SBC（Session Border Controller）與 L3 VPN 功能\r 2.共振多組號碼功能機制\r 3.支援 240 同時通話數\r 4.20路SIP通話授權\r 5.提供 8 組 T1/E1 數位外線\r 6. 4 x 10Gb SFP+ 光纖介面\r 7. 6 x 10/100/1000 Mbps RJ-45（可靈活配置為 LAN 或 ",
+    "priceUnit": 1152000,
+    "quantity": 1,
+    "subtotal": 1152000,
+    "source": "KPMG_SBC_20250421-投標用_.xlsx",
+    "customer": "安侯企業管理股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "Ribbon SBC1000",
+    "spec": "Ribbon SBC1000 含 1 埠 E1 授權",
+    "priceUnit": 180000,
+    "quantity": 1,
+    "subtotal": 180000,
+    "source": "仁通_港務局_SBC1000_20230905-01.xls",
+    "customer": "仁通資訊股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "Ribbon SBC1000 \r E1 Gateway",
+    "spec": "•硬體：一部 E1 VoIP Gateway  ， 2 路 E1 PRI Port 授權\r •軟體：原有E1 Gateway 新增1路E1 PRI Port 授權\r •整合：與局內既有交換機與SBC1000 進行硬體備援架構測試整合",
+    "priceUnit": 1224000,
+    "quantity": 1,
+    "subtotal": 1224000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "Ribbon SBC1000 Gateway",
+    "spec": "提供 30 路SIP同時通話授權 SBC硬體一台",
+    "priceUnit": 1,
+    "quantity": null,
+    "subtotal": null,
+    "source": "至興資通 IPPBX_20251103-01.xls",
+    "customer": "至興資通股份有限公司",
+    "project": "新竹"
+  },
+  {
+    "name": "SBC 1000\r 技術支援",
+    "spec": "5x8 技術支援服務一年\r 1.服務時間為工作日5x8\r 2.維護保固期間內提供必要性韌體(Firmware)更新服務(遠端)\r 3.提供初級技術服務: 提供產品資訊和授權查詢、一般性問題回覆 (不包括支援遠端障礙及現場端障礙查修服務)",
+    "priceUnit": 5040,
+    "quantity": 2,
+    "subtotal": 10080,
+    "source": "CHT_SBC1000_優洋企業 Teams MA_20251201-01.xlsx",
+    "customer": "中華電信股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "SBC 1000\r 系統",
+    "spec": "Ribbon SBC1000 系統 \r (台北、桃園、台南）",
+    "priceUnit": 85680,
+    "quantity": 3,
+    "subtotal": 257040,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC 1000\r 通話授權",
+    "spec": "提供 40 路最大同時通話授權 (授權數以10乘倍數計算)\r 台北 : 10\r 桃園 : 30，\r 台南 : 30，合計 70 路，每 10 路單價 20,400元。",
+    "priceUnit": 20400,
+    "quantity": 7,
+    "subtotal": 142800,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC 1000 \r 硬體安裝工程",
+    "spec": "安裝工程\r  (僅提供基本硬體安裝上架，SBC 1000 x2  )。\r 台北 : 2,616元 (北北基地區)\r 桃園 : 9,300元 (北北基以外)\r 台南 : 9,300元 (北北基以外)",
+    "priceUnit": 21216,
+    "quantity": 1,
+    "subtotal": 21216,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC 1000系統\r 延長保固",
+    "spec": "Ribbon SBC1000 系統\r 5 路最大同時通話授權\r 延長保固一年(以設備總價 15% 含稅計算)\r 設備總價: 84,000元",
+    "priceUnit": 84000,
+    "quantity": 2,
+    "subtotal": 26880,
+    "source": "CHT_SBC1000_優洋企業 Teams MA_20251201-01.xlsx",
+    "customer": "中華電信股份有限公司",
+    "project": ""
+  },
+  {
+    "name": "SBC SWe \r 硬體安裝工程",
+    "spec": "安裝工程\r  (僅提供基本硬體安裝上架，SBC SWe Server x2  )。",
+    "priceUnit": 18720,
+    "quantity": 1,
+    "subtotal": 18720,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC SWe 硬體",
+    "spec": "1U Server \r 1. CPU:Intel Xeon® Silver 4310 Processor x1 ,16GB Ram x2, 960GB SSD x4,Raid 5 (5年保固)\r 2. VMware vSphere Standard - (5年訂閱制)",
+    "priceUnit": 360570,
+    "quantity": 2,
+    "subtotal": 721140,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC SWe HA\r 通話授權",
+    "spec": "提供SBC SWe HA (High Availability) 200 路，SIP 語音專用通話授權，每10路為一單位計算。\r 每 10 路單價 40,400元。",
+    "priceUnit": 40400,
+    "quantity": 20,
+    "subtotal": 808000,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SBC SWe HA 系統",
+    "spec": "Ribbon SWe  SBC HA (High Availability) 系統",
+    "priceUnit": 105040,
+    "quantity": 2,
+    "subtotal": 210080,
+    "source": "CHT_SBC Swe_美光集團 Teams_20250215-01議價前_K.xlsx",
+    "customer": "中華電信臺中營運處 第二企業客戶科",
+    "project": ""
+  },
+  {
+    "name": "SIP Server 維護",
+    "spec": "1、SIP Server 軟體兩套 2、技術支援、軟體維護",
+    "priceUnit": 85000,
+    "quantity": 1,
+    "subtotal": 85000,
+    "source": "博聯_宜蘭SIPProxy+IPPBX MA_20250207-01.xls",
+    "customer": "博聯資訊",
+    "project": ""
+  },
+  {
+    "name": "SIP Server Trunk IP修改",
+    "spec": "SIP Server Trunk IP 修改\r 路由調整及防火牆規則修正\r 註: 過保無約客戶",
+    "priceUnit": 9524,
+    "quantity": 1,
+    "subtotal": 9524,
+    "source": "顯赫資訊_大同_20241106-01.xlsx",
+    "customer": "大同股份有限公司",
+    "project": "SIPProxy"
+  },
+  {
+    "name": "SIPProxy+IPPBX \r 主機轉移VM費用",
+    "spec": "IPPBX 和 SIPProxy主機轉移至VM的服務說明如下：\r (僅限移轉在線主機)\r 1.VM 環境由客戶提供，本公司僅提供 P2V 移轉服務。\r 2.報價不含 IPPBX及SIPProxy 版本及 Linux OS 重建費用 –(CentOS 平台改為 Ubuntu 平台)。\r 3.本服務不包含HA備援機同步或移轉。",
+    "priceUnit": 95000,
+    "quantity": 1,
+    "subtotal": 95000,
+    "source": "苗栗教網SIProxy+IPPBX移轉VM_20250606-01.xlsx",
+    "customer": "苗栗縣教育網路中心",
+    "project": "苗栗縣教網"
+  },
+  {
+    "name": "Siraya\r Radar-LIC 網管偵測點擴充授權",
+    "spec": "項次 280",
+    "priceUnit": 236,
+    "quantity": 1610,
+    "subtotal": 379960,
+    "source": "友訊科技股份有限公司_台北市_SNM_20250606-02.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "台北市政府教育局 - Siraya 智慧網管 - 軟體標供契採購"
+  },
+  {
+    "name": "Siraya \r Siraya SNM1000-DB - 1YLIC",
+    "spec": "項次 296",
+    "priceUnit": 6,
+    "quantity": 45359,
+    "subtotal": 272154,
+    "source": "友訊科技股份有限公司_台北市_SNM_20250606-02.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "台北市政府教育局 - Siraya 智慧網管 - 軟體標供契採購"
+  },
+  {
+    "name": "Siraya \r SNM1000 BASE - 1YLIC",
+    "spec": "項次 295",
+    "priceUnit": 6,
+    "quantity": 228218,
+    "subtotal": 1369308,
+    "source": "友訊科技股份有限公司_台北市_SNM_20250606-02.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "台北市政府教育局 - Siraya 智慧網管 - 軟體標供契採購"
+  },
+  {
+    "name": "Siraya \r SNM1000-RADAR-LIC Radar 管理授權",
+    "spec": "項次 301",
+    "priceUnit": 472,
+    "quantity": 11052,
+    "subtotal": 5216544,
+    "source": "友訊科技股份有限公司_台北市_SNM_20250606-02.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "台北市政府教育局 - Siraya 智慧網管 - 軟體標供契採購"
+  },
+  {
+    "name": "Siraya 智慧網管 Radar 主機(新款)",
+    "spec": "Siraya 智慧網管 Radar 主機",
+    "priceUnit": 10500,
+    "quantity": 60,
+    "subtotal": 630000,
+    "source": "友訊科技股份有限公司_基隆教網_Radar_20250421-01.xlsx",
+    "customer": "友訊科技股份有限公司",
+    "project": "基隆智慧網管Radar汰舊換新案"
+  },
+  {
+    "name": "Siraya Radar  智慧網管偵測主機(新款)",
+    "spec": "Siraya Radar 智慧網管偵測主機 (新購置) -Intel CPU 四核心  -8GB RAM / SSD -120GB -輸入: 100-240V~50/60Hz 1.7A  -輸出: 60W (12V/5A)  -自行安裝於學校 L3 Switch -尺寸約: 23.5 x 18.5 x 7 CM (長x寬x高) 保固時間: 五年",
+    "priceUnit": 20000,
+    "quantity": 4,
+    "subtotal": 80000,
+    "source": "博聯_宜蘭縣網日誌分析系統案_20250626-01.xls",
+    "customer": "博聯資訊有限公司",
+    "project": ""
+  },
+  {
+    "name": "SonicWall 防火牆建置及維護\r (TZ-570)",
+    "spec": "•SonicWall F/W 5套 \r •SonicWall controller X1 支援IPS功能\r •授權期間 (2026/01/01~2028/12/31)，共36個月。\r •維護條件：7x24問題諮詢服務及故障排除，2小時電話回覆。",
+    "priceUnit": 305000,
+    "quantity": 5,
+    "subtotal": 1525000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "Switch管理授權擴充",
+    "spec": "1.智慧網管-新增擴充 :     GPON汰換56校，網管整合與納管服務，包含核心交換器56台，L2交換器108台。保固 : 驗收後保固五年。",
+    "priceUnit": 142857,
+    "quantity": 1,
+    "subtotal": 142857,
+    "source": "友訊_彰化SNM_20251007-01.xls",
+    "customer": "友訊科技股份有限公司_台中暨新竹業務部",
+    "project": "彰化縣114年度教育部縣市校園網路補助案"
+  },
+  {
+    "name": "VoIP 專用 SBC\r AudioCodes M Serious",
+    "spec": "•支援60 coucurrent  call ，1000 register。\r •支援TLS v1.2\r •支援Secure RTP (SRTP) 媒體加密\r •支援HA 備援\r •支援Topology hiding; User privacy\r •支援DoS/DDoS line rate protection, bandwidth throttling",
+    "priceUnit": 1577500,
+    "quantity": 1,
+    "subtotal": 1577500,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "VoIP 終端\r 通訊測試設備\r (ioS)",
+    "spec": "•參考廠牌型號:Apple iPhone 16 優規或同等品\r •含保護殼及電源轉接器\r •通過NCC規範認證\r •RAM:8GB 或以上\r •ROM:256GB·或以上\r •CPU:A18晶片或以上\r •預設出廠作業系統:i0S為18或以上\r •螢幕尺寸(英吋):6或以上\r •本項設備保固依原廠保固條款",
+    "priceUnit": 34200,
+    "quantity": 7,
+    "subtotal": 239400,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "VoIP平台系統(軟體)",
+    "spec": "•更新系統設定。\r •動態網路port資源配置, Auto UDP Port Reset\r •相容性測試，底層系統架構部分微調。",
+    "priceUnit": 1000000,
+    "quantity": 1,
+    "subtotal": 1000000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "VoIP系統軟體維護",
+    "spec": "維護系統 :\r 1. SIP Server x 2\r 2. IPPBX Server x 2\r 3. CDR Server 2\r 維護內容 :\r 1. 障礙維修紀錄列表\r 2. 系統狀態監控列表\r 3. 異常登入紀錄列表\r 4. 通話總數/時間統計列表",
+    "priceUnit": 105600,
+    "quantity": 1,
+    "subtotal": 105600,
+    "source": "台南市網 VoIP系統MA-20250211.xlsx",
+    "customer": "台南市教育網路中心",
+    "project": "VoIP系統MA"
+  },
+  {
+    "name": "VoIP終端+\r 通訊測試設備\r (Android)",
+    "spec": "•參考廠牌型號:Samsung Galaxy'S25 優規或同等品\r •含保護殼及電源轉接器\r •通過NCC規範認證\r •RAM:8GB 或以上\r •ROM:256GB·或以上\r •CPU:Qualcomm·Snapdragon·8、Google Tensor-G4 \r 以上\r •預設出廠作業系統:Android·為 14 或以上\r •螢幕尺寸(英吋):6或以上\r •本項設備保固依原廠保固條款",
+    "priceUnit": 28700,
+    "quantity": 5,
+    "subtotal": 143500,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  },
+  {
+    "name": "Wazuh SIEM 系統",
+    "spec": "•年度訂閱制，訂閱期間 (至~2028/12/31)\r •提供本案主機設備端點資安防護，提供入侵偵測及防•禦機制與資訊彙整，\r •資安事件處理與報告，惡意程式分析。\r •含Linux , windows  agent 授權",
+    "priceUnit": 510000,
+    "quantity": 1,
+    "subtotal": 510000,
+    "source": "山上_chat-2025主機報價更新20250623-01.xlsx",
+    "customer": "",
+    "project": "專屬語音通訊平台"
+  }
+]

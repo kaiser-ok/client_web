@@ -77,13 +77,16 @@ export default function AddIssueModal({
       onOk={() => form.submit()}
       okText="建立"
       cancelText="取消"
+      forceRender
       confirmLoading={loading}
       width={600}
+      destroyOnHidden={false}
     >
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
+        preserve={false}
         initialValues={{ issueType: 'Bug', priority: 'Medium' }}
       >
         <Form.Item

@@ -8,7 +8,7 @@ import {
 import type { TableColumnsType } from 'antd'
 import {
   TrophyOutlined, DollarOutlined, SaveOutlined, TeamOutlined,
-  ProjectOutlined,
+  ProjectOutlined, CheckCircleOutlined, ClockCircleOutlined,
 } from '@ant-design/icons'
 import useSWR from 'swr'
 import AppLayout from '@/components/layout/AppLayout'
@@ -52,7 +52,11 @@ interface BonusRow {
   userName: string
   userEmail: string
   totalScore: number
+  confirmedScore: number
+  projectedScore: number
   bonusAmount: number
+  confirmedBonusAmount: number
+  projectedBonusAmount: number
   projects: Array<{
     evalId: string
     projectId: string
@@ -109,6 +113,8 @@ export default function BonusReportPage() {
   const rows: BonusRow[] = data?.rows || []
   const projectSummary: ProjectSummary[] = data?.projectSummary || []
   const allMembersTotal: number = data?.allMembersTotal || 0
+  const confirmedTotal: number = data?.confirmedTotal || 0
+  const projectedTotal: number = data?.projectedTotal || 0
 
   const memberColumns: TableColumnsType<BonusRow> = [
     {
@@ -129,23 +135,32 @@ export default function BonusReportPage() {
       render: (_, record) => record.projects.length,
     },
     {
-      title: '個人專案分合計', dataIndex: 'totalScore', width: 130, align: 'right' as const,
+      title: '確認點數', dataIndex: 'confirmedScore', width: 110, align: 'right' as const,
+      render: (v: number) => v > 0 ? <Text strong style={{ color: '#389e0d' }}>{v.toFixed(2)}</Text> : <Text type="secondary">-</Text>,
+      sorter: (a, b) => a.confirmedScore - b.confirmedScore,
+    },
+    {
+      title: '預計撥發', dataIndex: 'projectedScore', width: 110, align: 'right' as const,
+      render: (v: number) => v > 0 ? <Text style={{ color: '#d48806' }}>{v.toFixed(2)}</Text> : <Text type="secondary">-</Text>,
+      sorter: (a, b) => a.projectedScore - b.projectedScore,
+    },
+    {
+      title: '合計點數', dataIndex: 'totalScore', width: 110, align: 'right' as const,
       render: (v: number) => <Text strong style={{ color: '#722ed1' }}>{v.toFixed(2)}</Text>,
       sorter: (a, b) => a.totalScore - b.totalScore,
       defaultSortOrder: 'descend' as const,
     },
     {
-      title: '佔比', width: 80, align: 'right' as const,
-      render: (_, record) => allMembersTotal > 0
-        ? `${(record.totalScore / allMembersTotal * 100).toFixed(1)}%`
-        : '-',
-    },
-    {
-      title: '預估業績獎金', dataIndex: 'bonusAmount', width: 120, align: 'right' as const,
-      render: (v: number) => (
-        <Text strong style={{ color: '#cf1322' }}>
-          ${v.toLocaleString()}
-        </Text>
+      title: '預估業績獎金', width: 180, align: 'right' as const,
+      render: (_: unknown, record: BonusRow) => (
+        <Space direction="vertical" size={0}>
+          <Text strong style={{ color: '#cf1322' }}>${record.bonusAmount.toLocaleString()}</Text>
+          {record.confirmedBonusAmount > 0 && record.projectedBonusAmount > 0 && (
+            <Text style={{ fontSize: 11, color: '#999' }}>
+              確認 ${record.confirmedBonusAmount.toLocaleString()} + 預計 ${record.projectedBonusAmount.toLocaleString()}
+            </Text>
+          )}
+        </Space>
       ),
     },
   ]
@@ -192,7 +207,7 @@ export default function BonusReportPage() {
           return <Text strong style={{ color: '#722ed1' }}>{record.totalScore.toFixed(2)}</Text>
         }
         return (
-          <Space direction="vertical" size={0}>
+          <Space orientation="vertical" size={0}>
             <Text strong style={{ color: '#722ed1' }}>{record.effectiveScore.toFixed(2)}</Text>
             <Text type="secondary" style={{ fontSize: 11 }}>
               ({Math.round(record.spreadRatio * 100)}% / {record.warrantyYears}年保固)
@@ -233,7 +248,7 @@ export default function BonusReportPage() {
         >
           {/* Summary Stats */}
           <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={6}>
+            <Col span={4}>
               <Card size="small">
                 <Statistic
                   title="評估專案數"
@@ -242,7 +257,29 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="確認點數"
+                  value={confirmedTotal}
+                  precision={2}
+                  prefix={<CheckCircleOutlined />}
+                  styles={{ content: { color: '#389e0d' } }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
+              <Card size="small">
+                <Statistic
+                  title="預計撥發點數"
+                  value={projectedTotal}
+                  precision={2}
+                  prefix={<ClockCircleOutlined />}
+                  styles={{ content: { color: '#d48806' } }}
+                />
+              </Card>
+            </Col>
+            <Col span={4}>
               <Card size="small">
                 <Statistic
                   title="全員專案分合計"
@@ -253,7 +290,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
               <Card size="small">
                 <Statistic
                   title="參與人數"
@@ -262,7 +299,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={6}>
+            <Col span={4}>
               <Card size="small">
                 {editingRate ? (
                   <Space>
@@ -336,7 +373,7 @@ export default function BonusReportPage() {
                       {
                         title: '個人專案分', dataIndex: 'score', width: 130, align: 'right' as const,
                         render: (v: number, r: BonusRow['projects'][0]) => (
-                          <Space direction="vertical" size={0}>
+                          <Space orientation="vertical" size={0}>
                             <Text strong style={{ color: '#722ed1' }}>{v.toFixed(2)}</Text>
                             {r.warrantyYears && r.warrantyYears > 1 && (
                               <Text type="secondary" style={{ fontSize: 11 }}>
@@ -357,6 +394,8 @@ export default function BonusReportPage() {
               summary={() => {
                 if (rows.length === 0) return null
                 const totalBonus = rows.reduce((s, r) => s + r.bonusAmount, 0)
+                const totalConfirmedBonus = rows.reduce((s, r) => s + r.confirmedBonusAmount, 0)
+                const totalProjectedBonus = rows.reduce((s, r) => s + r.projectedBonusAmount, 0)
                 return (
                   <Table.Summary fixed>
                     <Table.Summary.Row>
@@ -364,11 +403,23 @@ export default function BonusReportPage() {
                         <Text strong>合計</Text>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={4} align="right">
+                        <Text strong style={{ color: '#389e0d' }}>{confirmedTotal.toFixed(2)}</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={5} align="right">
+                        <Text strong style={{ color: '#d48806' }}>{projectedTotal.toFixed(2)}</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={6} align="right">
                         <Text strong style={{ color: '#722ed1' }}>{allMembersTotal.toFixed(2)}</Text>
                       </Table.Summary.Cell>
-                      <Table.Summary.Cell index={5} align="right">100%</Table.Summary.Cell>
-                      <Table.Summary.Cell index={6} align="right">
-                        <Text strong style={{ color: '#cf1322' }}>${totalBonus.toLocaleString()}</Text>
+                      <Table.Summary.Cell index={7} align="right">
+                        <Space direction="vertical" size={0}>
+                          <Text strong style={{ color: '#cf1322' }}>${totalBonus.toLocaleString()}</Text>
+                          {totalConfirmedBonus > 0 && totalProjectedBonus > 0 && (
+                            <Text style={{ fontSize: 11, color: '#999' }}>
+                              確認 ${totalConfirmedBonus.toLocaleString()} + 預計 ${totalProjectedBonus.toLocaleString()}
+                            </Text>
+                          )}
+                        </Space>
                       </Table.Summary.Cell>
                     </Table.Summary.Row>
                   </Table.Summary>

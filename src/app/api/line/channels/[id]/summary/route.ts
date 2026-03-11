@@ -4,6 +4,8 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { chatCompletion } from '@/lib/llm'
 import { LLMConfig, DEFAULT_LLM_CONFIG, LLM_CONFIG_KEY } from '@/types/llm'
+import { writeFile, mkdir } from 'fs/promises'
+import path from 'path'
 
 interface MonthlySummary {
   month: string // YYYY-MM
@@ -76,6 +78,138 @@ export async function GET(
 }
 
 /**
+ * 將月度摘要轉為 Markdown
+ */
+function summaryToMarkdown(channelName: string, summary: MonthlySummary): string {
+  const lines: string[] = []
+  lines.push(`# ${channelName} — ${summary.month} 月度摘要`)
+  lines.push('')
+  lines.push(`> 訊息數：${summary.totalMessages}`)
+  lines.push('')
+
+  if (summary.highlights.length > 0) {
+    lines.push('## 月度亮點')
+    summary.highlights.forEach(h => lines.push(`- ${h}`))
+    lines.push('')
+  }
+
+  if (summary.decisions.length > 0) {
+    lines.push('## 重要決策')
+    summary.decisions.forEach(d => {
+      const participants = d.participants.length > 0 ? `（${d.participants.join('、')}）` : ''
+      lines.push(`- **${d.date}** ${d.content}${participants}`)
+    })
+    lines.push('')
+  }
+
+  if (summary.technicalIssues.length > 0) {
+    lines.push('## 技術問題')
+    summary.technicalIssues.forEach(t => {
+      const status = t.status ? ` [${t.status}]` : ''
+      lines.push(`- **${t.date}** ${t.content}${status}`)
+    })
+    lines.push('')
+  }
+
+  if (summary.actionItems.length > 0) {
+    lines.push('## 待辦/追蹤')
+    summary.actionItems.forEach(a => {
+      const assignee = a.assignee ? ` @${a.assignee}` : ''
+      lines.push(`- **${a.date}** ${a.content}${assignee}`)
+    })
+    lines.push('')
+  }
+
+  return lines.join('\n')
+}
+
+/**
+ * 將摘要存檔到客戶檔案區
+ */
+async function saveSummaryToFiles(
+  channelId: string,
+  channelName: string,
+  summaries: MonthlySummary[],
+  userEmail: string
+) {
+  try {
+    // 找到頻道關聯的 Partner
+    const channel = await prisma.lineChannel.findUnique({
+      where: { id: channelId },
+      select: {
+        partnerId: true,
+        partner: { select: { id: true, name: true } },
+        associations: {
+          select: { partnerId: true, partner: { select: { id: true, name: true } } },
+          take: 1,
+        },
+      },
+    })
+
+    const partner = channel?.partner || channel?.associations?.[0]?.partner
+    if (!partner) return // 沒有關聯客戶，不存檔
+
+    // 取得檔案存儲根路徑
+    const config = await prisma.systemConfig.findUnique({
+      where: { key: 'FILE_STORAGE_ROOT_PATH' },
+    })
+    if (!config?.value) return
+
+    const rootPath = config.value
+    const currentYear = new Date().getFullYear()
+    const partnerDir = partner.name.replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim()
+    const subFolder = 'line-summary'
+
+    for (const summary of summaries) {
+      const markdown = summaryToMarkdown(channelName, summary)
+      const safeName = (channelName || 'channel').replace(/[<>:"/\\|?*\x00-\x1f]/g, '_').trim()
+      const filename = `${safeName}_${summary.month}.md`
+      const storedPath = `${subFolder}/${filename}`
+
+      const targetDir = path.join(rootPath, partnerDir, String(currentYear), subFolder)
+      await mkdir(targetDir, { recursive: true })
+      await writeFile(path.join(targetDir, filename), markdown, 'utf-8')
+
+      // Upsert PartnerFile record
+      const existing = await prisma.partnerFile.findUnique({
+        where: {
+          partnerId_year_storedPath: {
+            partnerId: partner.id,
+            year: currentYear,
+            storedPath,
+          },
+        },
+      })
+
+      const fileSize = Buffer.byteLength(markdown, 'utf-8')
+
+      if (existing) {
+        await prisma.partnerFile.update({
+          where: { id: existing.id },
+          data: { fileSize, uploadedBy: userEmail, uploadedAt: new Date(), deletedAt: null },
+        })
+      } else {
+        await prisma.partnerFile.create({
+          data: {
+            partnerId: partner.id,
+            year: currentYear,
+            filename,
+            storedPath,
+            fileSize,
+            mimeType: 'text/markdown',
+            source: 'MANUAL',
+            uploadedBy: userEmail,
+          },
+        })
+      }
+    }
+  } catch (error) {
+    console.error('Error saving summary to files:', error)
+    // 不影響主流程
+  }
+}
+
+/**
  * PUT: 儲存月度摘要
  */
 export async function PUT(
@@ -97,24 +231,36 @@ export async function PUT(
 
     const createdBy = session.user?.email || 'system'
 
+    // 取得頻道名稱
+    const channel = await prisma.lineChannel.findUnique({
+      where: { id: channelId },
+      select: { channelName: true },
+    })
+    const channelName = channel?.channelName || 'LINE'
+
     // Upsert each monthly summary
     for (const summary of summaries) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const summaryJson = JSON.parse(JSON.stringify(summary)) as any
       await prisma.lineSummary.upsert({
         where: {
           channelId_month: { channelId, month: summary.month },
         },
         update: {
-          data: summary as unknown as Record<string, unknown>,
+          data: summaryJson,
           createdBy,
         },
         create: {
           channelId,
           month: summary.month,
-          data: summary as unknown as Record<string, unknown>,
+          data: summaryJson,
           createdBy,
         },
       })
     }
+
+    // 同步存檔到客戶檔案區
+    await saveSummaryToFiles(channelId, channelName, summaries, createdBy)
 
     return NextResponse.json({ success: true, count: summaries.length })
   } catch (error) {

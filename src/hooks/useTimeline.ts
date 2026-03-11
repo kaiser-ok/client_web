@@ -76,6 +76,7 @@ export async function createActivity(data: {
   tags?: string[]
   attachments?: string[]
   jiraKey?: string
+  eventDate?: string
 }) {
   const response = await fetch('/api/activities', {
     method: 'POST',

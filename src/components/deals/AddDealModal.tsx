@@ -120,13 +120,16 @@ export default function AddDealModal({
       onOk={() => form.submit()}
       okText="新增"
       cancelText="取消"
+      forceRender
       confirmLoading={loading}
       width={560}
+      destroyOnHidden={false}
     >
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
+        preserve={false}
         initialValues={{
           type: 'PURCHASE',
           closedAt: dayjs(),

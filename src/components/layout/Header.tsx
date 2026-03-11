@@ -1,17 +1,28 @@
 'use client'
 
-import { Layout, Button, Dropdown, Avatar, Space, Typography } from 'antd'
+import { Layout, Button, Dropdown, Avatar, Space, Typography, Select, Tag } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,
   LogoutOutlined,
+  SwapOutlined,
 } from '@ant-design/icons'
-import { useSession, signOut } from 'next-auth/react'
+import { signOut } from 'next-auth/react'
+import { useUser } from '@/hooks/useUser'
+import { UserRole } from '@/constants/roles'
 import type { MenuProps } from 'antd'
 
 const { Header: AntHeader } = Layout
 const { Text } = Typography
+
+const ROLE_OPTIONS: { value: UserRole; label: string; color: string }[] = [
+  { value: 'ADMIN', label: '管理員', color: 'red' },
+  { value: 'SALES', label: '業務', color: 'blue' },
+  { value: 'FINANCE', label: '財務', color: 'green' },
+  { value: 'SUPPORT', label: '服務支援', color: 'orange' },
+  { value: 'RD', label: '研發', color: 'purple' },
+]
 
 interface HeaderProps {
   collapsed: boolean
@@ -20,7 +31,23 @@ interface HeaderProps {
 }
 
 export default function Header({ collapsed, onToggle, isMobile }: HeaderProps) {
-  const { data: session } = useSession()
+  const { user, role, isAdmin, isImpersonating, setRole, clearImpersonation } = useUser()
+
+  const getRoleLabel = (r: string) => {
+    const option = ROLE_OPTIONS.find(o => o.value === r)
+    return option?.label || r
+  }
+
+  const getRoleColor = (r: string) => {
+    const option = ROLE_OPTIONS.find(o => o.value === r)
+    return option?.color || 'default'
+  }
+
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (key === 'logout') {
+      signOut({ callbackUrl: '/login' })
+    }
+  }
 
   const userMenuItems: MenuProps['items'] = [
     {
@@ -35,7 +62,6 @@ export default function Header({ collapsed, onToggle, isMobile }: HeaderProps) {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '登出',
-      onClick: () => signOut({ callbackUrl: '/login' }),
     },
   ]
 
@@ -67,18 +93,44 @@ export default function Header({ collapsed, onToggle, isMobile }: HeaderProps) {
         )}
       </Space>
 
-      <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-        <Space style={{ cursor: 'pointer' }}>
-          <Avatar
-            src={session?.user?.image}
-            icon={!session?.user?.image && <UserOutlined />}
-            size="small"
-          />
-          {!isMobile && (
-            <Text>{session?.user?.name || session?.user?.email}</Text>
-          )}
-        </Space>
-      </Dropdown>
+      <Space size="middle">
+        {/* Role indicator / switcher for admin */}
+        {isAdmin ? (
+          <Space size="small">
+            <SwapOutlined style={{ color: '#999' }} />
+            <Select
+              value={role}
+              onChange={(value) => setRole(value as UserRole)}
+              style={{ width: 110 }}
+              size="small"
+              options={ROLE_OPTIONS.map(r => ({
+                value: r.value,
+                label: r.label,
+              }))}
+            />
+            {isImpersonating && (
+              <Button size="small" type="link" onClick={clearImpersonation}>
+                還原
+              </Button>
+            )}
+          </Space>
+        ) : (
+          <Tag color={getRoleColor(role)}>{getRoleLabel(role)}</Tag>
+        )}
+
+        <Dropdown menu={{ items: userMenuItems, onClick: handleMenuClick }} placement="bottomRight" trigger={['click']}>
+          <Space style={{ cursor: 'pointer' }}>
+            <Avatar
+              src={user?.image}
+              icon={!user?.image && <UserOutlined />}
+              size="small"
+            />
+            {!isMobile && (
+              <Text>{user?.name || user?.email}</Text>
+            )}
+          </Space>
+        </Dropdown>
+      </Space>
     </AntHeader>
   )
 }

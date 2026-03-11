@@ -17,6 +17,8 @@ export const ACTIVITY_SOURCES = [
   { value: 'EMAIL', label: 'Email', icon: 'mail' },
   { value: 'DOC', label: '文件', icon: 'file' },
   { value: 'PHONE', label: '電話', icon: 'phone' },
+  { value: 'SLACK', label: 'Slack 彙整', icon: 'slack' },
+  { value: 'ERP', label: 'ERP 發票', icon: 'account-book' },
 ] as const
 
 export type ActivitySourceType = typeof ACTIVITY_SOURCES[number]['value']

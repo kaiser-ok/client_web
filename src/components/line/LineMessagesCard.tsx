@@ -14,7 +14,6 @@ import {
   Popconfirm,
   Avatar,
   Input,
-  List,
   Spin,
   Upload,
   Image,
@@ -43,7 +42,9 @@ import {
   CheckCircleOutlined,
   PlusCircleOutlined,
   SaveOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons'
+import LineActivityStats from './LineActivityStats'
 import dayjs from 'dayjs'
 
 const { Text } = Typography
@@ -140,6 +141,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   const [selectedChannelId, setSelectedChannelId] = useState<string | null>(null)
 
   // Chat state
+  const [chatView, setChatView] = useState<'messages' | 'stats'>('messages')
   const [activeChannel, setActiveChannel] = useState<LineChannel | null>(null)
   const [chatMessages, setChatMessages] = useState<LineMessage[]>([])
   const [loadingChat, setLoadingChat] = useState(false)
@@ -323,6 +325,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
     setInputMessage('')
     setHasMoreMessages(false)
     setTotalMessages(0)
+    setChatView('messages')
   }
 
   // Add summary item to timeline
@@ -697,6 +700,14 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
               {getChannelTypeLabel(activeChannel.channelType)}
             </Text>
           </div>
+          <Tooltip title="活動統計">
+            <Button
+              type={chatView === 'stats' ? 'primary' : 'text'}
+              icon={<BarChartOutlined />}
+              onClick={() => setChatView(chatView === 'stats' ? 'messages' : 'stats')}
+              size="small"
+            />
+          </Tooltip>
           <Tooltip title="生成月度摘要">
             <Button
               type="text"
@@ -705,12 +716,21 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
               loading={loadingSummary}
             />
           </Tooltip>
-          <Button
-            type="text"
-            icon={<ReloadOutlined spin={loadingChat} />}
-            onClick={() => loadChatMessages(activeChannel.id)}
-          />
+          {chatView === 'messages' && (
+            <Button
+              type="text"
+              icon={<ReloadOutlined spin={loadingChat} />}
+              onClick={() => loadChatMessages(activeChannel.id)}
+            />
+          )}
         </div>
+
+        {/* Stats view */}
+        {chatView === 'stats' && (
+          <div style={{ flex: 1, overflow: 'auto', padding: 16, backgroundColor: '#fff' }}>
+            <LineActivityStats channelId={activeChannel.id} />
+          </div>
+        )}
 
         {/* Messages area */}
         <div style={{
@@ -718,6 +738,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
           overflow: 'auto',
           padding: 16,
           backgroundColor: '#e5ddd5',
+          display: chatView === 'messages' ? 'block' : 'none',
         }}>
           {loadingChat ? (
             <div style={{ textAlign: 'center', padding: 40 }}>
@@ -860,9 +881,9 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
           padding: 12,
           borderTop: '1px solid #f0f0f0',
           backgroundColor: '#fff',
-          display: 'flex',
           gap: 8,
           alignItems: 'flex-end',
+          display: chatView === 'messages' ? 'flex' : 'none',
         }}>
           <Upload
             accept="image/*"
@@ -941,11 +962,10 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
       {channels.length === 0 ? (
         <Empty description="尚未關聯任何 LINE 頻道" image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <List
-          loading={loading}
-          dataSource={channels}
-          renderItem={(channel) => (
-            <List.Item
+        <div>
+          {channels.map((channel) => (
+            <div
+              key={channel.id}
               style={{
                 cursor: 'pointer',
                 padding: '12px 16px',
@@ -953,91 +973,86 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                 marginBottom: 8,
                 border: '1px solid #f0f0f0',
                 transition: 'background-color 0.2s',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               onClick={() => openChat(channel)}
-              actions={[
-                <Popconfirm
-                  key="delete"
-                  title="確定要移除此頻道？"
-                  description="移除後此頻道將不再與此客戶關聯"
-                  onConfirm={(e) => {
-                    e?.stopPropagation()
-                    // 找到此客戶的關聯 ID
-                    const association = channel.associations?.find(a => a.customerId === customerId)
-                    handleRemoveChannel(channel.id, association?.id)
-                  }}
-                  onCancel={(e) => e?.stopPropagation()}
-                  okText="移除"
-                  cancelText="取消"
-                >
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    size="small"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    移除
-                  </Button>
-                </Popconfirm>
-              ]}
             >
-              <List.Item.Meta
-                avatar={
-                  <Avatar
-                    size={48}
-                    style={{ backgroundColor: '#00B900' }}
-                    icon={getChannelTypeIcon(channel.channelType)}
-                  />
-                }
-                title={
+              <Avatar
+                size={48}
+                style={{ backgroundColor: '#00B900', flexShrink: 0 }}
+                icon={getChannelTypeIcon(channel.channelType)}
+              />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div>
                   <Space>
-                    <span>{channel.channelName || channel.lineChannelId}</span>
+                    <Text strong>{channel.channelName || channel.lineChannelId}</Text>
                     {channel.projectName && (
                       <Tag color="purple">{channel.projectName}</Tag>
                     )}
                   </Space>
-                }
-                description={
-                  <Space direction="vertical" size={4} style={{ width: '100%' }}>
-                    <Space>
-                      <Text type="secondary">{getChannelTypeLabel(channel.channelType)}</Text>
+                </div>
+                <Space>
+                  <Text type="secondary">{getChannelTypeLabel(channel.channelType)}</Text>
+                  <Text type="secondary">·</Text>
+                  <Text type="secondary">{channel.messageCount} 則訊息</Text>
+                  {channel.lastMessageAt && (
+                    <>
                       <Text type="secondary">·</Text>
-                      <Text type="secondary">{channel.messageCount} 則訊息</Text>
-                      {channel.lastMessageAt && (
-                        <>
-                          <Text type="secondary">·</Text>
-                          <Tooltip title={dayjs(channel.lastMessageAt).format('YYYY-MM-DD HH:mm:ss')}>
-                            <Text type="secondary">{dayjs(channel.lastMessageAt).fromNow()}</Text>
-                          </Tooltip>
-                        </>
-                      )}
+                      <Tooltip title={dayjs(channel.lastMessageAt).format('YYYY-MM-DD HH:mm:ss')}>
+                        <Text type="secondary">{dayjs(channel.lastMessageAt).fromNow()}</Text>
+                      </Tooltip>
+                    </>
+                  )}
+                </Space>
+                {channel.associations && channel.associations.length > 0 && (
+                  <div style={{ marginTop: 4 }}>
+                    <Space size={4} wrap>
+                      {channel.associations.map(a => (
+                        <Tag
+                          key={a.id}
+                          color={a.supplierId ? 'purple' : 'blue'}
+                          style={{ margin: 0 }}
+                        >
+                          {a.supplierId ? (
+                            <><ShopOutlined /> {a.supplierName}</>
+                          ) : (
+                            <><CustomerServiceOutlined /> {a.customerName}</>
+                          )}
+                        </Tag>
+                      ))}
                     </Space>
-                    {channel.associations && channel.associations.length > 0 && (
-                      <Space size={4} wrap>
-                        {channel.associations.map(a => (
-                          <Tag
-                            key={a.id}
-                            color={a.supplierId ? 'purple' : 'blue'}
-                            style={{ margin: 0 }}
-                          >
-                            {a.supplierId ? (
-                              <><ShopOutlined /> {a.supplierName}</>
-                            ) : (
-                              <><CustomerServiceOutlined /> {a.customerName}</>
-                            )}
-                          </Tag>
-                        ))}
-                      </Space>
-                    )}
-                  </Space>
-                }
-              />
-            </List.Item>
-          )}
-        />
+                  </div>
+                )}
+              </div>
+              <Popconfirm
+                title="確定要移除此頻道？"
+                description="移除後此頻道將不再與此客戶關聯"
+                onConfirm={(e) => {
+                  e?.stopPropagation()
+                  const association = channel.associations?.find(a => a.customerId === customerId)
+                  handleRemoveChannel(channel.id, association?.id)
+                }}
+                onCancel={(e) => e?.stopPropagation()}
+                okText="移除"
+                cancelText="取消"
+              >
+                <Button
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  size="small"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  移除
+                </Button>
+              </Popconfirm>
+            </div>
+          ))}
+        </div>
       )}
     </>
   )
@@ -1198,40 +1213,37 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                         <Text strong>重要決策</Text>
                         <Tag color="blue">{summary.decisions.length}</Tag>
                       </div>
-                      <List
-                        size="small"
-                        dataSource={summary.decisions}
-                        renderItem={(item, idx) => {
+                      <div>
+                        {summary.decisions.map((item, idx) => {
                           const itemKey = `decision-${summary.month}-${item.date}-${item.content.slice(0, 20)}`
                           return (
-                            <List.Item
-                              actions={[
-                                <Tooltip key="add" title="加入時間軸">
-                                  <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<PlusCircleOutlined />}
-                                    loading={addingToTimeline === itemKey}
-                                    onClick={() => addToTimeline('decision', item, summary.month)}
-                                  />
-                                </Tooltip>
-                              ]}
-                            >
-                              <Space direction="vertical" size={0} style={{ width: '100%' }}>
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+                              <div>
                                 <Space>
                                   <Tag color="blue">{item.date}</Tag>
                                   <Text>{item.content}</Text>
                                 </Space>
                                 {item.participants.length > 0 && (
-                                  <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
-                                    參與者：{item.participants.join('、')}
-                                  </Text>
+                                  <div>
+                                    <Text type="secondary" style={{ fontSize: 12, marginLeft: 8 }}>
+                                      參與者：{item.participants.join('、')}
+                                    </Text>
+                                  </div>
                                 )}
-                              </Space>
-                            </List.Item>
+                              </div>
+                              <Tooltip title="加入時間軸">
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<PlusCircleOutlined />}
+                                  loading={addingToTimeline === itemKey}
+                                  onClick={() => addToTimeline('decision', item, summary.month)}
+                                />
+                              </Tooltip>
+                            </div>
                           )
-                        }}
-                      />
+                        })}
+                      </div>
                     </>
                   )}
 
@@ -1243,25 +1255,11 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                         <Text strong>技術問題</Text>
                         <Tag color="orange">{summary.technicalIssues.length}</Tag>
                       </div>
-                      <List
-                        size="small"
-                        dataSource={summary.technicalIssues}
-                        renderItem={(item, idx) => {
+                      <div>
+                        {summary.technicalIssues.map((item, idx) => {
                           const itemKey = `issue-${summary.month}-${item.date}-${item.content.slice(0, 20)}`
                           return (
-                            <List.Item
-                              actions={[
-                                <Tooltip key="add" title="加入時間軸">
-                                  <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<PlusCircleOutlined />}
-                                    loading={addingToTimeline === itemKey}
-                                    onClick={() => addToTimeline('issue', item, summary.month)}
-                                  />
-                                </Tooltip>
-                              ]}
-                            >
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
                               <Space>
                                 <Tag color="orange">{item.date}</Tag>
                                 <Text>{item.content}</Text>
@@ -1271,10 +1269,19 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                                   </Tag>
                                 )}
                               </Space>
-                            </List.Item>
+                              <Tooltip title="加入時間軸">
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<PlusCircleOutlined />}
+                                  loading={addingToTimeline === itemKey}
+                                  onClick={() => addToTimeline('issue', item, summary.month)}
+                                />
+                              </Tooltip>
+                            </div>
                           )
-                        }}
-                      />
+                        })}
+                      </div>
                     </>
                   )}
 
@@ -1286,25 +1293,11 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                         <Text strong>待辦/追蹤</Text>
                         <Tag color="magenta">{summary.actionItems.length}</Tag>
                       </div>
-                      <List
-                        size="small"
-                        dataSource={summary.actionItems}
-                        renderItem={(item, idx) => {
+                      <div>
+                        {summary.actionItems.map((item, idx) => {
                           const itemKey = `action-${summary.month}-${item.date}-${item.content.slice(0, 20)}`
                           return (
-                            <List.Item
-                              actions={[
-                                <Tooltip key="add" title="加入時間軸">
-                                  <Button
-                                    type="text"
-                                    size="small"
-                                    icon={<PlusCircleOutlined />}
-                                    loading={addingToTimeline === itemKey}
-                                    onClick={() => addToTimeline('action', item, summary.month)}
-                                  />
-                                </Tooltip>
-                              ]}
-                            >
+                            <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
                               <Space>
                                 <Tag color="magenta">{item.date}</Tag>
                                 <Text>{item.content}</Text>
@@ -1312,10 +1305,19 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                                   <Tag icon={<UserOutlined />}>{item.assignee}</Tag>
                                 )}
                               </Space>
-                            </List.Item>
+                              <Tooltip title="加入時間軸">
+                                <Button
+                                  type="text"
+                                  size="small"
+                                  icon={<PlusCircleOutlined />}
+                                  loading={addingToTimeline === itemKey}
+                                  onClick={() => addToTimeline('action', item, summary.month)}
+                                />
+                              </Tooltip>
+                            </div>
                           )
-                        }}
-                      />
+                        })}
+                      </div>
                     </>
                   )}
                 </div>

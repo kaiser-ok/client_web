@@ -115,11 +115,11 @@ export const odooClient = {
    * Get confirmed sale orders from Odoo
    */
   async getSaleOrders(options: {
-    state?: string
+    states?: string[]
     fromDate?: Date
     limit?: number
   } = {}): Promise<OdooSaleOrder[]> {
-    const { state = 'sale', fromDate, limit = 1000 } = options
+    const { states = ['sale', 'draft'], fromDate, limit = 1000 } = options
 
     let query = `
       SELECT
@@ -144,9 +144,9 @@ export const odooClient = {
       LEFT JOIN res_partner u ON ru.partner_id = u.id
       LEFT JOIN res_partner d ON so.dealer_id = d.id
       LEFT JOIN project_type pt ON so.project_type_id = pt.id
-      WHERE so.state = $1
+      WHERE so.state = ANY($1)
     `
-    const params: (string | Date | number)[] = [state]
+    const params: (string[] | Date | number)[] = [states]
 
     if (fromDate) {
       query += ` AND so.date_order >= $2`
@@ -187,7 +187,7 @@ export const odooClient = {
       LEFT JOIN res_partner u ON ru.partner_id = u.id
       LEFT JOIN res_partner d ON so.dealer_id = d.id
       LEFT JOIN project_type pt ON so.project_type_id = pt.id
-      WHERE so.partner_id = $1 AND so.state = 'sale'
+      WHERE so.partner_id = $1 AND so.state IN ('sale', 'draft')
       ORDER BY so.date_order DESC
     `
     const result = await odooPool.query(query, [partnerId])

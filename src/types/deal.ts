@@ -1,12 +1,24 @@
 export type DealType = 'PURCHASE' | 'MA' | 'LICENSE' | 'SUBSCRIPTION'
 
+export interface ProductLine {
+  name: string
+  description: string | null
+  quantity: number
+  unitPrice: number
+  subtotal: number
+}
+
 export interface Deal {
   id: string
   customerId: string
   name: string
+  projectName: string | null     // 專案名稱（Odoo project_name）
+  clientOrderRef: string | null  // 客戶參照（Odoo client_order_ref）
+  projectType: string | null     // 專案類型（Odoo project_type）
   type: DealType
   amount: number | null
   products: string | null
+  productsJson: ProductLine[] | null  // 產品明細 JSON
   salesRep: string | null
   closedAt: Date
   startDate: Date | null
@@ -14,7 +26,7 @@ export interface Deal {
   autoRenew: boolean
   remindDays: number | null
   source: 'MANUAL' | 'ODOO'
-  odooId: string | null
+  odooId: number | null
   notes: string | null
   attachments: string[]
   createdBy: string
@@ -58,6 +70,19 @@ export const DEAL_TYPES: { value: DealType; label: string }[] = [
   { value: 'MA', label: '維護合約' },
   { value: 'LICENSE', label: '軟體授權' },
   { value: 'SUBSCRIPTION', label: '訂閱服務' },
+]
+
+// Odoo project types
+export const PROJECT_TYPES: { value: string; label: string }[] = [
+  { value: 'CHT(共契)', label: 'CHT(共契)' },
+  { value: 'VOIP', label: 'VOIP' },
+  { value: '智慧網管', label: '智慧網管' },
+  { value: '網通設備', label: '網通設備' },
+  { value: '維護案_SNM', label: '維護案_SNM' },
+  { value: '維護案_VOIP', label: '維護案_VOIP' },
+  { value: '維護案_智慧網管', label: '維護案_智慧網管' },
+  { value: '維護案_其他', label: '維護案_其他' },
+  { value: '其他', label: '其他' },
 ]
 
 export function getDealStatus(deal: Deal): 'active' | 'expiring' | 'expired' | null {

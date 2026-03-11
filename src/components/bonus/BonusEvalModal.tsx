@@ -350,7 +350,7 @@ export default function BonusEvalModal({
     }
   }
 
-  const handleApprove = async (action: 'approve' | 'reject' | 'paid') => {
+  const handleApprove = async (action: 'approve' | 'reject' | 'paid' | 'revert') => {
     setSaving(true)
     try {
       const res = await fetch(`/api/projects/${projectId}/bonus-eval`, {

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統整合報價單範本</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* 全域設定 */
+        body {
+            font-family: 'Noto Sans TC', Arial, sans-serif;
+            background-color: #f4f4f4; /* 背景灰，凸顯 A4 紙張 */
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        /* A4 紙張模擬容器 */
+        .a4-container {
+            background-color: #fff;
+            width: 210mm; /* A4 寬度 */
+            min-height: 297mm; /* A4 高度 */
+            margin: 0 auto; /* 居中 */
+            padding: 20mm; /* 頁邊距 */
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            box-sizing: border-box;
+        }
+
+        /* 頁首 Header區域 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #0056b3; /* 品牌色底線 */
+            padding-bottom: 20px;
+        }
+        .logo-placeholder {
+            width: 150px;
+            height: 50px;
+            background-color: #e9ecef;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            border: 1px dashed #ccc;
+        }
+        .document-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #0056b3;
+            text-align: right;
+        }
+
+        /* 資訊欄位區域 (買賣方資訊) */
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            font-size: 14px;
+        }
+        .info-box {
+            width: 48%;
+        }
+        .info-box h3 {
+            font-size: 16px;
+            color: #0056b3;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+        }
+        .info-box p { margin: 5px 0; line-height: 1.5; }
+        .info-label { font-weight: 500; color: #555; display: inline-block; width: 70px;}
+
+        /* 區塊標題樣式 */
+        .section-header {
+            background-color: #f0f7ff; /* 淺藍色背景 */
+            padding: 10px 15px;
+            font-weight: 700;
+            font-size: 16px;
+            border-left: 5px solid #0056b3;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        /* 表格通用樣式 */
+        .quote-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .quote-table th {
+            text-align: left;
+            border-bottom: 2px solid #ddd;
+            padding: 12px 10px;
+            font-size: 14px;
+            background-color: #fafafa;
+            color: #555;
+        }
+        .quote-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top; /* 重要：讓內容靠上對齊 */
+            font-size: 14px;
+        }
+
+        /* 針對不同類型產品的微調 */
+        .item-name { font-weight: 500; font-size: 15px; }
+        /* 弱化顯示的產品代碼 */
+        .product-code { font-size: 12px; color: #999; display: block; margin-top: 4px; }
+        /* 服務描述區塊的樣式 (Rich Text 支援) */
+        .service-description ul { margin: 8px 0 0 18px; padding: 0; color: #555; line-height: 1.6; }
+        .service-description li { margin-bottom: 4px; }
+        /* 讓服務類的行高一點，比較好讀 */
+        .service-row td { padding-top: 15px; padding-bottom: 15px; }
+
+        /* 數字欄位靠右 */
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+
+        /* 小計區塊 */
+        .subtotal-row td {
+            background-color: #fafafa;
+            font-weight: bold;
+            border-top: 2px solid #eee;
+        }
+
+        /* 總結區域 */
+        .totals-section {
+            float: right;
+            width: 40%;
+            margin-top: 30px;
+            text-align: right;
+        }
+        .totals-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 15px;}
+        .totals-row.grand-total {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0056b3;
+            border-top: 2px solid #ddd;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        /* 頁尾與條款 */
+        .footer {
+            clear: both; /* 清除浮動 */
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            font-size: 12px;
+            color: #666;
+            page-break-inside: avoid; /* 避免列印時條款被切斷 */
+        }
+        .footer h4 { margin-bottom: 10px; color: #333; }
+        .footer ol { margin-left: 20px; padding: 0; line-height: 1.8; }
+        .signature-area {
+            margin-top: 50px;
+            display: flex;
+            justify-content: flex-end;
+        }
+        .signature-box {
+            width: 250px;
+            border-top: 1px solid #333;
+            text-align: center;
+            padding-top: 10px;
+            font-weight: bold;
+        }
+
+        /* 列印專用設定 */
+        @media print {
+            body { background-color: #fff; padding: 0; }
+            .a4-container { width: 100%; margin: 0; padding: 15mm; box-shadow: none; border: none; }
+            /* 強制列印背景色 (瀏覽器預設通常不印) */
+            .section-header, .quote-table th { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="a4-container">
+    <header class="header">
+        <div class="logo-placeholder">此處放置 LOGO</div>
+        <div style="text-align: right;">
+            <div class="document-title">報價單 QUOTATION</div>
+        </div>
+    </header>
+
+    <section class="info-section">
+        <div class="info-box">
+            <h3>賣方 (Vendor)</h3>
+            <p><strong>[您的公司名稱]</strong></p>
+            <p><span class="info-label">地址:</span>台北市內湖區某某路123號</p>
+            <p><span class="info-label">聯絡人:</span>王大明 (專案經理)</p>
+            <p><span class="info-label">電話:</span>02-2345-6789</p>
+            <p><span class="info-label">Email:</span>sales@yourcompany.com</p>
+        </div>
+        <div class="info-box" style="text-align: right;">
+            <h3>買方 (Client) & 單據資訊</h3>
+            <p><strong>某某科技有限公司</strong></p>
+            <p><span class="info-label">聯絡人:</span>陳採購 經理</p>
+            <p><span class="info-label">單號:</span>Q20260115-01</p>
+            <p><span class="info-label">日期:</span>2026/01/15</p>
+            <p><span class="info-label">有效期:</span>30 天</p>
+        </div>
+    </section>
+
+    <div class="section-header">A. 基礎設施與硬體設備 (Infrastructure & Hardware)</div>
+    <table class="quote-table">
+        <thead>
+            <tr>
+                <th width="5%" class="text-center">#</th>
+                <th width="25%">品項</th>
+                <th width="40%">規格說明</th>
+                <th width="10%" class="text-center">數量</th>
+                <th width="10%" class="text-right">單價</th>
+                <th width="10%" class="text-right">總價</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td class="text-center">1</td>
+                <td>
+                    <div class="item-name">Cisco Switch</div>
+                    <span class="product-code">HW-CS-2960-24</span>
+                </td>
+                <td>Catalyst 2960-X, 24 GigE, 4 x 1G SFP, LAN Base Layer 2 Switch.</td>
+                <td class="text-center">2</td>
+                <td class="text-right">25,000</td>
+                <td class="text-right">50,000</td>
+            </tr>
+            <tr>
+                <td class="text-center">2</td>
+                <td>
+                    <div class="item-name">Aruba Wi-Fi 6 AP</div>
+                    <span class="product-code">HW-AR-AP22</span>
+                </td>
+                <td>Instant On AP22, 2x2 MIMO, 含原廠壁掛套件與電源變壓器。</td>
+                <td class="text-center">5</td>
+                <td class="text-right">6,000</td>
+                <td class="text-right">30,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="section-header">B. 軟體授權與專業服務 (Software & Professional Services)</div>
+    <table class="quote-table">
+        <tbody>
+            <tr class="service-row">
+                <td width="5%" class="text-center">3</td>
+                <td width="25%">
+                    <div class="item-name">Audiocodes SIP 授權保固</div>
+                    <span class="product-code">SRV-MA-AC-SIP</span>
+                </td>
+                <td width="40%" class="service-description">
+                    <strong>標的設備：</strong>Audiocodes M800C / M1000B<br>
+                    <strong>保固期間：</strong>2027/01/01 - 2027/12/31 (第二年起)<br>
+                    <strong>服務內容：</strong>
+                    <ul>
+                        <li>含硬體備品先行更換服務 (Advance Replacement)</li>
+                        <li>週一至週五 9:00-18:00 遠端技術支援</li>
+                        <li>定期韌體版本更新通知與協助</li>
+                    </ul>
+                </td>
+                <td width="10%" class="text-center">1</td>
+                <td width="10%" class="text-right">5,700</td>
+                <td width="10%" class="text-right">5,700</td>
+            </tr>
+            <tr class="service-row">
+                <td class="text-center">4</td>
+                <td>
+                    <div class="item-name">系統建置與導入服務</div>
+                    <span class="product-code">SRV-IMP-STD</span>
+                </td>
+                <td class="service-description">
+                    <strong>專案範疇：</strong>
+                    <ul>
+                        <li>核心交換器 VLAN 規劃與路由設定。</li>
+                        <li>Wi-Fi SSID 規劃 (員工/訪客網路分離與安全性設定)。</li>
+                        <li>既有總機系統與 SIP Trunk 介接整合測試。</li>
+                        <li>提供系統架構拓撲圖文件一份。</li>
+                    </ul>
+                </td>
+                <td class="text-center">1</td>
+                <td class="text-right">15,000</td>
+                <td class="text-right">15,000</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <section class="totals-section">
+        <div class="totals-row">
+            <span>未稅總計 (Subtotal):</span>
+            <span>NT$ 100,700</span>
+        </div>
+        <div class="totals-row">
+            <span>營業稅 (Tax 5%):</span>
+            <span>NT$ 5,035</span>
+        </div>
+        <div class="totals-row grand-total">
+            <span>總金額 (Grand Total):</span>
+            <span>NT$ 105,735</span>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <h4>備註與條款 (Terms & Conditions):</h4>
+        <ol>
+            <li><strong>付款條件：</strong>訂單確認回簽後支付 30% 訂金，硬體設備到貨支付 40%，系統驗收完成後支付尾款 30%。</li>
+            <li><strong>交貨期限：</strong>硬體設備約 14-21 個工作天（視原廠庫存而定）；軟體服務依雙方確認之專案時程為主。</li>
+            <li><strong>保固說明：</strong>硬體設備依原廠保固條款；客製化設定服務提供 3 個月非人為故障免費保修。</li>
+            <li><strong>匯款資訊：</strong>玉山銀行 (808) 內湖分行 / 帳號：1234-5678-9012 / 戶名：[您的公司名稱]。</li>
+            <li>本報價單內容若蒙 貴客戶接受，請於下方簽章欄簽名確認後回傳，即視為正式訂單。</li>
+        </ol>
+
+        <div class="signature-area">
+            <div class="signature-box">
+                客戶確認簽章 (Client Signature)
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+</body>
+</html>

@@ -26,12 +26,22 @@ const jiraFetch = async (endpoint: string, options: RequestInit = {}) => {
     throw new Error(`Jira API error: ${response.status} - ${error}`)
   }
 
-  return response.json()
+  // Handle 204 No Content responses
+  if (response.status === 204 || response.headers.get('content-length') === '0') {
+    return null
+  }
+
+  const text = await response.text()
+  if (!text) {
+    return null
+  }
+
+  return JSON.parse(text)
 }
 
 export const jiraClient = {
   /**
-   * Search for issues using JQL (using new /search/jql endpoint)
+   * Search for issues using JQL (using /search/jql endpoint with POST)
    */
   async searchIssues(jql: string, fields?: string[], maxResults = 50): Promise<JiraSearchResult> {
     const defaultFields = [
@@ -43,17 +53,17 @@ export const jiraClient = {
       'created',
       'duedate',
       'comment',
+      'attachment',
     ]
 
-    const fieldsParam = (fields || defaultFields).join(',')
-    const params = new URLSearchParams({
-      jql,
-      fields: fieldsParam,
-      maxResults: String(maxResults),
-    })
-
-    const response = await jiraFetch(`/search/jql?${params.toString()}`, {
-      method: 'GET',
+    // Use POST method for /search/jql endpoint (more reliable for complex JQL)
+    const response = await jiraFetch('/search/jql', {
+      method: 'POST',
+      body: JSON.stringify({
+        jql,
+        fields: fields || defaultFields,
+        maxResults,
+      }),
     })
 
     return response as JiraSearchResult
@@ -88,7 +98,7 @@ export const jiraClient = {
    * Get a single issue by key
    */
   async getIssue(issueKey: string): Promise<JiraIssue> {
-    return await jiraFetch(`/issue/${issueKey}?expand=renderedFields`)
+    return await jiraFetch(`/issue/${issueKey}?fields=*all&expand=renderedFields`)
   },
 
   /**

@@ -6,6 +6,7 @@ import { PlusOutlined, ReloadOutlined } from '@ant-design/icons'
 import ActivityCard from './ActivityCard'
 import AddActivityModal from './AddActivityModal'
 import { useActivities, useInfiniteActivities } from '@/hooks/useTimeline'
+import { useUser } from '@/hooks/useUser'
 import { ACTIVITY_SOURCES } from '@/constants/waiting-on'
 
 const { Text } = Typography
@@ -18,6 +19,7 @@ interface ActivityTimelineProps {
 export default function ActivityTimeline({ customerId, limit }: ActivityTimelineProps) {
   const [sourceFilter, setSourceFilter] = useState<string>()
   const [addModalOpen, setAddModalOpen] = useState(false)
+  const { isAdmin } = useUser()
 
   // Use simple fetch for limited view, infinite for full view
   const simpleData = useActivities(customerId, sourceFilter, limit)
@@ -115,7 +117,13 @@ export default function ActivityTimeline({ customerId, limit }: ActivityTimeline
 
       {/* Activity List */}
       {activities.map(activity => (
-        <ActivityCard key={activity.id} activity={activity} />
+        <ActivityCard
+          key={activity.id}
+          activity={activity}
+          isAdmin={isAdmin}
+          onDeleted={handleRefresh}
+          onUpdated={handleRefresh}
+        />
       ))}
 
       {/* Load More */}

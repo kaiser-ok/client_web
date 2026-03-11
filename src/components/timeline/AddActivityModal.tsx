@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Modal, Form, Input, Select, message } from 'antd'
+import { Modal, Form, Input, Select, DatePicker, message } from 'antd'
 import { ACTIVITY_SOURCES } from '@/constants/waiting-on'
 import { createActivity } from '@/hooks/useTimeline'
 
@@ -32,6 +32,7 @@ export default function AddActivityModal({
         title: values.title as string,
         content: values.content as string,
         tags: values.tags as string[],
+        eventDate: values.eventDate ? (values.eventDate as { toISOString: () => string }).toISOString() : undefined,
       })
       message.success('活動已新增')
       form.resetFields()
@@ -52,12 +53,15 @@ export default function AddActivityModal({
       onOk={() => form.submit()}
       okText="新增"
       cancelText="取消"
+      forceRender
       confirmLoading={loading}
+      destroyOnHidden={false}
     >
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
+        preserve={false}
         initialValues={{ source: 'MANUAL' }}
       >
         <Form.Item
@@ -87,6 +91,14 @@ export default function AddActivityModal({
             placeholder="記錄詳細內容..."
             showCount
             maxLength={2000}
+          />
+        </Form.Item>
+
+        <Form.Item name="eventDate" label="預計日期">
+          <DatePicker
+            style={{ width: '100%' }}
+            placeholder="選擇預計發生日期（選填）"
+            format="YYYY-MM-DD"
           />
         </Form.Item>
 

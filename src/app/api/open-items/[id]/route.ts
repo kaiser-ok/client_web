@@ -57,7 +57,7 @@ export async function POST(
     // Get the open item
     const openItem = await prisma.openItem.findUnique({
       where: { id },
-      include: { customer: true },
+      include: { partner: true },
     })
 
     if (!openItem) {
@@ -93,7 +93,7 @@ export async function POST(
     // Create activity record
     await prisma.activity.create({
       data: {
-        customerId: openItem.customerId,
+        partnerId: openItem.partnerId,
         source: source || 'MANUAL',
         title: `回覆 ${openItem.jiraKey}`,
         content,

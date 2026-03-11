@@ -9,6 +9,8 @@ export interface Activity {
   tags: string[]
   attachments: string[]
   jiraKey: string | null
+  eventDate: Date | null      // 預計事件發生日期
+  slackTimestamp: string | null // Slack 資料時間（參考用）
   createdBy: string
   createdAt: Date
 }
@@ -21,4 +23,6 @@ export interface CreateActivityInput {
   tags?: string[]
   attachments?: string[]
   jiraKey?: string
+  eventDate?: string | Date
+  slackTimestamp?: string
 }

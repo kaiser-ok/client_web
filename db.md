@@ -205,3 +205,76 @@ PGPASSWORD=p20j2ead0n1y psql -h 192.168.30.138 -U proj -d odoo
 ```bash
 PGPASSWORD=p20j2ead0n1y psql -h 192.168.30.138 -U proj -d odoo -c "\dt"
 ```
+
+---
+
+# 資料模型（Prisma Schema 摘要）
+
+完整 schema 請見 `prisma/schema.prisma`
+
+### 核心模型
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| Partner | partners | 統一客戶/供應商/經銷商模型 |
+| PartnerRole | partner_roles | Partner 角色（CUSTOMER, SUPPLIER, PARTNER） |
+| PartnerView | partner_views | 使用者查看紀錄（per-user 排序用） |
+| Activity | activities | 活動時間軸（source: JIRA, MANUAL, MEETING, LINE, EMAIL, DOC, SLACK, ERP） |
+| OpenItem | open_items | Jira Issue 本地快照（含 waitingOn, nextAction, dealer） |
+| User | users | 使用者（role: ADMIN, SALES, SUPPORT 等） |
+| Deal | deals | 成交/合約（含 Odoo 同步欄位） |
+| Contact | contacts | 跨通路聯絡人 |
+
+### 專案與獎金
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| Project | projects | 專案管理（status: ACTIVE, COMPLETED, ON_HOLD, CANCELLED） |
+| ProjectBonusEval | project_bonus_evals | 專案獎金評估（分數計算、保固攤分） |
+| ProjectCost | project_costs | 專案外部成本（LABOR, HARDWARE, LICENSE 等） |
+| ProjectBonusMember | project_bonus_members | 獎金分潤成員（含年度偏移、貢獻比例） |
+
+### 報價單
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| Quotation | quotations | 報價單（編號 YYMMDD[A-Z]，可同步 Odoo） |
+| QuotationItem | quotation_items | 報價明細（產品、SKU、數量、單價） |
+| QuotationTemplate | quotation_templates | 報價範本（VOIP, SMART_NETWORK, EQUIPMENT, CUSTOM） |
+
+### 檔案與知識庫
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| PartnerFile | partner_files | 客戶檔案（按年份組織，支援軟刪除） |
+| TechnicalNote | technical_notes | 技術知識（從 Slack 擷取，含關鍵字/參與者） |
+| DocumentChunk | document_chunks | RAG 向量搜尋（pgvector embedding） |
+| ProductPriority | product_priorities | 產品優先順序 |
+| ProductCategory | product_categories | 產品分類 |
+
+### LINE 整合
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| LineUser | line_users | LINE 用戶（含身分類型: STAFF, PARTNER, CUSTOMER, UNKNOWN） |
+| LineChannel | line_channels | LINE 頻道（GROUP, ROOM, USER），可關聯 Partner 和 Project |
+| LineChannelAssociation | line_channel_associations | 頻道與 Partner 多對多關聯 |
+| LineMessage | line_messages | LINE 訊息（text, image, file, sticker 等） |
+| LineSummary | line_summaries | LINE 月度摘要（JSON） |
+
+### Slack 整合
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| SlackChannelMapping | slack_channel_mappings | Slack 頻道對應 Partner |
+| DeletedSlackActivity | deleted_slack_activities | 已刪除的 Slack 活動（審計用） |
+
+### 系統與身分識別
+
+| Model | Table | 說明 |
+|-------|-------|------|
+| DashboardStats | dashboard_stats | Dashboard 統計快取（singleton） |
+| SystemConfig | system_configs | 系統設定 key-value |
+| IdentityMapping | identity_mappings | 跨通路身分對應（LINE/Slack/Email → Partner/Contact） |
+| ResolutionLog | resolution_logs | 身分解析日誌 |
+| GraphSyncLog | graph_sync_logs | Neo4j 圖譜同步日誌 |

@@ -136,13 +136,26 @@ export async function GET(request: NextRequest) {
 
     const allMembersTotal = Array.from(userScores.values()).reduce((sum, u) => sum + u.totalScore, 0)
 
-    // Calculate bonus per person: 個人專案分 × 每點兌換金額
+    // Calculate confirmed vs projected scores per user
+    // APPROVED = confirmed, DRAFT/EVALUATED = projected
     const rows = Array.from(userScores.values())
       .sort((a, b) => b.totalScore - a.totalScore)
-      .map(row => ({
-        ...row,
-        bonusAmount: Math.round(row.totalScore * pointRate),
-      }))
+      .map(row => {
+        const confirmedScore = row.projects
+          .filter(p => p.status === 'APPROVED')
+          .reduce((s, p) => s + p.score, 0)
+        const projectedScore = row.projects
+          .filter(p => p.status !== 'APPROVED')
+          .reduce((s, p) => s + p.score, 0)
+        return {
+          ...row,
+          confirmedScore: Math.round(confirmedScore * 100) / 100,
+          projectedScore: Math.round(projectedScore * 100) / 100,
+          bonusAmount: Math.round(row.totalScore * pointRate),
+          confirmedBonusAmount: Math.round(confirmedScore * pointRate),
+          projectedBonusAmount: Math.round(projectedScore * pointRate),
+        }
+      })
 
     // Project summary
     const projectSummary = evals.map(ev => {
@@ -176,10 +189,16 @@ export async function GET(request: NextRequest) {
       }
     })
 
+    // Aggregate confirmed vs projected totals
+    const confirmedTotal = rows.reduce((s, r) => s + r.confirmedScore, 0)
+    const projectedTotal = rows.reduce((s, r) => s + r.projectedScore, 0)
+
     return NextResponse.json({
       year,
       pointRate,
       allMembersTotal: Math.round(allMembersTotal * 100) / 100,
+      confirmedTotal: Math.round(confirmedTotal * 100) / 100,
+      projectedTotal: Math.round(projectedTotal * 100) / 100,
       rows,
       projectSummary,
       evalCount: evals.length,

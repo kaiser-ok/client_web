@@ -1,7 +1,14 @@
 import useSWR from 'swr'
 import { Customer, CustomerWithRelations } from '@/types/customer'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { credentials: 'include' })
+  if (!res.ok) {
+    const error = await res.json()
+    throw new Error(error.error || 'API 請求失敗')
+  }
+  return res.json()
+}
 
 interface CustomersResponse {
   customers: CustomerWithRelations[]
@@ -11,11 +18,21 @@ interface CustomersResponse {
   totalPages: number
 }
 
-export function useCustomers(search?: string, page = 1, pageSize = 20) {
+export function useCustomers(
+  search?: string,
+  page = 1,
+  pageSize = 20,
+  sortField?: string,
+  sortOrder?: 'asc' | 'desc',
+  role?: string
+) {
   const params = new URLSearchParams()
   if (search) params.set('search', search)
   params.set('page', page.toString())
   params.set('pageSize', pageSize.toString())
+  if (sortField) params.set('sortField', sortField)
+  if (sortOrder) params.set('sortOrder', sortOrder)
+  if (role) params.set('role', role)
 
   const { data, error, isLoading, mutate } = useSWR<CustomersResponse>(
     `/api/customers?${params.toString()}`,

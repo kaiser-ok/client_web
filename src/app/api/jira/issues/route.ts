@@ -4,9 +4,36 @@ import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import jiraClient from '@/lib/jira'
 
-const JIRA_PROJECT_KEY = process.env.JIRA_PROJECT_KEY || 'CW'
+// 支援多個 Project，用逗號分隔，例如: CW,PROJ2,PROJ3
+const JIRA_PROJECT_KEYS = (process.env.JIRA_PROJECT_KEYS || process.env.JIRA_PROJECT_KEY || 'CW')
+  .split(',')
+  .map(k => k.trim())
+  .filter(Boolean)
+const DEFAULT_PROJECT_KEY = JIRA_PROJECT_KEYS[0]
 const JIRA_PARTNER_FIELD = process.env.JIRA_CUSTOM_FIELD_PARTNER || 'customfield_10264'
 
+// GET: 取得可用的 Project 列表
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session) {
+      return NextResponse.json({ error: '未授權' }, { status: 401 })
+    }
+
+    return NextResponse.json({
+      projects: JIRA_PROJECT_KEYS,
+      defaultProject: DEFAULT_PROJECT_KEY,
+    })
+  } catch (error) {
+    console.error('Error getting Jira projects:', error)
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : '取得 Projects 失敗' },
+      { status: 500 }
+    )
+  }
+}
+
+// POST: 建立 Jira issue
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -15,7 +42,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { customerId, summary, description, issueType, priority } = body
+    const { customerId, summary, description, issueType, priority, projectKey } = body
 
     if (!customerId || !summary) {
       return NextResponse.json(
@@ -24,12 +51,21 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get customer info for labels
-    const customer = await prisma.customer.findUnique({
+    // 驗證 projectKey 是否在允許的列表中
+    const targetProjectKey = projectKey || DEFAULT_PROJECT_KEY
+    if (!JIRA_PROJECT_KEYS.includes(targetProjectKey)) {
+      return NextResponse.json(
+        { error: `無效的 Project: ${targetProjectKey}，允許的 Projects: ${JIRA_PROJECT_KEYS.join(', ')}` },
+        { status: 400 }
+      )
+    }
+
+    // Get partner info for labels
+    const partner = await prisma.partner.findUnique({
       where: { id: customerId },
     })
 
-    if (!customer) {
+    if (!partner) {
       return NextResponse.json(
         { error: '客戶不存在' },
         { status: 404 }
@@ -38,8 +74,8 @@ export async function POST(request: NextRequest) {
 
     // Build labels array
     const labels: string[] = []
-    if (customer.jiraLabel) {
-      labels.push(customer.jiraLabel)
+    if (partner.jiraLabel) {
+      labels.push(partner.jiraLabel)
     }
 
     // Build description in Jira document format
@@ -61,7 +97,7 @@ export async function POST(request: NextRequest) {
 
     // Create issue in Jira
     const issueFields: Record<string, unknown> = {
-      project: { key: JIRA_PROJECT_KEY },
+      project: { key: targetProjectKey },
       summary,
       issuetype: { name: issueType || 'Task' },
       labels,
@@ -75,17 +111,12 @@ export async function POST(request: NextRequest) {
       issueFields.priority = { name: priority }
     }
 
-    // Add partner custom field if customer has one
-    if (customer.partner) {
-      issueFields[JIRA_PARTNER_FIELD] = customer.partner
-    }
-
     const result = await jiraClient.createIssue(issueFields as any)
 
     // Create activity record
     await prisma.activity.create({
       data: {
-        customerId,
+        partnerId: customerId,
         source: 'JIRA',
         title: `建立報修: ${result.key}`,
         content: summary,

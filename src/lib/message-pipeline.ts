@@ -4,8 +4,8 @@
  */
 
 import { Queue, Worker, Job } from 'bullmq'
-import { PrismaClient } from '@prisma/client'
 import { graphitiClient } from './graphiti'
+import { resolveEntity } from './entity-resolver'
 import type { UnifiedMessage, MessagePipelineJobData } from '@/types/unified-message'
 import type { LineWebhookEvent } from './line'
 import crypto from 'crypto'
@@ -175,28 +175,19 @@ export async function processMessagePipelineJob(job: Job<MessagePipelineJobData>
   const { message } = job.data
   console.log(`[message-pipeline] Processing ${message.channel} message: ${message.channelMessageId}`)
 
-  // Resolve partnerId if missing
+  // Resolve partnerId via centralized entity resolution service
   let partnerId = message.partnerId
   if (!partnerId) {
-    const prisma = new PrismaClient()
-    try {
-      if (message.channel === 'LINE' && message.channelId) {
-        const lineChannel = await prisma.lineChannel.findFirst({
-          where: { lineChannelId: message.channelId },
-          select: { partnerId: true },
-        })
-        partnerId = lineChannel?.partnerId || undefined
-      } else if (message.channel === 'SLACK' && message.channelId) {
-        const mapping = await prisma.slackChannelMapping.findUnique({
-          where: { channelId: message.channelId },
-          select: { partnerId: true },
-        })
-        partnerId = mapping?.partnerId || undefined
-      }
-      // EMAIL: already resolved at enqueue time
-    } finally {
-      await prisma.$disconnect()
-    }
+    const result = await resolveEntity({
+      channel: message.channel as 'LINE' | 'SLACK' | 'EMAIL',
+      channelUserId: message.sender.channelUserId,
+      displayName: message.sender.displayName,
+      channelId: message.channelId,
+      channelName: message.channelName,
+      messageContent: message.content,
+      messageSubject: message.subject,
+    })
+    partnerId = result.partnerId || undefined
   }
 
   await graphitiClient.ingestMessage({

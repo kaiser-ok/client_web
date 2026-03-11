@@ -57,13 +57,16 @@ export default function ReplyModal({
       onOk={() => form.submit()}
       okText="送出回覆"
       cancelText="取消"
+      forceRender
       confirmLoading={loading}
       width={500}
+      destroyOnHidden={false}
     >
       <Form
         form={form}
         layout="vertical"
         onFinish={handleSubmit}
+        preserve={false}
         initialValues={{
           waitingOn: openItem?.waitingOn,
           nextAction: openItem?.nextAction,

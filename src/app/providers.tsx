@@ -3,6 +3,7 @@
 import { SessionProvider } from 'next-auth/react'
 import { ConfigProvider, App } from 'antd'
 import zhTW from 'antd/locale/zh_TW'
+import '@/lib/dayjs'
 
 const theme = {
   token: {

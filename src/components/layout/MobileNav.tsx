@@ -7,6 +7,8 @@ import {
   FileTextOutlined,
   SettingOutlined,
   CloseOutlined,
+  RobotOutlined,
+  MobileOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import type { MenuProps } from 'antd'
@@ -18,6 +20,11 @@ interface MobileNavProps {
 
 const menuItems: MenuProps['items'] = [
   {
+    key: '/mobile',
+    icon: <MobileOutlined />,
+    label: '行動工作台',
+  },
+  {
     key: '/',
     icon: <DashboardOutlined />,
     label: '儀表板',
@@ -26,6 +33,11 @@ const menuItems: MenuProps['items'] = [
     key: '/customers',
     icon: <TeamOutlined />,
     label: '客戶管理',
+  },
+  {
+    key: '/chat',
+    icon: <RobotOutlined />,
+    label: 'AI 助理',
   },
   {
     key: '/reports',

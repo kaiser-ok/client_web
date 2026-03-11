@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useCallback } from 'react'
-import { Row, Col, Card, Statistic, Typography, Segmented, Spin, Tag, Table, Tooltip, List, Badge, Space, Divider } from 'antd'
+import { Row, Col, Card, Statistic, Typography, Segmented, Spin, Tag, Table, Tooltip, Badge, Space, Divider } from 'antd'
 import {
   MessageOutlined,
   SlackOutlined,
@@ -374,28 +374,17 @@ export default function ActivityStatsPage() {
                 <Text strong style={{ marginBottom: 8, display: 'block' }}>
                   <ExclamationCircleOutlined /> 我負責的待處理 Issues
                 </Text>
-                <List
-                  size="small"
-                  dataSource={personal.myOpenItems}
-                  renderItem={(item) => {
+                <div>
+                  {personal.myOpenItems.map((item) => {
                     const isOverdue = item.dueDate && dayjs(item.dueDate).isBefore(dayjs(), 'day')
                     return (
-                      <List.Item
-                        style={{ padding: '8px 0' }}
-                        actions={[
-                          <Text key="time" type="secondary" style={{ fontSize: 12 }}>
-                            {dayjs(item.jiraUpdated).fromNow()}
-                          </Text>,
-                        ]}
-                      >
-                        <List.Item.Meta
-                          title={
-                            <Space size={4} wrap>
-                              <Tag color="blue" style={{ margin: 0 }}>{item.jiraKey}</Tag>
-                              <Text style={{ fontSize: 13 }}>{item.summary}</Text>
-                            </Space>
-                          }
-                          description={
+                      <div key={item.id} style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px solid #f0f0f0' }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <Space size={4} wrap>
+                            <Tag color="blue" style={{ margin: 0 }}>{item.jiraKey}</Tag>
+                            <Text style={{ fontSize: 13 }}>{item.summary}</Text>
+                          </Space>
+                          <div style={{ marginTop: 4 }}>
                             <Space size={4} wrap>
                               <Tag>{item.status}</Tag>
                               {item.priority && (
@@ -420,12 +409,15 @@ export default function ActivityStatsPage() {
                                 </Text>
                               )}
                             </Space>
-                          }
-                        />
-                      </List.Item>
+                          </div>
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap', marginLeft: 8 }}>
+                          {dayjs(item.jiraUpdated).fromNow()}
+                        </Text>
+                      </div>
                     )
-                  }}
-                />
+                  })}
+                </div>
               </>
             )}
 
@@ -436,11 +428,9 @@ export default function ActivityStatsPage() {
                 <Text strong style={{ marginBottom: 8, display: 'block' }}>
                   <EditOutlined /> 我的近期活動
                 </Text>
-                <List
-                  size="small"
-                  dataSource={personal.myRecentActivities}
-                  renderItem={(item) => (
-                    <List.Item style={{ padding: '6px 0' }}>
+                <div>
+                  {personal.myRecentActivities.map((item) => (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '6px 0', borderBottom: '1px solid #f0f0f0' }}>
                       <Space size={4} wrap style={{ flex: 1 }}>
                         <Tag color={SOURCE_COLORS[item.source]} style={{ margin: 0 }}>
                           {SOURCE_LABELS[item.source] || item.source}
@@ -455,15 +445,15 @@ export default function ActivityStatsPage() {
                       <Text type="secondary" style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
                         {dayjs(item.createdAt).fromNow()}
                       </Text>
-                    </List.Item>
-                  )}
-                />
+                    </div>
+                  ))}
+                </div>
               </>
             )}
           </Card>
 
           {/* ===== Team-wide Stats ===== */}
-          <Divider orientation="left">全團隊統計</Divider>
+          <Divider>全團隊統計</Divider>
 
           {/* Summary card */}
           <Card size="small" style={{ marginBottom: 16 }}>

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Layout } from 'antd'
+import { Layout, App } from 'antd'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Header from './Header'
@@ -66,32 +66,34 @@ export default function AppLayout({ children }: AppLayoutProps) {
   }
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      {!isMobile && <Sidebar collapsed={collapsed} />}
+    <App>
+      <Layout style={{ minHeight: '100vh' }}>
+        {!isMobile && <Sidebar collapsed={collapsed} />}
 
-      <MobileNav
-        open={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-      />
-
-      <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 200) }}>
-        <Header
-          collapsed={collapsed}
-          onToggle={handleToggle}
-          isMobile={isMobile}
+        <MobileNav
+          open={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
         />
-        <Content
-          style={{
-            margin: isMobile ? '16px 8px' : '24px 16px',
-            padding: isMobile ? 16 : 24,
-            background: '#fff',
-            borderRadius: 8,
-            minHeight: 280,
-          }}
-        >
-          {children}
-        </Content>
+
+        <Layout style={{ marginLeft: isMobile ? 0 : (collapsed ? 80 : 200) }}>
+          <Header
+            collapsed={collapsed}
+            onToggle={handleToggle}
+            isMobile={isMobile}
+          />
+          <Content
+            style={{
+              margin: isMobile ? '16px 8px' : '24px 16px',
+              padding: isMobile ? 16 : 24,
+              background: '#fff',
+              borderRadius: 8,
+              minHeight: 280,
+            }}
+          >
+            {children}
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
+    </App>
   )
 }

@@ -1,3 +1,17 @@
+export interface JiraAttachment {
+  id: string
+  filename: string
+  mimeType: string
+  size: number
+  content: string  // URL to download the attachment
+  thumbnail?: string  // URL to thumbnail (for images)
+  created: string
+  author: {
+    displayName: string
+    emailAddress: string
+  }
+}
+
 export interface JiraIssue {
   key: string
   fields: {
@@ -22,10 +36,15 @@ export interface JiraIssue {
     updated: string
     created: string
     duedate?: string
+    resolutiondate?: string
+    issuetype?: {
+      name: string
+    }
     comment?: {
       comments: JiraComment[]
       total: number
     }
+    attachment?: JiraAttachment[]
     // Custom fields for Waiting on / Next action
     customfield_waiting_on?: string
     customfield_next_action?: string
@@ -62,9 +81,13 @@ export interface JiraDocumentContent {
 
 export interface JiraSearchResult {
   issues: JiraIssue[]
-  total: number
-  startAt: number
-  maxResults: number
+  // Legacy fields (deprecated API)
+  total?: number
+  startAt?: number
+  maxResults?: number
+  // New /search/jql API fields
+  nextPageToken?: string
+  isLast?: boolean
 }
 
 export interface JiraUser {
