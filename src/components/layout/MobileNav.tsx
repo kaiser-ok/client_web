@@ -9,6 +9,7 @@ import {
   CloseOutlined,
   RobotOutlined,
   MobileOutlined,
+  MessageOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import type { MenuProps } from 'antd'
@@ -33,6 +34,11 @@ const menuItems: MenuProps['items'] = [
     key: '/customers',
     icon: <TeamOutlined />,
     label: '客戶管理',
+  },
+  {
+    key: '/line-inbox',
+    icon: <MessageOutlined />,
+    label: 'LINE 收件箱',
   },
   {
     key: '/chat',

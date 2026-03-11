@@ -130,6 +130,11 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         label: '報價單',
       },
       {
+        key: '/line-inbox',
+        icon: <MessageOutlined />,
+        label: 'LINE 收件箱',
+      },
+      {
         key: '/chat',
         icon: <RobotOutlined />,
         label: 'AI 助理',
@@ -225,6 +230,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
     if (pathname.startsWith('/settings/products')) return '/settings/products'
     if (pathname === '/settings') return '/settings/odoo' // Default to odoo
     if (pathname.startsWith('/reports/')) return pathname
+    if (pathname.startsWith('/line-inbox')) return '/line-inbox'
     if (pathname.startsWith('/quotations')) return '/quotations'
     if (pathname.startsWith('/knowledge')) return '/knowledge'
     if (pathname.startsWith('/transcriptions')) return '/transcriptions'
