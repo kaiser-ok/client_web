@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import {
   Card,
   Button,
@@ -20,6 +20,8 @@ import {
   Modal,
   Form,
   Collapse,
+  Mentions,
+  Popover,
 } from 'antd'
 import {
   MessageOutlined,
@@ -43,8 +45,14 @@ import {
   PlusCircleOutlined,
   SaveOutlined,
   BarChartOutlined,
+  SmileOutlined,
+  EnterOutlined,
+  CloseCircleFilled,
 } from '@ant-design/icons'
+import Picker from '@emoji-mart/react'
+import emojiData from '@emoji-mart/data'
 import LineActivityStats from './LineActivityStats'
+import LineEmojiText from './LineEmojiText'
 import dayjs from 'dayjs'
 
 const { Text } = Typography
@@ -151,6 +159,8 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   const [inputMessage, setInputMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [quotingMessage, setQuotingMessage] = useState<LineMessage | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesTopRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
@@ -172,6 +182,33 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   } | null>(null)
   const [savingIdentity, setSavingIdentity] = useState(false)
   const [identityForm] = Form.useForm()
+
+  // Derive unique users from chat messages for @mention
+  const mentionOptions = useMemo(() => {
+    const userMap = new Map<string, { displayName: string; pictureUrl: string | null; identityType: string }>()
+    for (const msg of chatMessages) {
+      if (msg.lineUserId.startsWith('SYSTEM_')) continue
+      if (!userMap.has(msg.lineUserId)) {
+        userMap.set(msg.lineUserId, {
+          displayName: msg.displayName,
+          pictureUrl: msg.pictureUrl,
+          identityType: msg.identityType,
+        })
+      }
+    }
+    return Array.from(userMap.values()).map(u => ({
+      value: u.displayName,
+      label: (
+        <Space>
+          <Avatar src={u.pictureUrl} size="small" icon={<UserOutlined />} />
+          <span>{u.displayName}</span>
+          <Tag color={IDENTITY_TYPES.find(t => t.value === u.identityType)?.color || 'default'} style={{ fontSize: 11 }}>
+            {IDENTITY_TYPES.find(t => t.value === u.identityType)?.label || '未知'}
+          </Tag>
+        </Space>
+      ),
+    }))
+  }, [chatMessages])
 
   // Auto-scroll to bottom
   const scrollToBottom = () => {
@@ -315,6 +352,8 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   const openChat = (channel: LineChannel) => {
     setActiveChannel(channel)
     setChatMessages([])
+    setQuotingMessage(null)
+    setInputMessage('')
     loadChatMessages(channel.id)
   }
 
@@ -471,19 +510,27 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
   const handleSendMessage = async () => {
     if (!activeChannel || !inputMessage.trim()) return
 
+    // Build message with quote prefix
+    let fullMessage = inputMessage.trim()
+    if (quotingMessage) {
+      const quotedContent = quotingMessage.content || `[${quotingMessage.messageType}]`
+      const quotedLine = quotedContent.split('\n').map(l => `> ${l}`).join('\n')
+      fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
+    }
+
     setSending(true)
     try {
       const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: inputMessage.trim() }),
+        body: JSON.stringify({ message: fullMessage }),
       })
       const data = await res.json()
 
       if (res.ok) {
         message.success('訊息已發送')
         setInputMessage('')
-        // 重新載入訊息以顯示剛發送的訊息
+        setQuotingMessage(null)
         if (activeChannel) {
           loadChatMessages(activeChannel.id)
         }
@@ -678,6 +725,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', height: 500 }}>
+        <style>{`.line-msg-row:hover .line-msg-reply-btn { opacity: 1 !important; }`}</style>
         {/* Chat header */}
         <div style={{
           padding: '12px 16px',
@@ -789,7 +837,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                         />
                       </Tooltip>
                     )}
-                    <div style={{ maxWidth: '70%' }}>
+                    <div style={{ maxWidth: '70%' }} className="line-msg-row">
                       {!isStaff && (
                         <Space size={4}>
                           <Text type="secondary" style={{ fontSize: 11 }}>
@@ -805,6 +853,8 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                           )}
                         </Space>
                       )}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: isStaff ? 'row-reverse' : 'row' }}>
+                      <div style={{ flex: '0 1 auto', minWidth: 0 }}>
                       {hasMedia ? (
                         <div style={{
                           padding: isSticker ? 4 : 4,
@@ -851,11 +901,30 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
                             boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
                           }}
                         >
-                          <Text style={{ color: isStaff ? '#fff' : '#000', whiteSpace: 'pre-wrap' }}>
-                            {msg.content || `[${msg.messageType}]`}
-                          </Text>
+                          {msg.content ? (
+                            <LineEmojiText
+                              content={msg.content}
+                              style={{ color: isStaff ? '#fff' : '#000' }}
+                            />
+                          ) : (
+                            <Text style={{ color: isStaff ? '#fff' : '#000' }}>
+                              {`[${msg.messageType}]`}
+                            </Text>
+                          )}
                         </div>
                       )}
+                      </div>
+                      <Tooltip title="引用回覆">
+                        <Button
+                          type="text"
+                          size="small"
+                          icon={<EnterOutlined />}
+                          className="line-msg-reply-btn"
+                          style={{ opacity: 0, transition: 'opacity 0.2s', flexShrink: 0 }}
+                          onClick={() => setQuotingMessage(msg)}
+                        />
+                      </Tooltip>
+                      </div>
                       <Text
                         type="secondary"
                         style={{
@@ -875,6 +944,38 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
             </>
           )}
         </div>
+
+        {/* Quote preview */}
+        {quotingMessage && chatView === 'messages' && (
+          <div style={{
+            padding: '8px 12px',
+            borderTop: '1px solid #f0f0f0',
+            backgroundColor: '#fafafa',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}>
+            <div style={{
+              borderLeft: '3px solid #00B900',
+              paddingLeft: 8,
+              flex: 1,
+              minWidth: 0,
+            }}>
+              <Text strong style={{ fontSize: 12, color: '#00B900', display: 'block' }}>
+                {quotingMessage.displayName}
+              </Text>
+              <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
+                {quotingMessage.content || `[${quotingMessage.messageType}]`}
+              </Text>
+            </div>
+            <Button
+              type="text"
+              size="small"
+              icon={<CloseCircleFilled style={{ color: '#999' }} />}
+              onClick={() => setQuotingMessage(null)}
+            />
+          </div>
+        )}
 
         {/* Input area */}
         <div style={{
@@ -898,12 +999,37 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
               style={{ color: '#666' }}
             />
           </Upload>
-          <Input.TextArea
-            placeholder="輸入訊息..."
+          <Popover
+            content={
+              <Picker
+                data={emojiData}
+                onEmojiSelect={(emoji: { native: string }) => {
+                  setInputMessage(prev => prev + emoji.native)
+                  setEmojiPickerOpen(false)
+                }}
+                locale="zh"
+                previewPosition="none"
+                skinTonePosition="none"
+                theme="light"
+              />
+            }
+            trigger="click"
+            open={emojiPickerOpen}
+            onOpenChange={setEmojiPickerOpen}
+            placement="topLeft"
+          >
+            <Button
+              type="text"
+              icon={<SmileOutlined />}
+              style={{ color: '#666' }}
+            />
+          </Popover>
+          <Mentions
+            placeholder="輸入訊息... 輸入 @ 提及用戶"
             value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onPressEnter={(e) => {
-              if (!e.shiftKey) {
+            onChange={setInputMessage}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault()
                 handleSendMessage()
               }
@@ -911,6 +1037,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
             autoSize={{ minRows: 1, maxRows: 4 }}
             style={{ flex: 1 }}
             disabled={sending}
+            options={mentionOptions}
           />
           <Button
             type="primary"

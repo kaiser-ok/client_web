@@ -24,10 +24,18 @@ export interface LineSource {
   roomId?: string
 }
 
+export interface LineEmoji {
+  index: number
+  length: number
+  productId: string
+  emojiId: string
+}
+
 export interface LineMessageEvent {
   id: string
   type: 'text' | 'image' | 'video' | 'audio' | 'file' | 'location' | 'sticker'
   text?: string
+  emojis?: LineEmoji[]
   fileName?: string
   fileSize?: number
   title?: string
@@ -303,12 +311,33 @@ export function createLineClient(token?: string) {
 }
 
 /**
- * 解析 LINE 訊息內容為純文字
+ * 將 LINE emoji 替換為圖片標記
+ * 格式: {{LINE_EMOJI:productId:emojiId}}
+ */
+function replaceLineEmojis(text: string, emojis: LineEmoji[]): string {
+  // 從後面開始替換，避免 index 偏移
+  const sorted = [...emojis].sort((a, b) => b.index - a.index)
+  let result = text
+  for (const emoji of sorted) {
+    const before = result.substring(0, emoji.index)
+    const after = result.substring(emoji.index + emoji.length)
+    result = `${before}{{LINE_EMOJI:${emoji.productId}:${emoji.emojiId}}}${after}`
+  }
+  return result
+}
+
+/**
+ * 解析 LINE 訊息內容為純文字（LINE emoji 會轉為圖片標記）
  */
 export function parseMessageContent(message: LineMessageEvent): string | null {
   switch (message.type) {
-    case 'text':
-      return message.text || null
+    case 'text': {
+      const text = message.text || null
+      if (text && message.emojis && message.emojis.length > 0) {
+        return replaceLineEmojis(text, message.emojis)
+      }
+      return text
+    }
     case 'image':
       return '[圖片]'
     case 'video':
