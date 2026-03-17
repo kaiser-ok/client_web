@@ -17,6 +17,8 @@ import {
   Badge,
   Mentions,
   Popover,
+  Checkbox,
+  Divider,
 } from 'antd'
 import {
   MessageOutlined,
@@ -33,6 +35,13 @@ import {
   SmileOutlined,
   EnterOutlined,
   CloseCircleFilled,
+  FlagOutlined,
+  FlagFilled,
+  TagsOutlined,
+  TagOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  PlusOutlined,
 } from '@ant-design/icons'
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
@@ -52,7 +61,11 @@ function normalizeMediaUrl(url: string | null): string | null {
   if (url.startsWith('/')) return url
   try {
     const parsed = new URL(url)
-    return parsed.pathname
+    // 外部 URL（如 LINE 貼圖 CDN）保持完整，只對本機 URL 取 pathname
+    if (parsed.hostname === 'localhost' || parsed.hostname === window.location.hostname) {
+      return parsed.pathname
+    }
+    return url
   } catch {
     return url
   }
@@ -65,6 +78,29 @@ const IDENTITY_TYPES = [
   { value: 'UNKNOWN', label: '未知', color: 'default' },
 ]
 
+interface ChannelLabel {
+  id: string
+  channelId: string
+  labelId: string
+  source: string
+  confidence: number | null
+  appliedBy: string | null
+  appliedAt: string
+  note: string | null
+}
+
+interface LabelDefinition {
+  id: string
+  label: string
+  description: string
+  color: string
+  icon: string
+  enabled: boolean
+  autoApply: boolean
+  keywords: string[]
+  order: number
+}
+
 interface LineChannel {
   id: string
   lineChannelId: string
@@ -75,8 +111,13 @@ interface LineChannel {
   projectName: string | null
   isActive: boolean
   isStaff?: boolean
+  needsFollowUp?: boolean
+  followUpNote?: string | null
+  followUpAt?: string | null
+  followUpBy?: string | null
   messageCount: number
   lastMessageAt: string | null
+  labels?: ChannelLabel[]
   associations: Array<{
     id: string
     partnerId: string
@@ -131,6 +172,12 @@ export default function LineInboxPage() {
   const [quotingMessage, setQuotingMessage] = useState<LineMessage | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
+  const [filterFollowUp, setFilterFollowUp] = useState(false)
+  // Label system
+  const [labelDefs, setLabelDefs] = useState<LabelDefinition[]>([])
+  const [filterLabels, setFilterLabels] = useState<string[]>([])
+  const [labelPopoverOpen, setLabelPopoverOpen] = useState(false)
+  const [headerLabelPopoverOpen, setHeaderLabelPopoverOpen] = useState(false)
   // Track channels with new messages since last viewed
   const [updatedChannelIds, setUpdatedChannelIds] = useState<Set<string>>(new Set())
   // Triage state
@@ -203,6 +250,12 @@ export default function LineInboxPage() {
 
     eventSource.onerror = () => {
       eventSource.close()
+      // 3 秒後自動重連
+      setTimeout(() => {
+        if (activeChannel) {
+          setActiveChannel({ ...activeChannel })
+        }
+      }, 3000)
     }
 
     return () => {
@@ -366,6 +419,29 @@ export default function LineInboxPage() {
     }
   }
 
+  const toggleFollowUp = async (channel: LineChannel) => {
+    const newValue = !channel.needsFollowUp
+    try {
+      const res = await fetch(`/api/line/channels/${channel.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ needsFollowUp: newValue }),
+      })
+      if (res.ok) {
+        // Update local state
+        setChannels(prev => prev.map(c =>
+          c.id === channel.id ? { ...c, needsFollowUp: newValue } : c
+        ))
+        if (activeChannel?.id === channel.id) {
+          setActiveChannel(prev => prev ? { ...prev, needsFollowUp: newValue } : prev)
+        }
+        message.success(newValue ? '已標記追蹤' : '已取消追蹤')
+      }
+    } catch {
+      message.error('操作失敗')
+    }
+  }
+
   const handleUploadImage = async (file: File) => {
     if (!activeChannel) return false
 
@@ -394,9 +470,61 @@ export default function LineInboxPage() {
     return false
   }
 
+  // Load label definitions
+  const loadLabelDefs = useCallback(async () => {
+    try {
+      const res = await fetch('/api/settings/line-labels')
+      const data = await res.json()
+      if (res.ok && data.config?.labels) {
+        setLabelDefs(data.config.labels.filter((l: LabelDefinition) => l.enabled))
+      }
+    } catch {
+      // silent
+    }
+  }, [])
+
+  // Toggle label on a channel
+  const toggleChannelLabel = async (channelId: string, labelId: string, hasLabel: boolean) => {
+    try {
+      const res = await fetch(`/api/line/channels/${channelId}/labels`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: hasLabel ? 'remove' : 'add',
+          labelId,
+        }),
+      })
+      if (res.ok) {
+        // Refresh channels to update labels
+        await refreshChannelList()
+        // Update active channel labels if needed
+        if (activeChannel?.id === channelId) {
+          const channelRes = await fetch(`/api/line/channels/${channelId}?limit=0`)
+          const channelData = await channelRes.json()
+          if (channelRes.ok && channelData.channel?.labels) {
+            setActiveChannel(prev => prev ? { ...prev, labels: channelData.channel.labels } : prev)
+            // Also update in channels list
+            setChannels(prev => prev.map(c =>
+              c.id === channelId ? { ...c, labels: channelData.channel.labels } : c
+            ))
+          }
+        }
+        message.success(hasLabel ? '已移除標籤' : '已加上標籤')
+      }
+    } catch {
+      message.error('操作失敗')
+    }
+  }
+
+  // Get label definition by ID
+  const getLabelDef = (labelId: string): LabelDefinition | undefined => {
+    return labelDefs.find(l => l.id === labelId)
+  }
+
   useEffect(() => {
     loadChannels()
-  }, [loadChannels])
+    loadLabelDefs()
+  }, [loadChannels, loadLabelDefs])
 
   // AI Triage
   const runTriage = async (hours = 24) => {
@@ -451,9 +579,15 @@ export default function LineInboxPage() {
     }
   }
 
-  // Filter channels by search
+  // Filter channels by search, follow-up, and labels
   const filteredChannels = channels
     .filter(c => {
+      if (filterFollowUp && !c.needsFollowUp) return false
+      // Label filter
+      if (filterLabels.length > 0) {
+        const channelLabelIds = (c.labels || []).map(l => l.labelId)
+        if (!filterLabels.some(fl => channelLabelIds.includes(fl))) return false
+      }
       if (!searchText) return true
       const search = searchText.toLowerCase()
       return (
@@ -518,13 +652,80 @@ export default function LineInboxPage() {
                 />
               </Space>
             </Space>
-            <Input
-              prefix={<SearchOutlined style={{ color: '#bbb' }} />}
-              placeholder="搜尋頻道或客戶..."
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              allowClear
-            />
+            <Space style={{ width: '100%' }}>
+              <Input
+                prefix={<SearchOutlined style={{ color: '#bbb' }} />}
+                placeholder="搜尋頻道或客戶..."
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                allowClear
+                style={{ flex: 1 }}
+              />
+              <Popover
+                trigger="click"
+                open={labelPopoverOpen}
+                onOpenChange={setLabelPopoverOpen}
+                placement="bottomRight"
+                content={
+                  <div style={{ minWidth: 180 }}>
+                    <div style={{ marginBottom: 8 }}>
+                      <Checkbox
+                        checked={filterFollowUp}
+                        onChange={e => setFilterFollowUp(e.target.checked)}
+                      >
+                        <FlagFilled style={{ color: '#ff4d4f', marginRight: 4 }} />
+                        只看追蹤中
+                      </Checkbox>
+                    </div>
+                    {labelDefs.length > 0 && (
+                      <>
+                        <Divider style={{ margin: '8px 0' }} />
+                        <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>
+                          按標籤篩選
+                        </Text>
+                        {labelDefs.map(ld => (
+                          <div key={ld.id} style={{ marginBottom: 4 }}>
+                            <Checkbox
+                              checked={filterLabels.includes(ld.id)}
+                              onChange={e => {
+                                setFilterLabels(prev =>
+                                  e.target.checked
+                                    ? [...prev, ld.id]
+                                    : prev.filter(id => id !== ld.id)
+                                )
+                              }}
+                            >
+                              <Tag color={ld.color} style={{ fontSize: 11 }}>{ld.label}</Tag>
+                            </Checkbox>
+                          </div>
+                        ))}
+                        {filterLabels.length > 0 && (
+                          <Button
+                            type="link"
+                            size="small"
+                            onClick={() => { setFilterLabels([]); setFilterFollowUp(false) }}
+                            style={{ padding: 0, fontSize: 11 }}
+                          >
+                            清除篩選
+                          </Button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                }
+              >
+                <Tooltip title="標籤篩選">
+                  <Badge count={filterLabels.length + (filterFollowUp ? 1 : 0)} size="small">
+                    <Button
+                      type={(filterFollowUp || filterLabels.length > 0) ? 'primary' : 'text'}
+                      icon={<TagsOutlined />}
+                      size="small"
+                      danger={filterFollowUp || filterLabels.length > 0}
+                    />
+                  </Badge>
+                </Tooltip>
+              </Popover>
+            </Space>
           </div>
 
           {/* Triage panel */}
@@ -634,9 +835,14 @@ export default function LineInboxPage() {
                     </Badge>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <Text strong ellipsis style={{ maxWidth: 160 }}>
-                          {channel.channelName || channel.lineChannelId}
-                        </Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
+                          {channel.needsFollowUp && (
+                            <FlagFilled style={{ color: '#ff4d4f', fontSize: 12, flexShrink: 0 }} />
+                          )}
+                          <Text strong ellipsis style={{ maxWidth: channel.needsFollowUp ? 145 : 160 }}>
+                            {channel.channelName || channel.lineChannelId}
+                          </Text>
+                        </div>
                         <Text type="secondary" style={{ fontSize: 11, flexShrink: 0 }}>
                           {getChannelPreview(channel)}
                         </Text>
@@ -648,6 +854,30 @@ export default function LineInboxPage() {
                           {channel.messageCount} 則
                         </Text>
                       </div>
+                      {/* Labels */}
+                      {channel.labels && channel.labels.length > 0 && (
+                        <div style={{ marginTop: 2, display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          {channel.labels.map(cl => {
+                            const def = getLabelDef(cl.labelId)
+                            if (!def) return null
+                            return (
+                              <Tag
+                                key={cl.id}
+                                color={def.color}
+                                style={{
+                                  fontSize: 10,
+                                  lineHeight: '16px',
+                                  padding: '0 4px',
+                                  margin: 0,
+                                  borderStyle: cl.source === 'llm' ? 'dashed' : 'solid',
+                                }}
+                              >
+                                {def.label}
+                              </Tag>
+                            )
+                          })}
+                        </div>
+                      )}
                       {(channel.partnerName || channel.associations.length > 0) && (
                         <div style={{ marginTop: 2 }}>
                           {channel.partnerName && (
@@ -693,7 +923,7 @@ export default function LineInboxPage() {
                   {activeChannel.channelName || activeChannel.lineChannelId}
                 </Text>
                 <br />
-                <Space size={4}>
+                <Space size={4} wrap>
                   <Text type="secondary" style={{ fontSize: 12 }}>
                     {getChannelTypeLabel(activeChannel.channelType)}
                   </Text>
@@ -702,8 +932,92 @@ export default function LineInboxPage() {
                       {activeChannel.partnerName}
                     </Tag>
                   )}
+                  {(activeChannel.labels || []).map(cl => {
+                    const def = getLabelDef(cl.labelId)
+                    if (!def) return null
+                    return (
+                      <Tag
+                        key={cl.id}
+                        color={def.color}
+                        style={{
+                          fontSize: 10,
+                          lineHeight: '16px',
+                          padding: '0 4px',
+                          margin: 0,
+                          borderStyle: cl.source === 'llm' ? 'dashed' : 'solid',
+                        }}
+                      >
+                        {def.label}
+                      </Tag>
+                    )
+                  })}
                 </Space>
               </div>
+              <Popover
+                trigger="click"
+                open={headerLabelPopoverOpen}
+                onOpenChange={setHeaderLabelPopoverOpen}
+                placement="bottomRight"
+                content={
+                  <div style={{ minWidth: 200 }}>
+                    <Text strong style={{ fontSize: 13, display: 'block', marginBottom: 8 }}>
+                      頻道標籤
+                    </Text>
+                    {labelDefs.map(ld => {
+                      const existing = (activeChannel.labels || []).find(l => l.labelId === ld.id)
+                      const hasLabel = !!existing
+                      const isLLM = existing?.source === 'llm'
+                      return (
+                        <div
+                          key={ld.id}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '4px 0',
+                          }}
+                        >
+                          <Tag
+                            color={ld.color}
+                            style={{
+                              cursor: 'pointer',
+                              borderStyle: isLLM ? 'dashed' : 'solid',
+                            }}
+                            onClick={() => toggleChannelLabel(activeChannel.id, ld.id, hasLabel)}
+                          >
+                            {hasLabel ? <CheckOutlined style={{ marginRight: 4 }} /> : <PlusOutlined style={{ marginRight: 4 }} />}
+                            {ld.label}
+                          </Tag>
+                          {isLLM && existing?.confidence && (
+                            <Text type="secondary" style={{ fontSize: 10 }}>
+                              AI {Math.round(existing.confidence * 100)}%
+                            </Text>
+                          )}
+                        </div>
+                      )
+                    })}
+                    <Divider style={{ margin: '8px 0' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <Checkbox
+                        checked={activeChannel.needsFollowUp}
+                        onChange={() => toggleFollowUp(activeChannel)}
+                      >
+                        <FlagFilled style={{ color: '#ff4d4f', marginRight: 4 }} />
+                        <Text style={{ fontSize: 12 }}>舊版追蹤</Text>
+                      </Checkbox>
+                    </div>
+                  </div>
+                }
+              >
+                <Tooltip title="管理標籤">
+                  <Badge count={(activeChannel.labels || []).length} size="small" offset={[-4, 4]}>
+                    <Button
+                      type="text"
+                      icon={<TagsOutlined />}
+                    />
+                  </Badge>
+                </Tooltip>
+              </Popover>
               <Button
                 type="text"
                 icon={<ReloadOutlined spin={loadingChat} />}

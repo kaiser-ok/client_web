@@ -89,6 +89,7 @@ export async function GET(
             name: true,
           },
         },
+        labels: true,
       },
     })
 
@@ -151,6 +152,7 @@ export async function GET(
         isActive: channel.isActive,
         lastMessageAt: channel.lastMessageAt,
         createdAt: channel.createdAt,
+        labels: channel.labels || [],
       },
       messages: messages.map(m => ({
         id: m.id,
@@ -193,7 +195,7 @@ export async function PUT(
     const body = await request.json()
     // Support both partnerId and customerId for backward compatibility
     const partnerId = body.partnerId || body.customerId
-    const { projectId, channelName, isActive } = body
+    const { projectId, channelName, isActive, needsFollowUp, followUpNote } = body
 
     // 確認頻道存在
     const existing = await prisma.lineChannel.findUnique({
@@ -225,14 +227,32 @@ export async function PUT(
     }
 
     // 更新頻道
+    const updateData: Record<string, unknown> = {
+      partnerId: partnerId !== undefined ? (partnerId || null) : existing.partnerId,
+      projectId: projectId !== undefined ? (projectId || null) : existing.projectId,
+      channelName: channelName !== undefined ? channelName : existing.channelName,
+      isActive: isActive !== undefined ? isActive : existing.isActive,
+    }
+
+    // 追蹤狀態
+    if (needsFollowUp !== undefined) {
+      updateData.needsFollowUp = needsFollowUp
+      if (needsFollowUp) {
+        updateData.followUpAt = new Date()
+        updateData.followUpBy = session.user?.email || null
+        if (followUpNote !== undefined) updateData.followUpNote = followUpNote
+      } else {
+        updateData.followUpAt = null
+        updateData.followUpBy = null
+        updateData.followUpNote = null
+      }
+    } else if (followUpNote !== undefined) {
+      updateData.followUpNote = followUpNote
+    }
+
     const updated = await prisma.lineChannel.update({
       where: { id },
-      data: {
-        partnerId: partnerId !== undefined ? (partnerId || null) : existing.partnerId,
-        projectId: projectId !== undefined ? (projectId || null) : existing.projectId,
-        channelName: channelName !== undefined ? channelName : existing.channelName,
-        isActive: isActive !== undefined ? isActive : existing.isActive,
-      },
+      data: updateData,
       include: {
         partner: {
           select: {
@@ -261,6 +281,10 @@ export async function PUT(
         projectId: updated.projectId,
         projectName: updated.project?.name || null,
         isActive: updated.isActive,
+        needsFollowUp: updated.needsFollowUp,
+        followUpNote: updated.followUpNote,
+        followUpAt: updated.followUpAt,
+        followUpBy: updated.followUpBy,
       },
     })
   } catch (error) {

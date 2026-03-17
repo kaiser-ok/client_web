@@ -14,7 +14,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     // Support both customerId and partnerId for backward compatibility
     const partnerId = searchParams.get('partnerId') || searchParams.get('customerId')
-    const limit = parseInt(searchParams.get('limit') || '10')
+    const limitParam = searchParams.get('limit')
+    const limit = limitParam ? parseInt(limitParam) : undefined
 
     if (!partnerId) {
       return NextResponse.json(
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
         { closedAt: 'desc' },
         { createdAt: 'desc' },
       ],
-      take: limit,
+      ...(limit ? { take: limit } : {}),
     })
 
     // Check if user can view deal amounts

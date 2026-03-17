@@ -54,6 +54,17 @@ export const WARRANTY_YEAR_DEFAULT_ALLOCATION: Record<string, number> = {
 }
 export const WARRANTY_YEAR_RD_DEFAULT_PCT = 30
 
+// 專案獎金類別（影響基礎分計算除數）
+export const BONUS_CATEGORIES = [
+  { value: 'STANDARD', label: '標準專案', divisor: 100000, description: '10 萬 / 點' },
+  { value: 'RESALE', label: '轉賣銷售', divisor: 300000, description: '30 萬 / 點' },
+] as const
+
+export const BONUS_CATEGORY_DIVISOR: Record<string, number> = {
+  STANDARD: 100000,
+  RESALE: 300000,
+}
+
 // 評估狀態
 export const EVAL_STATUS = [
   { value: 'DRAFT', label: '草稿', color: 'default' },
@@ -61,6 +72,9 @@ export const EVAL_STATUS = [
   { value: 'APPROVED', label: '已核准', color: 'success' },
   { value: 'PAID', label: '已發放', color: 'purple' },
 ] as const
+
+// 點數池預設大小
+export const DEFAULT_CREDIT_POOL_SIZE = 100
 
 // 評分調整範圍
 export const SCORE_ADJUSTMENTS = {

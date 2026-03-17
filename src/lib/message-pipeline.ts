@@ -8,6 +8,7 @@ import { graphitiClient } from './graphiti'
 import { resolveEntity } from './entity-resolver'
 import type { UnifiedMessage, MessagePipelineJobData } from '@/types/unified-message'
 import type { LineWebhookEvent } from './line'
+import { enqueueLabelAnalysis } from './line-label-analyzer'
 import crypto from 'crypto'
 
 // ============================================
@@ -206,6 +207,22 @@ export async function processMessagePipelineJob(job: Job<MessagePipelineJobData>
   })
 
   console.log(`[message-pipeline] Successfully ingested ${message.channel} message: ${message.channelMessageId}`)
+
+  // Trigger label analysis for LINE messages
+  if (message.channel === 'LINE' && message.channelId) {
+    try {
+      const { default: prisma } = await import('@/lib/prisma')
+      const channel = await prisma.lineChannel.findUnique({
+        where: { lineChannelId: message.channelId },
+        select: { id: true },
+      })
+      if (channel) {
+        await enqueueLabelAnalysis(channel.id)
+      }
+    } catch (error) {
+      console.error('[message-pipeline] Failed to enqueue label analysis:', error)
+    }
+  }
 }
 
 export function startMessagePipelineWorker(): Worker {

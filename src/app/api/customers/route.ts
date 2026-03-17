@@ -174,7 +174,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, aliases, contact, phone, email, parentId, syncToOdoo, role = 'DEALER' } = body
+    const { name, aliases, contact, phone, email, parentId, syncToOdoo, tier, role = 'DEALER' } = body
 
     if (!name) {
       return NextResponse.json({ error: '客戶名稱為必填' }, { status: 400 })
@@ -205,6 +205,7 @@ export async function POST(request: NextRequest) {
         email,
         jiraLabel,
         parentId: parentId || null,
+        tier: tier || null,
         odooId: odooId,
         source: odooId ? 'ODOO' : 'MANUAL',
         roles: {

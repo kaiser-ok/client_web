@@ -19,6 +19,7 @@ export async function GET(request: NextRequest) {
     const includeInactive = searchParams.get('includeInactive') === 'true'
     // Support both partnerId and customerId for backward compatibility
     const partnerId = searchParams.get('partnerId') || searchParams.get('customerId')
+    const labelFilter = searchParams.get('label') // Filter by label ID
 
     // 如果指定了 partnerId，透過 associations 查詢
     if (partnerId) {
@@ -108,6 +109,10 @@ export async function GET(request: NextRequest) {
           projectId: c.projectId,
           projectName: c.project?.name || null,
           isActive: c.isActive,
+          needsFollowUp: c.needsFollowUp,
+          followUpNote: c.followUpNote,
+          followUpAt: c.followUpAt,
+          followUpBy: c.followUpBy,
           messageCount: c._count.messages,
           lastMessageAt: c.lastMessageAt,
           createdAt: c.createdAt,
@@ -126,12 +131,17 @@ export async function GET(request: NextRequest) {
     }
 
     // 沒有指定篩選條件時，回傳所有頻道
-    const where: {
-      isActive?: boolean
-    } = {}
+    const where: Record<string, unknown> = {}
 
     if (!includeInactive) {
       where.isActive = true
+    }
+
+    // Label filter: only show channels that have a specific label
+    if (labelFilter) {
+      where.labels = {
+        some: { labelId: labelFilter },
+      }
     }
 
     const channels = await prisma.lineChannel.findMany({
@@ -162,6 +172,7 @@ export async function GET(request: NextRequest) {
             },
           },
         },
+        labels: true,
         _count: {
           select: {
             messages: true,
@@ -222,9 +233,14 @@ export async function GET(request: NextRequest) {
         isActive: c.isActive,
         isStaff: c.isStaff,
         staffEmail: c.staffEmail,
+        needsFollowUp: c.needsFollowUp,
+        followUpNote: c.followUpNote,
+        followUpAt: c.followUpAt,
+        followUpBy: c.followUpBy,
         messageCount: c._count.messages,
         lastMessageAt: c.lastMessageAt,
         createdAt: c.createdAt,
+        labels: (c as Record<string, unknown>).labels || [],
         associations: c.associations.map(a => ({
           id: a.id,
           partnerId: a.partnerId,

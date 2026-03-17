@@ -43,6 +43,13 @@ const ROLE_OPTIONS = [
   { value: 'SUPPLIER', label: '供應商', color: 'orange' },
 ]
 
+const TIER_OPTIONS = [
+  { value: 'VIP', label: 'VIP', color: 'gold' },
+  { value: 'GOLD', label: '金質', color: 'orange' },
+  { value: 'SILVER', label: '銀質', color: 'default' },
+  { value: 'REGULAR', label: '一般客戶', color: 'blue' },
+]
+
 export default function CustomersPage() {
   const router = useRouter()
   const { can } = useUser()
@@ -151,6 +158,17 @@ export default function CustomersPage() {
       render: (role: string) => {
         const roleInfo = ROLE_OPTIONS.find(t => t.value === role)
         return roleInfo ? <Tag color={roleInfo.color}>{roleInfo.label}</Tag> : <Tag>{role || '經銷商'}</Tag>
+      },
+    },
+    {
+      title: '等級',
+      dataIndex: 'tier',
+      key: 'tier',
+      width: 90,
+      render: (tier: string | null) => {
+        if (!tier) return <Tag>未設定</Tag>
+        const tierInfo = TIER_OPTIONS.find(t => t.value === tier)
+        return tierInfo ? <Tag color={tierInfo.color}>{tierInfo.label}</Tag> : <Tag>{tier}</Tag>
       },
     },
     {
@@ -315,6 +333,13 @@ export default function CustomersPage() {
           </Form.Item>
           <Form.Item name="role" label="角色">
             <Select options={ROLE_OPTIONS} />
+          </Form.Item>
+          <Form.Item name="tier" label="客戶等級">
+            <Select
+              allowClear
+              placeholder="選擇等級"
+              options={TIER_OPTIONS}
+            />
           </Form.Item>
           <Form.Item name="parentId" label="母公司">
             <Select

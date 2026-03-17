@@ -42,6 +42,33 @@ export interface ProjectBonusEvalData {
   updatedAt: string
   costs: ProjectCostItem[]
   members: BonusMember[]
+  poolAllocations?: CreditPoolAllocationItem[]
+  poolPoints?: number
+}
+
+export interface CreditPool {
+  id: string
+  year: number
+  totalPoints: number
+  description?: string
+  createdBy: string
+  createdAt: string
+  updatedAt: string
+  allocations: CreditPoolAllocationItem[]
+  allocatedPoints: number
+  remainingPoints: number
+}
+
+export interface CreditPoolAllocationItem {
+  id: string
+  poolId: string
+  evalId: string
+  points: number
+  reason: string
+  allocatedBy: string
+  createdAt: string
+  projectName?: string
+  partnerName?: string
 }
 
 export interface BonusReportRow {

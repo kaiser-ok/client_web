@@ -41,6 +41,7 @@ export interface Partner {
   odooTags: string[]          // Odoo 訂單標籤（用於比對 Jira labels）
   slackChannelId: string | null // Slack 頻道 ID
   source: PartnerSource
+  tier: string | null         // 客戶等級: VIP, GOLD, SILVER, REGULAR
   notes: string | null
   isActive: boolean
   parentId: string | null     // 母公司 ID

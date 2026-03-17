@@ -21,6 +21,13 @@ import { CustomerWithRelations } from '@/types/customer'
 
 const { Title, Text } = Typography
 
+const TIER_OPTIONS = [
+  { value: 'VIP', label: 'VIP', color: 'gold' },
+  { value: 'GOLD', label: '金質', color: 'orange' },
+  { value: 'SILVER', label: '銀質', color: 'default' },
+  { value: 'REGULAR', label: '一般客戶', color: 'blue' },
+]
+
 interface CustomerHeaderProps {
   customer: CustomerWithRelations | undefined
   isLoading: boolean
@@ -88,8 +95,16 @@ export default function CustomerHeader({
         <div>
           <Title level={3} style={{ margin: 0 }}>
             {customer.name}
+            {customer.tier && (() => {
+              const tierInfo = TIER_OPTIONS.find(t => t.value === customer.tier)
+              return tierInfo ? (
+                <Tag color={tierInfo.color} style={{ marginLeft: 12, verticalAlign: 'middle' }}>
+                  {tierInfo.label}
+                </Tag>
+              ) : null
+            })()}
             {customer.partner && (
-              <Tag color="green" style={{ marginLeft: 12, verticalAlign: 'middle' }}>
+              <Tag color="green" style={{ marginLeft: 8, verticalAlign: 'middle' }}>
                 {customer.partner}
               </Tag>
             )}

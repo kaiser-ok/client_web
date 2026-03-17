@@ -1,15 +1,17 @@
 'use client'
 
-import { Layout, Button, Dropdown, Avatar, Space, Typography, Select, Tag } from 'antd'
+import { Layout, Button, Dropdown, Avatar, Space, Typography, Select, Tag, Badge, Tooltip } from 'antd'
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,
   LogoutOutlined,
   SwapOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import { signOut } from 'next-auth/react'
 import { useUser } from '@/hooks/useUser'
+import { useOnlineUsers } from '@/hooks/useOnlineUsers'
 import { UserRole } from '@/constants/roles'
 import type { MenuProps } from 'antd'
 
@@ -32,6 +34,7 @@ interface HeaderProps {
 
 export default function Header({ collapsed, onToggle, isMobile }: HeaderProps) {
   const { user, role, isAdmin, isImpersonating, setRole, clearImpersonation } = useUser()
+  const { count: onlineCount, users: onlineUsers } = useOnlineUsers()
 
   const getRoleLabel = (r: string) => {
     const option = ROLE_OPTIONS.find(o => o.value === r)
@@ -94,6 +97,15 @@ export default function Header({ collapsed, onToggle, isMobile }: HeaderProps) {
       </Space>
 
       <Space size="middle">
+        {/* Online users indicator */}
+        <Tooltip title={onlineUsers.map(u => u.name).join('、') || '無線上使用者'}>
+          <Space size={4} style={{ color: '#52c41a', cursor: 'default' }}>
+            <Badge status="success" />
+            <TeamOutlined />
+            <span style={{ fontSize: 13 }}>{onlineCount} 人在線</span>
+          </Space>
+        </Tooltip>
+
         {/* Role indicator / switcher for admin */}
         {isAdmin ? (
           <Space size="small">

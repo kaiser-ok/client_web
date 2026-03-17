@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/constants/roles'
+import { BONUS_CATEGORY_DIVISOR } from '@/constants/bonus'
 import { Decimal } from '@prisma/client/runtime/library'
 
 // GET: 取得專案的獎金評估
@@ -31,6 +32,18 @@ export async function GET(
           include: { user: { select: { id: true, name: true, email: true } } },
           orderBy: [{ yearOffset: 'asc' }, { createdAt: 'asc' }],
         },
+        poolAllocations: {
+          include: {
+            eval: {
+              include: {
+                project: {
+                  select: { name: true, partner: { select: { name: true } } },
+                },
+              },
+            },
+          },
+          orderBy: { createdAt: 'desc' },
+        },
         project: {
           select: {
             name: true,
@@ -57,12 +70,27 @@ export async function GET(
       return NextResponse.json({ eval: null, project })
     }
 
+    const poolPoints = (eval_.poolAllocations || []).reduce(
+      (sum: number, a: { points: unknown }) => sum + Number(a.points),
+      0
+    )
+
     return NextResponse.json({
       eval: {
         ...eval_,
         projectName: eval_.project.name,
         partnerName: eval_.project.partner.name,
         dealName: eval_.project.deal?.name,
+        poolPoints: Math.round(poolPoints * 100) / 100,
+        poolAllocations: eval_.poolAllocations.map(a => ({
+          id: a.id,
+          poolId: a.poolId,
+          evalId: a.evalId,
+          points: Number(a.points),
+          reason: a.reason,
+          allocatedBy: a.allocatedBy,
+          createdAt: a.createdAt,
+        })),
         members: eval_.members.map(m => ({
           ...m,
           userName: m.user.name,
@@ -104,6 +132,7 @@ export async function POST(
       efficiencyAdj = 0,
       warrantyYears = 1,
       scoreSpreadPcts,
+      bonusCategory = 'STANDARD',
       notes,
       status,
     } = body
@@ -150,7 +179,8 @@ export async function POST(
     // Calculate scores
     const totalCost = costs.reduce((sum: number, c: { amount: number }) => sum + Number(c.amount), 0)
     const projectAmount = Number(dealAmount) - totalCost
-    const baseScore = projectAmount / 100000
+    const divisor = BONUS_CATEGORY_DIVISOR[bonusCategory] || 100000
+    const baseScore = projectAmount / divisor
     const multiplier = 1 + (importanceAdj + qualityAdj + efficiencyAdj) / 100
     const totalScore = baseScore * multiplier
 
@@ -163,6 +193,7 @@ export async function POST(
 
     const evalData = {
       year: year || new Date().getFullYear(),
+      bonusCategory,
       dealAmount: new Decimal(dealAmount),
       totalCost: new Decimal(totalCost),
       projectAmount: new Decimal(projectAmount),

@@ -24,6 +24,7 @@ import {
   AppstoreOutlined,
   TrophyOutlined,
   AudioOutlined,
+  BankOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
@@ -185,7 +186,17 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
                 {
                   key: '/reports/bonus',
                   icon: <TrophyOutlined />,
-                  label: '專案獎金',
+                  label: '專案點數',
+                },
+              ]
+            : []),
+          // 點數池 - 僅 ADMIN
+          ...(role === 'ADMIN'
+            ? [
+                {
+                  key: '/reports/credit-pool',
+                  icon: <BankOutlined />,
+                  label: '點數池',
                 },
               ]
             : []),

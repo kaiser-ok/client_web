@@ -9,6 +9,7 @@ import type { TableColumnsType } from 'antd'
 import {
   TrophyOutlined, DollarOutlined, SaveOutlined, TeamOutlined,
   ProjectOutlined, CheckCircleOutlined, ClockCircleOutlined,
+  BankOutlined, SettingOutlined,
 } from '@ant-design/icons'
 import useSWR from 'swr'
 import AppLayout from '@/components/layout/AppLayout'
@@ -29,6 +30,7 @@ interface ProjectSummary {
   projectName: string
   partnerName: string
   dealName?: string
+  bonusCategory?: string
   dealAmount: number
   totalCost: number
   projectAmount: number
@@ -37,6 +39,7 @@ interface ProjectSummary {
   qualityAdj: number
   efficiencyAdj: number
   totalScore: number
+  poolPoints: number
   effectiveScore: number
   warrantyYears: number
   scoreSpreadPcts: number[] | null
@@ -73,7 +76,7 @@ interface BonusRow {
 }
 
 export default function BonusReportPage() {
-  const { can } = useUser()
+  const { can, role } = useUser()
   const [year, setYear] = useState(currentYear)
   const [pointRate, setPointRate] = useState<number | null>(null)
   const [editingRate, setEditingRate] = useState(false)
@@ -115,6 +118,7 @@ export default function BonusReportPage() {
   const allMembersTotal: number = data?.allMembersTotal || 0
   const confirmedTotal: number = data?.confirmedTotal || 0
   const projectedTotal: number = data?.projectedTotal || 0
+  const creditPool = data?.creditPool
 
   const memberColumns: TableColumnsType<BonusRow> = [
     {
@@ -166,7 +170,15 @@ export default function BonusReportPage() {
   ]
 
   const projectColumns: TableColumnsType<ProjectSummary> = [
-    { title: '專案名稱', dataIndex: 'projectName', ellipsis: true },
+    {
+      title: '專案名稱', dataIndex: 'projectName', ellipsis: true,
+      render: (v: string, record: ProjectSummary) => (
+        <Space size={4}>
+          <span>{v}</span>
+          {record.bonusCategory === 'RESALE' && <Tag color="orange">轉賣</Tag>}
+        </Space>
+      ),
+    },
     { title: '客戶', dataIndex: 'partnerName', width: 120, ellipsis: true },
     { title: '訂單', dataIndex: 'dealName', width: 100 },
     {
@@ -201,6 +213,17 @@ export default function BonusReportPage() {
       render: (v: number) => <Text strong>{v.toFixed(2)}</Text>,
     },
     {
+      title: '池點數', dataIndex: 'poolPoints', width: 80, align: 'right' as const,
+      render: (v: number) => v > 0 ? <Text style={{ color: '#722ed1' }}>+{v.toFixed(2)}</Text> : <Text type="secondary">-</Text>,
+    },
+    {
+      title: '有效總分', width: 90, align: 'right' as const,
+      render: (_: unknown, record: ProjectSummary) => {
+        const effective = record.totalScore + (record.poolPoints || 0)
+        return <Text strong style={{ color: '#1890ff' }}>{effective.toFixed(2)}</Text>
+      },
+    },
+    {
       title: '本年度計分', width: 120, align: 'right' as const,
       render: (_: unknown, record: ProjectSummary) => {
         if (record.warrantyYears <= 1) {
@@ -232,7 +255,7 @@ export default function BonusReportPage() {
           title={
             <Space>
               <TrophyOutlined style={{ color: '#722ed1' }} />
-              年度專案預估業績獎金報表
+              年度專案點數報表
             </Space>
           }
           extra={
@@ -247,8 +270,8 @@ export default function BonusReportPage() {
           }
         >
           {/* Summary Stats */}
-          <Row gutter={16} style={{ marginBottom: 24 }}>
-            <Col span={4}>
+          <Row gutter={16} style={{ marginBottom: 24 }} align="middle">
+            <Col flex="1">
               <Card size="small">
                 <Statistic
                   title="評估專案數"
@@ -257,7 +280,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col flex="1">
               <Card size="small">
                 <Statistic
                   title="確認點數"
@@ -268,7 +291,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col flex="1">
               <Card size="small">
                 <Statistic
                   title="預計撥發點數"
@@ -279,7 +302,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col flex="1">
               <Card size="small">
                 <Statistic
                   title="全員專案分合計"
@@ -290,7 +313,7 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={4}>
+            <Col flex="1">
               <Card size="small">
                 <Statistic
                   title="參與人數"
@@ -299,38 +322,52 @@ export default function BonusReportPage() {
                 />
               </Card>
             </Col>
-            <Col span={4}>
-              <Card size="small">
+            {role === 'ADMIN' && (
+              <Col flex="none" style={{ display: 'flex', alignItems: 'center' }}>
                 {editingRate ? (
-                  <Space>
-                    <InputNumber
-                      value={pointRate}
-                      onChange={v => setPointRate(v)}
-                      formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                      style={{ width: 160 }}
-                    />
-                    <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSaveRate}>存</Button>
-                    <Button size="small" onClick={() => setEditingRate(false)}>取消</Button>
-                  </Space>
+                  <Card size="small">
+                    <Space>
+                      <Text type="secondary">每點兌換金額</Text>
+                      <InputNumber
+                        value={pointRate}
+                        onChange={v => setPointRate(v)}
+                        formatter={v => `$ ${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                        style={{ width: 140 }}
+                        size="small"
+                      />
+                      <Button type="primary" size="small" icon={<SaveOutlined />} onClick={handleSaveRate}>存</Button>
+                      <Button size="small" onClick={() => setEditingRate(false)}>取消</Button>
+                    </Space>
+                  </Card>
                 ) : (
-                  <Statistic
-                    title={
-                      <Space>
-                        每點兌換金額
-                        {canApprove && (
-                          <Button type="link" size="small" onClick={() => setEditingRate(true)}>設定</Button>
-                        )}
-                      </Space>
-                    }
-                    value={data?.pointRate ?? 1000}
-                    prefix={<DollarOutlined />}
-                    suffix="元/點"
-                    styles={{ content: { color: '#cf1322' } }}
+                  <Button
+                    type="text"
+                    icon={<SettingOutlined style={{ fontSize: 18 }} />}
+                    onClick={() => setEditingRate(true)}
+                    title={`每點兌換金額：$${(data?.pointRate ?? 1000).toLocaleString()} 元/點`}
                   />
                 )}
-              </Card>
-            </Col>
+              </Col>
+            )}
           </Row>
+
+          {/* Credit Pool Summary */}
+          {creditPool && (
+            <Row gutter={16} style={{ marginBottom: 24 }}>
+              <Col span={24}>
+                <Card size="small" style={{ background: '#f6f0ff' }}>
+                  <Space size="large">
+                    <BankOutlined style={{ color: '#722ed1', fontSize: 16 }} />
+                    <Text strong>點數池：</Text>
+                    <Text>總計 <Text strong>{creditPool.totalPoints}</Text> 點</Text>
+                    <Text>已分配 <Text strong style={{ color: '#722ed1' }}>{creditPool.allocatedPoints}</Text> 點</Text>
+                    <Text>剩餘 <Text strong style={{ color: '#389e0d' }}>{creditPool.remainingPoints}</Text> 點</Text>
+                    <Button type="link" size="small" href="/reports/credit-pool">管理</Button>
+                  </Space>
+                </Card>
+              </Col>
+            </Row>
+          )}
 
           {/* Member Bonus Table */}
           <Card
@@ -478,9 +515,10 @@ export default function BonusReportPage() {
           {/* Formula explanation */}
           <Card size="small" style={{ marginTop: 16, background: '#fafafa' }}>
             <Text type="secondary">
-              計算公式：專案金額 = 成案金額 - 外部成本 | 基礎分 = 專案金額 / 10萬 |
+              計算公式：專案金額 = 成案金額 - 外部成本 | 基礎分 = 專案金額 / 除數（標準 10萬、轉賣 30萬）|
               專案總分 = 基礎分 x (100% + 重要性 + 質量 + 時效) |
-              本年度計分 = 專案總分 x 當年攤分比例（有延長保固時攤分至各年度） |
+              有效總分 = 專案總分 + 池點數 |
+              本年度計分 = 有效總分 x 當年攤分比例（有延長保固時攤分至各年度） |
               個人專案分 = 本年度計分 x 貢獻比例 |
               預估業績獎金 = 個人專案分 x 每點兌換金額
             </Text>

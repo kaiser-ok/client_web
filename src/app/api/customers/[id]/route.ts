@@ -107,7 +107,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { name, aliases, contact, phone, email, website, parentId, slackChannelId, notes, isActive, role: newRole, salesRep, partner: partnerField } = body
+    const { name, aliases, contact, phone, email, website, parentId, slackChannelId, notes, isActive, tier, role: newRole, salesRep, partner: partnerField } = body
 
     // Prevent setting self as parent
     if (parentId === id) {
@@ -129,6 +129,7 @@ export async function PUT(
         ...(slackChannelId !== undefined && { slackChannelId: slackChannelId || null }),
         ...(notes !== undefined && { notes: notes || null }),
         ...(isActive !== undefined && { isActive }),
+        ...(tier !== undefined && { tier: tier || null }),
         ...(jiraLabel && { jiraLabel }),
       },
       include: {

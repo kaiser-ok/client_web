@@ -21,6 +21,7 @@ export interface Customer {
   odooId: number | null       // Odoo res_partner.id
   odooTags: string[]          // Odoo 訂單標籤（用於比對 Jira labels）
   slackChannelId: string | null // Slack 頻道 ID
+  tier: string | null         // 客戶等級: VIP, GOLD, SILVER, REGULAR
   notes: string | null        // 備註
   source: string              // MANUAL, ODOO
   createdAt: Date

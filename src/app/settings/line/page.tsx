@@ -36,6 +36,7 @@ import {
   QuestionOutlined,
   SwapOutlined,
   EyeOutlined,
+  TagsOutlined,
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -598,10 +599,17 @@ export default function LineSettingsPage() {
           <Space size="middle" wrap>
             <Segmented
               value={activeView}
-              onChange={(v) => setActiveView(v as string)}
+              onChange={(v) => {
+                if (v === 'labels') {
+                  router.push('/settings/line/labels')
+                  return
+                }
+                setActiveView(v as string)
+              }}
               options={[
                 { value: 'channels', label: '頻道管理', icon: <SwapOutlined /> },
                 { value: 'users', label: '用戶身分', icon: <UserOutlined /> },
+                { value: 'labels', label: '標籤設定', icon: <TagsOutlined /> },
               ]}
               size="middle"
             />

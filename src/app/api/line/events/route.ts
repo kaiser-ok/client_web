@@ -55,7 +55,7 @@ export async function GET(request: NextRequest) {
               (!lastMessageAt || updated.lastMessageAt > lastMessageAt)) {
             lastMessageAt = updated.lastMessageAt
             const data = JSON.stringify({
-              type: 'message',
+              type: 'new_message',
               channelId,
               timestamp: updated.lastMessageAt.toISOString(),
             })

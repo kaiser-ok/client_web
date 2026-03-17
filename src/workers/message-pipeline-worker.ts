@@ -4,16 +4,19 @@
  */
 
 import { startMessagePipelineWorker, stopMessagePipelineWorker } from '../lib/message-pipeline'
+import { startLabelAnalysisWorker, stopLabelAnalysisWorker } from '../lib/line-label-analyzer'
 
 console.log('[message-pipeline-worker] Starting...')
 
 const worker = startMessagePipelineWorker()
+const labelWorker = startLabelAnalysisWorker()
 
 // Graceful shutdown
 async function shutdown(signal: string) {
   console.log(`[message-pipeline-worker] Received ${signal}, shutting down gracefully...`)
   try {
     await stopMessagePipelineWorker()
+    await stopLabelAnalysisWorker()
     console.log('[message-pipeline-worker] Shutdown complete')
     process.exit(0)
   } catch (err) {
@@ -28,6 +31,10 @@ process.on('SIGINT', () => shutdown('SIGINT'))
 // Keep process alive
 worker.on('error', (err) => {
   console.error('[message-pipeline-worker] Worker error:', err)
+})
+
+labelWorker.on('error', (err) => {
+  console.error('[message-pipeline-worker] Label worker error:', err)
 })
 
 console.log('[message-pipeline-worker] Ready and listening for jobs')

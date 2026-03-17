@@ -6,11 +6,11 @@ const fetcher = (url: string) => fetch(url).then(res => {
   return res.json()
 })
 
-export function useDeals(customerId: string, limit = 10) {
-  const { data, error, isLoading, mutate } = useSWR<Deal[]>(
-    customerId ? `/api/deals?customerId=${customerId}&limit=${limit}` : null,
-    fetcher
-  )
+export function useDeals(customerId: string, limit?: number) {
+  const url = customerId
+    ? `/api/deals?customerId=${customerId}${limit ? `&limit=${limit}` : ''}`
+    : null
+  const { data, error, isLoading, mutate } = useSWR<Deal[]>(url, fetcher)
 
   return {
     deals: data || [],

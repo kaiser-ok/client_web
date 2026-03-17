@@ -29,7 +29,7 @@ const getOdooOrderUrl = (odooId: number) => {
   return `${ODOO_BASE_URL}id=${odooId}&cids=1-2&menu_id=227&action=339&model=sale.order&view_type=form`
 }
 
-export default function DealsCard({ customerId, limit = 5 }: DealsCardProps) {
+export default function DealsCard({ customerId, limit }: DealsCardProps) {
   const { deals, isLoading, mutate } = useDeals(customerId, limit)
   const { mutate: globalMutate } = useSWRConfig()
   const { can } = useUser()
@@ -88,7 +88,7 @@ export default function DealsCard({ customerId, limit = 5 }: DealsCardProps) {
   return (
     <>
       <Card
-        title="成交紀錄/合約"
+        title={`成交紀錄/合約${deals.length > 0 ? `（共 ${deals.length} 筆）` : ''}`}
         extra={
           canEdit && (
             <Button

@@ -50,6 +50,7 @@ export async function GET(request: NextRequest) {
           },
         },
         costs: true,
+        poolAllocations: true,
       },
       orderBy: { createdAt: 'asc' },
     })
@@ -97,10 +98,18 @@ export async function GET(request: NextRequest) {
     for (const ev of evals) {
       const spreadRatio = getYearSpreadRatio(ev)
       const yearOffset = year - ev.year
+      // Calculate pool points for this eval
+      const poolPoints = (ev.poolAllocations || []).reduce(
+        (sum: number, a: { points: unknown }) => sum + Number(a.points),
+        0
+      )
       // Only include members matching this year's offset
       const yearMembers = ev.members.filter(m => (m.yearOffset ?? 0) === yearOffset)
       for (const member of yearMembers) {
-        const score = Number(member.score || 0)
+        const baseScore = Number(member.score || 0)
+        // Pool points contribution: poolPoints × spreadRatio × contributionPct / 100
+        const poolMemberScore = poolPoints * spreadRatio * Number(member.contributionPct) / 100
+        const score = Math.round((baseScore + poolMemberScore) * 100) / 100
         const existing = userScores.get(member.userId)
         const projectEntry = {
           evalId: ev.id,
@@ -110,6 +119,7 @@ export async function GET(request: NextRequest) {
           dealName: ev.project.deal?.name,
           projectAmount: Number(ev.projectAmount),
           totalScore: Number(ev.totalScore),
+          poolPoints,
           role: member.role,
           contributionPct: Number(member.contributionPct),
           score,
@@ -157,9 +167,27 @@ export async function GET(request: NextRequest) {
         }
       })
 
+    // Credit pool summary for this year
+    const creditPool = await prisma.creditPool.findUnique({
+      where: { year },
+      include: { allocations: true },
+    })
+    const creditPoolSummary = creditPool ? {
+      id: creditPool.id,
+      year: creditPool.year,
+      totalPoints: Number(creditPool.totalPoints),
+      allocatedPoints: Math.round(creditPool.allocations.reduce((s, a) => s + Number(a.points), 0) * 100) / 100,
+      remainingPoints: Math.round((Number(creditPool.totalPoints) - creditPool.allocations.reduce((s, a) => s + Number(a.points), 0)) * 100) / 100,
+    } : null
+
     // Project summary
     const projectSummary = evals.map(ev => {
       const spreadRatio = getYearSpreadRatio(ev)
+      const poolPoints = (ev.poolAllocations || []).reduce(
+        (sum: number, a: { points: unknown }) => sum + Number(a.points),
+        0
+      )
+      const effectiveTotalScore = Number(ev.totalScore) + poolPoints
       return {
         evalId: ev.id,
         projectId: ev.projectId,
@@ -169,12 +197,14 @@ export async function GET(request: NextRequest) {
         dealAmount: Number(ev.dealAmount),
         totalCost: Number(ev.totalCost),
         projectAmount: Number(ev.projectAmount),
+        bonusCategory: ev.bonusCategory || 'STANDARD',
         baseScore: Number(ev.baseScore),
         importanceAdj: Number(ev.importanceAdj),
         qualityAdj: Number(ev.qualityAdj),
         efficiencyAdj: Number(ev.efficiencyAdj),
         totalScore: Number(ev.totalScore),
-        effectiveScore: Math.round(Number(ev.totalScore) * spreadRatio * 100) / 100,
+        poolPoints: Math.round(poolPoints * 100) / 100,
+        effectiveScore: Math.round(effectiveTotalScore * spreadRatio * 100) / 100,
         warrantyYears: ev.warrantyYears || 1,
         scoreSpreadPcts: ev.scoreSpreadPcts as number[] | null,
         spreadRatio,
@@ -202,6 +232,7 @@ export async function GET(request: NextRequest) {
       rows,
       projectSummary,
       evalCount: evals.length,
+      creditPool: creditPoolSummary,
     })
   } catch (error) {
     console.error('Error fetching bonus report:', error)

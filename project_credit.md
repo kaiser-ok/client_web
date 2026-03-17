@@ -16,11 +16,18 @@
 ```
 外部成本包括：勞務外包、硬體設備、第三方軟體授權、諮詢顧問等。
 
+### 1.5 獎金類別
+
+| 類別 | 代碼 | 基礎分除數 | 說明 |
+|------|------|-----------|------|
+| 標準專案 | STANDARD | 10 萬 / 點 | 一般系統專案、維運等 |
+| 轉賣銷售 | RESALE | 30 萬 / 點 | 單純轉賣銷售，無客製開發 |
+
 ### 2. 評分規則
 
 | 評估項 | 計算方式 | 範圍 | 備註 |
 |--------|---------|------|------|
-| 基礎分 | 專案金額 / 10萬 | — | 專案基礎分 |
+| 基礎分 | 專案金額 / 除數（依獎金類別） | — | 標準 10萬/點，轉賣 30萬/點 |
 | 重要性 | 基礎分 x 0~+20% | 加分 | 對公司重要的專案加分 |
 | 質量 | 基礎分 x -10~+10% | 加減分 | 根據創新/客訴進行加減分 |
 | 時效 | 基礎分 x -10~+10% | 加減分 | 根據提早/延遲交付加減分 |
@@ -133,7 +140,8 @@ model ProjectBonusEval {
   dealAmount      Decimal  @db.Decimal(12, 2)  // 成案金額
   totalCost       Decimal  @db.Decimal(12, 2)  // 外部成本合計
   projectAmount   Decimal  @db.Decimal(12, 2)  // 專案金額 = dealAmount - totalCost
-  baseScore       Decimal  @db.Decimal(8, 2)   // 基礎分 = projectAmount / 100000
+  bonusCategory   String   @default("STANDARD") // STANDARD(10萬/點), RESALE(30萬/點)
+  baseScore       Decimal  @db.Decimal(8, 2)   // 基礎分 = projectAmount / divisor
   importanceAdj   Decimal  @db.Decimal(5, 2)   // 重要性加成 (0~20%)
   qualityAdj      Decimal  @db.Decimal(5, 2)   // 質量加減 (-10~+10%)
   efficiencyAdj   Decimal  @db.Decimal(5, 2)   // 時效加減 (-10~+10%)

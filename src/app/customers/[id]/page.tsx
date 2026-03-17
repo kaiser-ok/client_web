@@ -275,7 +275,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
             <ProjectsCard customerId={id} limit={5} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
-            <DealsCard customerId={id} limit={5} />
+            <DealsCard customerId={id} />
             <Card title="最近活動">
               <ActivityTimeline customerId={id} limit={5} />
             </Card>
@@ -389,6 +389,18 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
                 { value: 'DEALER', label: '經銷商' },
                 { value: 'END_USER', label: '最終用戶' },
                 { value: 'SUPPLIER', label: '供應商' },
+              ]}
+            />
+          </Form.Item>
+          <Form.Item name="tier" label="客戶等級">
+            <Select
+              allowClear
+              placeholder="選擇等級"
+              options={[
+                { value: 'VIP', label: 'VIP' },
+                { value: 'GOLD', label: '金質' },
+                { value: 'SILVER', label: '銀質' },
+                { value: 'REGULAR', label: '一般客戶' },
               ]}
             />
           </Form.Item>

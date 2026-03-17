@@ -24,6 +24,7 @@ model Partner {
   odooTags       String[]   // Odoo 訂單標籤（用於比對 Jira labels）
   slackChannelId String?    // Slack 頻道 ID
   source         String     @default("MANUAL") // MANUAL, ODOO
+  tier           String?    // 客戶等級: VIP, GOLD, SILVER, REGULAR
   notes          String?    @db.Text // 備註
   isActive       Boolean    @default(true)
   parentId       String?    // 母公司 ID
@@ -246,7 +247,8 @@ model ProjectBonusEval {
   dealAmount      Decimal  @db.Decimal(12, 2) // 成案金額（從 Deal 帶入）
   totalCost       Decimal  @db.Decimal(12, 2) @default(0) // 外部成本合計
   projectAmount   Decimal  @db.Decimal(12, 2) // 專案金額 = dealAmount - totalCost
-  baseScore       Decimal  @db.Decimal(8, 2)  // 基礎分 = projectAmount / 100000
+  bonusCategory   String   @default("STANDARD") // STANDARD(10萬/點), RESALE(30萬/點)
+  baseScore       Decimal  @db.Decimal(8, 2)  // 基礎分 = projectAmount / divisor
   importanceAdj   Decimal  @db.Decimal(5, 2) @default(0)  // 重要性加成 (0~20%)
   qualityAdj      Decimal  @db.Decimal(5, 2) @default(0)  // 質量加減 (-10~+10%)
   efficiencyAdj   Decimal  @db.Decimal(5, 2) @default(0)  // 時效加減 (-10~+10%)
@@ -263,6 +265,7 @@ model ProjectBonusEval {
 
   costs           ProjectCost[]
   members         ProjectBonusMember[]
+  poolAllocations CreditPoolAllocation[]
 
   @@index([year])
   @@index([status])
@@ -297,6 +300,38 @@ model ProjectBonusMember {
   @@unique([evalId, userId, yearOffset])
   @@index([userId])
   @@map("project_bonus_members")
+}
+
+// ============================================
+// 點數池（Credit Pool）
+// ============================================
+
+model CreditPool {
+  id           String   @id @default(cuid())
+  year         Int      @unique
+  totalPoints  Decimal  @db.Decimal(8, 2)
+  description  String?  @db.Text
+  createdBy    String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  allocations  CreditPoolAllocation[]
+  @@map("credit_pools")
+}
+
+model CreditPoolAllocation {
+  id          String           @id @default(cuid())
+  poolId      String
+  pool        CreditPool       @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  evalId      String
+  eval        ProjectBonusEval @relation(fields: [evalId], references: [id], onDelete: Cascade)
+  points      Decimal          @db.Decimal(8, 2)
+  reason      String           @db.Text
+  allocatedBy String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  @@index([poolId])
+  @@index([evalId])
+  @@map("credit_pool_allocations")
 }
 
 // ============================================
@@ -471,6 +506,10 @@ model LineChannel {
   projectId       String?                          // 關聯專案
   project         Project?      @relation(fields: [projectId], references: [id])
   isActive        Boolean       @default(true)
+  needsFollowUp   Boolean       @default(false)    // 是否需要追蹤
+  followUpNote    String?                          // 追蹤備註
+  followUpAt      DateTime?                        // 標記追蹤的時間
+  followUpBy      String?                          // 標記追蹤的人
   lastMessageAt   DateTime?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -478,11 +517,30 @@ model LineChannel {
   messages        LineMessage[]
   associations    LineChannelAssociation[]
   summaries       LineSummary[]
+  labels          LineChannelLabel[]
 
   @@index([partnerId])
   @@index([projectId])
   @@index([isActive])
+  @@index([needsFollowUp])
   @@map("line_channels")
+}
+
+model LineChannelLabel {
+  id          String      @id @default(cuid())
+  channelId   String
+  channel     LineChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  labelId     String      // 對應設定中的 label ID（如 follow_up, p1, p2）
+  source      String      @default("manual") // "manual" | "llm"
+  confidence  Float?      // LLM 信心度 0-1
+  appliedBy   String?     // email 或 "system"
+  appliedAt   DateTime    @default(now())
+  note        String?
+
+  @@unique([channelId, labelId])
+  @@index([channelId])
+  @@index([labelId])
+  @@map("line_channel_labels")
 }
 
 model LineChannelAssociation {

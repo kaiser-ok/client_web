@@ -12,6 +12,7 @@ import {
 import {
   COST_CATEGORIES, MEMBER_ROLES, DEFAULT_ALLOCATION, SCORE_ADJUSTMENTS,
   WARRANTY_SPREAD_TEMPLATES, WARRANTY_YEAR_RD_DEFAULT_PCT,
+  BONUS_CATEGORIES, BONUS_CATEGORY_DIVISOR,
 } from '@/constants/bonus'
 import type { ProjectCostItem, BonusMember, ProjectBonusEvalData } from '@/types/bonus'
 import { useUser } from '@/hooks/useUser'
@@ -48,6 +49,7 @@ export default function BonusEvalModal({
   const [scoreSpreadPcts, setScoreSpreadPcts] = useState<number[]>([100])
   const [activeYearTab, setActiveYearTab] = useState('0')
   const [costCollapseKeys, setCostCollapseKeys] = useState<string[]>([])
+  const [bonusCategory, setBonusCategory] = useState<string>('STANDARD')
 
   // Fetch eval data + users
   useEffect(() => {
@@ -89,6 +91,7 @@ export default function BonusEvalModal({
           })
         }
         setMembersByYear(grouped)
+        setBonusCategory(ev.bonusCategory || 'STANDARD')
         setImportanceAdj(Number(ev.importanceAdj))
         setQualityAdj(Number(ev.qualityAdj))
         setEfficiencyAdj(Number(ev.efficiencyAdj))
@@ -104,6 +107,7 @@ export default function BonusEvalModal({
         setCosts([])
         setCostCollapseKeys([])
         setMembersByYear({ 0: [] })
+        setBonusCategory('STANDARD')
         setImportanceAdj(0)
         setQualityAdj(0)
         setEfficiencyAdj(0)
@@ -123,7 +127,8 @@ export default function BonusEvalModal({
   // Computed scores
   const totalCost = useMemo(() => costs.reduce((s, c) => s + Number(c.amount || 0), 0), [costs])
   const projectAmount = useMemo(() => dealAmount - totalCost, [dealAmount, totalCost])
-  const baseScore = useMemo(() => projectAmount / 100000, [projectAmount])
+  const divisor = BONUS_CATEGORY_DIVISOR[bonusCategory] || 100000
+  const baseScore = useMemo(() => projectAmount / divisor, [projectAmount, divisor])
   const multiplier = useMemo(() => 1 + (importanceAdj + qualityAdj + efficiencyAdj) / 100, [importanceAdj, qualityAdj, efficiencyAdj])
   const totalScore = useMemo(() => baseScore * multiplier, [baseScore, multiplier])
 
@@ -325,6 +330,7 @@ export default function BonusEvalModal({
             yearOffset: m.yearOffset,
             contributionPct: m.contributionPct,
           })),
+          bonusCategory,
           importanceAdj,
           qualityAdj,
           efficiencyAdj,
@@ -551,7 +557,7 @@ export default function BonusEvalModal({
             </Col>
             <Col span={4}>
               <Statistic
-                title="基礎分"
+                title={`基礎分（${divisor === 100000 ? '10萬/點' : '30萬/點'}）`}
                 value={baseScore}
                 precision={2}
                 styles={{ content: { fontSize: 16 } }}
@@ -576,15 +582,42 @@ export default function BonusEvalModal({
               />
             </Col>
           </Row>
+          {evalData?.poolPoints != null && evalData.poolPoints > 0 && (
+            <Row gutter={16} style={{ marginTop: 8 }}>
+              <Col span={12}>
+                <Tag color="purple" style={{ fontSize: 13, padding: '2px 8px' }}>
+                  池點數：+{evalData.poolPoints.toFixed(2)}
+                </Tag>
+              </Col>
+              <Col span={12} style={{ textAlign: 'right' }}>
+                <Tag color="blue" style={{ fontSize: 13, padding: '2px 8px' }}>
+                  有效總分：{(totalScore + evalData.poolPoints).toFixed(2)}
+                </Tag>
+              </Col>
+            </Row>
+          )}
         </Card>
 
         <Row gutter={16}>
-          <Col span={8}>
+          <Col span={6}>
             <Form.Item label="評估年度" name="year">
               <InputNumber style={{ width: '100%' }} disabled={isReadOnly} />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col span={6}>
+            <Form.Item label="獎金類別">
+              <Select
+                value={bonusCategory}
+                onChange={setBonusCategory}
+                disabled={isReadOnly}
+                options={BONUS_CATEGORIES.map(c => ({
+                  value: c.value,
+                  label: `${c.label}（${c.description}）`,
+                }))}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={6}>
             <Form.Item label="成案金額">
               <InputNumber
                 style={{ width: '100%' }}
@@ -595,7 +628,7 @@ export default function BonusEvalModal({
               />
             </Form.Item>
           </Col>
-          <Col span={8}>
+          <Col span={6}>
             <Form.Item label="關聯訂單">
               <Input value={dealName || '-'} disabled />
             </Form.Item>
