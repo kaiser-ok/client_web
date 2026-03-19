@@ -135,17 +135,20 @@ export async function POST(
       bonusCategory = 'STANDARD',
       notes,
       status,
+      isDirectAllocation = false,
     } = body
 
-    // Validate adjustments
-    if (importanceAdj < 0 || importanceAdj > 20) {
-      return NextResponse.json({ error: '重要性加成需在 0~20% 之間' }, { status: 400 })
-    }
-    if (qualityAdj < -10 || qualityAdj > 10) {
-      return NextResponse.json({ error: '質量加減需在 -10~+10% 之間' }, { status: 400 })
-    }
-    if (efficiencyAdj < -10 || efficiencyAdj > 10) {
-      return NextResponse.json({ error: '時效加減需在 -10~+10% 之間' }, { status: 400 })
+    // Validate adjustments (skip for direct allocation)
+    if (!isDirectAllocation) {
+      if (importanceAdj < 0 || importanceAdj > 20) {
+        return NextResponse.json({ error: '重要性加成需在 0~20% 之間' }, { status: 400 })
+      }
+      if (qualityAdj < -10 || qualityAdj > 10) {
+        return NextResponse.json({ error: '質量加減需在 -10~+10% 之間' }, { status: 400 })
+      }
+      if (efficiencyAdj < -10 || efficiencyAdj > 10) {
+        return NextResponse.json({ error: '時效加減需在 -10~+10% 之間' }, { status: 400 })
+      }
     }
 
     // Validate warranty spread
@@ -176,13 +179,18 @@ export async function POST(
       }
     }
 
-    // Calculate scores
-    const totalCost = costs.reduce((sum: number, c: { amount: number }) => sum + Number(c.amount), 0)
-    const projectAmount = Number(dealAmount) - totalCost
-    const divisor = BONUS_CATEGORY_DIVISOR[bonusCategory] || 100000
-    const baseScore = projectAmount / divisor
-    const multiplier = 1 + (importanceAdj + qualityAdj + efficiencyAdj) / 100
-    const totalScore = baseScore * multiplier
+    // Calculate scores (direct allocation skips formula — all zeroes)
+    let totalCost = 0, projectAmount = 0, baseScore = 0, totalScore = 0
+    if (isDirectAllocation) {
+      // No formula calculation — points come entirely from credit pool
+    } else {
+      totalCost = costs.reduce((sum: number, c: { amount: number }) => sum + Number(c.amount), 0)
+      projectAmount = Number(dealAmount) - totalCost
+      const divisor = BONUS_CATEGORY_DIVISOR[bonusCategory] || 100000
+      baseScore = projectAmount / divisor
+      const multiplier = 1 + (importanceAdj + qualityAdj + efficiencyAdj) / 100
+      totalScore = baseScore * multiplier
+    }
 
     const userEmail = session.user?.email || 'system'
 
@@ -194,13 +202,14 @@ export async function POST(
     const evalData = {
       year: year || new Date().getFullYear(),
       bonusCategory,
-      dealAmount: new Decimal(dealAmount),
+      isDirectAllocation,
+      dealAmount: new Decimal(isDirectAllocation ? 0 : (dealAmount || 0)),
       totalCost: new Decimal(totalCost),
       projectAmount: new Decimal(projectAmount),
       baseScore: new Decimal(baseScore.toFixed(2)),
-      importanceAdj: new Decimal(importanceAdj),
-      qualityAdj: new Decimal(qualityAdj),
-      efficiencyAdj: new Decimal(efficiencyAdj),
+      importanceAdj: new Decimal(isDirectAllocation ? 0 : importanceAdj),
+      qualityAdj: new Decimal(isDirectAllocation ? 0 : qualityAdj),
+      efficiencyAdj: new Decimal(isDirectAllocation ? 0 : efficiencyAdj),
       totalScore: new Decimal(totalScore.toFixed(2)),
       warrantyYears,
       scoreSpreadPcts: scoreSpreadPcts || (warrantyYears === 1 ? [100] : null),

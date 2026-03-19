@@ -100,8 +100,7 @@ export function setupGraphSyncMiddleware(prisma: PrismaClient): void {
 
     // Enqueue sync job (fire-and-forget, never block PG operations)
     try {
-      const queue = getGraphSyncQueue()
-      await queue.add(
+      getGraphSyncQueue().add(
         `sync-${params.model}-${entityId}`,
         {
           entityType: params.model as GraphSyncJobData['entityType'],
@@ -112,10 +111,11 @@ export function setupGraphSyncMiddleware(prisma: PrismaClient): void {
           // Deduplicate rapid updates to same entity
           jobId: `${params.model}-${entityId}-${Date.now()}`,
         }
-      )
+      ).catch(err => {
+        console.error('[graph-sync] Failed to enqueue job:', err)
+      })
     } catch (err) {
-      // Never let queue failures block database operations
-      console.error('[graph-sync] Failed to enqueue job:', err)
+      console.error('[graph-sync] Failed to create queue:', err)
     }
 
     return result

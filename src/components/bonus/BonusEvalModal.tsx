@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Modal, Form, InputNumber, Input, Select, Button, Table, Space, Collapse,
-  Slider, Card, Statistic, Row, Col, Tag, Divider, message, Popconfirm, Tabs,
+  Slider, Card, Statistic, Row, Col, Tag, Divider, message, Popconfirm, Tabs, Alert, Switch, AutoComplete,
 } from 'antd'
 import {
   PlusOutlined, DeleteOutlined, DollarOutlined, PercentageOutlined,
@@ -50,6 +50,27 @@ export default function BonusEvalModal({
   const [activeYearTab, setActiveYearTab] = useState('0')
   const [costCollapseKeys, setCostCollapseKeys] = useState<string[]>([])
   const [bonusCategory, setBonusCategory] = useState<string>('STANDARD')
+  const [isDirectAllocation, setIsDirectAllocation] = useState(false)
+  // Credit pool allocation (direct mode)
+  const [poolInfo, setPoolInfo] = useState<{ totalPoints: number; remainingPoints: number } | null>(null)
+  const [allocPoints, setAllocPoints] = useState<number | null>(null)
+  const [allocReason, setAllocReason] = useState('')
+  const [allocating, setAllocating] = useState(false)
+
+  // Fetch pool info for a given year (used in direct allocation mode)
+  const fetchPoolInfo = useCallback(async (year: number) => {
+    try {
+      const res = await fetch(`/api/credit-pool?year=${year}`)
+      if (!res.ok) { setPoolInfo(null); return }
+      const data = await res.json()
+      if (data.pool) {
+        const allocated = (data.pool.allocations || []).reduce((s: number, a: { points: number }) => s + Number(a.points), 0)
+        setPoolInfo({ totalPoints: Number(data.pool.totalPoints), remainingPoints: Number(data.pool.totalPoints) - allocated })
+      } else {
+        setPoolInfo(null)
+      }
+    } catch { setPoolInfo(null) }
+  }, [])
 
   // Fetch eval data + users
   useEffect(() => {
@@ -92,6 +113,8 @@ export default function BonusEvalModal({
         }
         setMembersByYear(grouped)
         setBonusCategory(ev.bonusCategory || 'STANDARD')
+        const isDirect = ev.isDirectAllocation || false
+        setIsDirectAllocation(isDirect)
         setImportanceAdj(Number(ev.importanceAdj))
         setQualityAdj(Number(ev.qualityAdj))
         setEfficiencyAdj(Number(ev.efficiencyAdj))
@@ -101,9 +124,15 @@ export default function BonusEvalModal({
           year: ev.year,
           notes: ev.notes,
         })
+        if (isDirect) fetchPoolInfo(ev.year)
       } else {
         // New eval - set defaults
-        setDealAmount(initialDealAmount || (evalRes.project?.deal?.amount ? Number(evalRes.project.deal.amount) : 0))
+        const effectiveDealAmount = initialDealAmount || (evalRes.project?.deal?.amount ? Number(evalRes.project.deal.amount) : 0)
+        // Default to direct allocation when there's no deal amount
+        const defaultDirect = !effectiveDealAmount
+        setIsDirectAllocation(defaultDirect)
+        setPoolInfo(null)
+        setDealAmount(effectiveDealAmount)
         setCosts([])
         setCostCollapseKeys([])
         setMembersByYear({ 0: [] })
@@ -122,7 +151,15 @@ export default function BonusEvalModal({
     }).catch(() => {
       message.error('載入資料失敗')
     }).finally(() => setLoading(false))
-  }, [open, projectId, initialDealAmount, form])
+  }, [open, projectId, initialDealAmount, form, fetchPoolInfo])
+
+  // Fetch pool info when switching to direct allocation mode (new eval)
+  useEffect(() => {
+    if (isDirectAllocation && !evalData) {
+      const year = form.getFieldValue('year') || new Date().getFullYear()
+      fetchPoolInfo(year)
+    }
+  }, [isDirectAllocation, evalData, form, fetchPoolInfo])
 
   // Computed scores
   const totalCost = useMemo(() => costs.reduce((s, c) => s + Number(c.amount || 0), 0), [costs])
@@ -317,13 +354,15 @@ export default function BonusEvalModal({
     setSaving(true)
     try {
       const values = form.getFieldsValue()
+      const year = values.year || new Date().getFullYear()
       const res = await fetch(`/api/projects/${projectId}/bonus-eval`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          year: values.year,
-          dealAmount,
-          costs,
+          year,
+          isDirectAllocation,
+          dealAmount: isDirectAllocation ? 0 : dealAmount,
+          costs: isDirectAllocation ? [] : costs,
           members: allMembers.map(m => ({
             userId: m.userId,
             role: m.role,
@@ -345,7 +384,36 @@ export default function BonusEvalModal({
         message.error(data.error || '儲存失敗')
         return
       }
-      message.success('儲存成功')
+
+      // If direct allocation mode and points/reason filled, allocate immediately
+      if (isDirectAllocation && allocPoints && allocReason.trim() && data.eval?.id) {
+        const allocRes = await fetch('/api/credit-pool/allocations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ year, evalId: data.eval.id, points: allocPoints, reason: allocReason }),
+        })
+        const allocData = await allocRes.json()
+        if (!allocRes.ok) {
+          message.warning(`儲存成功，但點數分配失敗：${allocData.error || '未知錯誤'}`)
+        } else {
+          message.success(`儲存成功，已分配 ${allocPoints} 點`)
+          setAllocPoints(null)
+          setAllocReason('')
+        }
+        // Reload eval with updated pool allocations
+        const evalRes = await fetch(`/api/projects/${projectId}/bonus-eval`).then(r => r.json())
+        if (evalRes.eval) setEvalData(evalRes.eval)
+        await fetchPoolInfo(year)
+      } else {
+        message.success('儲存成功')
+        // Reload eval data to reflect latest state
+        if (isDirectAllocation) {
+          const evalRes = await fetch(`/api/projects/${projectId}/bonus-eval`).then(r => r.json())
+          if (evalRes.eval) setEvalData(evalRes.eval)
+          await fetchPoolInfo(year)
+        }
+      }
+
       if (submitStatus !== 'DRAFT') {
         onClose()
       }
@@ -378,6 +446,50 @@ export default function BonusEvalModal({
     }
   }
 
+  // Credit pool allocation handlers
+  const handleAllocate = async () => {
+    if (!evalData || !allocPoints || !allocReason.trim()) {
+      message.error('請填寫點數與原因')
+      return
+    }
+    setAllocating(true)
+    try {
+      const year = form.getFieldValue('year') || evalData.year
+      const res = await fetch('/api/credit-pool/allocations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ year, evalId: evalData.id, points: allocPoints, reason: allocReason }),
+      })
+      const data = await res.json()
+      if (!res.ok) { message.error(data.error || '分配失敗'); return }
+      message.success(`已分配 ${allocPoints} 點`)
+      setAllocPoints(null)
+      setAllocReason('')
+      // Reload eval data and pool info
+      const [evalRes] = await Promise.all([
+        fetch(`/api/projects/${projectId}/bonus-eval`).then(r => r.json()),
+        fetchPoolInfo(year),
+      ])
+      if (evalRes.eval) setEvalData(evalRes.eval)
+    } catch { message.error('分配失敗') } finally { setAllocating(false) }
+  }
+
+  const handleRevokeAllocation = async (allocationId: string) => {
+    setAllocating(true)
+    try {
+      const res = await fetch(`/api/credit-pool/allocations?id=${allocationId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) { message.error(data.error || '撤回失敗'); return }
+      message.success('已撤回分配')
+      const year = form.getFieldValue('year') || evalData?.year
+      const [evalRes] = await Promise.all([
+        fetch(`/api/projects/${projectId}/bonus-eval`).then(r => r.json()),
+        fetchPoolInfo(year),
+      ])
+      if (evalRes.eval) setEvalData(evalRes.eval)
+    } catch { message.error('撤回失敗') } finally { setAllocating(false) }
+  }
+
   // FINANCE can approve when dealAmount < 300000
   const canApprove = canApproveBase || (role === 'FINANCE' && dealAmount < 300000)
 
@@ -398,9 +510,15 @@ export default function BonusEvalModal({
                 合計 {totalPct.toFixed(1)}%
               </Tag>
             )}
-            <Tag color="purple">
-              年度積分：{yearScore.toFixed(2)} 分 ({scoreSpreadPcts[yearOffset] ?? 0}%)
-            </Tag>
+            {isDirectAllocation ? (
+              <Tag color="purple">
+                點數分配比例（{scoreSpreadPcts[yearOffset] ?? 0}% 攤分）
+              </Tag>
+            ) : (
+              <Tag color="purple">
+                年度積分：{yearScore.toFixed(2)} 分 ({scoreSpreadPcts[yearOffset] ?? 0}%)
+              </Tag>
+            )}
           </Space>
           {!isReadOnly && (
             <Space>
@@ -490,11 +608,19 @@ export default function BonusEvalModal({
                 ),
               },
               {
-                title: '個人專案分', width: 120,
+                title: isDirectAllocation ? '分配點數' : '個人專案分', width: 120,
                 render: (_: unknown, record: BonusMember) => (
-                  <span style={{ fontWeight: 'bold', color: '#722ed1' }}>
-                    {(yearScore * (record.contributionPct || 0) / 100).toFixed(2)}
-                  </span>
+                  isDirectAllocation ? (() => {
+                    const totalPool = evalData?.poolPoints || allocPoints || 0
+                    const pts = totalPool * (record.contributionPct || 0) / 100
+                    return pts > 0
+                      ? <b style={{ color: '#722ed1' }}>{pts.toFixed(2)} 點</b>
+                      : <span style={{ color: '#999' }}>—</span>
+                  })() : (
+                    <span style={{ fontWeight: 'bold', color: '#722ed1' }}>
+                      {(yearScore * (record.contributionPct || 0) / 100).toFixed(2)}
+                    </span>
+                  )
                 ),
               },
               ...(!isReadOnly ? [{
@@ -527,62 +653,125 @@ export default function BonusEvalModal({
       forceRender
     >
       <Form form={form} layout="vertical" disabled={loading}>
+        {/* Mode toggle for new evals */}
+        {!evalData && !isReadOnly && (
+          <Alert
+            style={{ marginBottom: 16 }}
+            type="info"
+            message={
+              <Space>
+                <span>分配模式：</span>
+                <Switch
+                  checked={isDirectAllocation}
+                  onChange={setIsDirectAllocation}
+                  checkedChildren="直接分配點數"
+                  unCheckedChildren="公式計算"
+                />
+                {isDirectAllocation && (
+                  <span style={{ color: '#595959', fontSize: 12 }}>
+                    不輸入金額，點數由 Credit Pool 管理員直接分配，不計入業績統計
+                  </span>
+                )}
+              </Space>
+            }
+          />
+        )}
+        {evalData?.isDirectAllocation && (
+          <Alert
+            style={{ marginBottom: 16 }}
+            type="warning"
+            message="直接分配模式：此專案不計入業績統計，點數由 Credit Pool 直接分配"
+            showIcon
+          />
+        )}
+
         {/* Score Summary */}
         <Card size="small" style={{ marginBottom: 16, background: '#fafafa' }}>
-          <Row gutter={16}>
-            <Col span={4}>
-              <Statistic
-                title="成案金額"
-                value={dealAmount}
-                prefix={<DollarOutlined />}
-                precision={0}
-                styles={{ content: { fontSize: 16 } }}
-              />
-            </Col>
-            <Col span={4}>
-              <Statistic
-                title="外部成本"
-                value={totalCost}
-                precision={0}
-                styles={{ content: { fontSize: 16, color: totalCost > 0 ? '#cf1322' : undefined } }}
-              />
-            </Col>
-            <Col span={4}>
-              <Statistic
-                title="專案金額"
-                value={projectAmount}
-                precision={0}
-                styles={{ content: { fontSize: 16, color: '#1890ff' } }}
-              />
-            </Col>
-            <Col span={4}>
-              <Statistic
-                title={`基礎分（${divisor === 100000 ? '10萬/點' : '30萬/點'}）`}
-                value={baseScore}
-                precision={2}
-                styles={{ content: { fontSize: 16 } }}
-              />
-            </Col>
-            <Col span={4}>
-              <Statistic
-                title="調整係數"
-                value={multiplier * 100}
-                suffix="%"
-                precision={0}
-                styles={{ content: { fontSize: 16, color: multiplier >= 1 ? '#3f8600' : '#cf1322' } }}
-              />
-            </Col>
-            <Col span={4}>
-              <Statistic
-                title="專案總分"
-                value={totalScore}
-                prefix={<TrophyOutlined />}
-                precision={2}
-                styles={{ content: { fontSize: 18, color: '#722ed1', fontWeight: 'bold' } }}
-              />
-            </Col>
-          </Row>
-          {evalData?.poolPoints != null && evalData.poolPoints > 0 && (
+          {isDirectAllocation ? (
+            <Row gutter={16}>
+              <Col span={8}>
+                <Statistic
+                  title="公式積分"
+                  value={0}
+                  prefix={<TrophyOutlined />}
+                  precision={2}
+                  styles={{ content: { fontSize: 16, color: '#999' } }}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="Credit Pool 點數"
+                  value={evalData?.poolPoints || 0}
+                  precision={2}
+                  styles={{ content: { fontSize: 16, color: '#722ed1' } }}
+                />
+              </Col>
+              <Col span={8}>
+                <Statistic
+                  title="有效總分"
+                  value={evalData?.poolPoints || 0}
+                  prefix={<TrophyOutlined />}
+                  precision={2}
+                  styles={{ content: { fontSize: 18, color: '#722ed1', fontWeight: 'bold' } }}
+                />
+              </Col>
+            </Row>
+          ) : (
+            <Row gutter={16}>
+              <Col span={4}>
+                <Statistic
+                  title="成案金額"
+                  value={dealAmount}
+                  prefix={<DollarOutlined />}
+                  precision={0}
+                  styles={{ content: { fontSize: 16 } }}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title="外部成本"
+                  value={totalCost}
+                  precision={0}
+                  styles={{ content: { fontSize: 16, color: totalCost > 0 ? '#cf1322' : undefined } }}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title="專案金額"
+                  value={projectAmount}
+                  precision={0}
+                  styles={{ content: { fontSize: 16, color: '#1890ff' } }}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title={`基礎分（${divisor === 100000 ? '10萬/點' : '30萬/點'}）`}
+                  value={baseScore}
+                  precision={2}
+                  styles={{ content: { fontSize: 16 } }}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title="調整係數"
+                  value={multiplier * 100}
+                  suffix="%"
+                  precision={0}
+                  styles={{ content: { fontSize: 16, color: multiplier >= 1 ? '#3f8600' : '#cf1322' } }}
+                />
+              </Col>
+              <Col span={4}>
+                <Statistic
+                  title="專案總分"
+                  value={totalScore}
+                  prefix={<TrophyOutlined />}
+                  precision={2}
+                  styles={{ content: { fontSize: 18, color: '#722ed1', fontWeight: 'bold' } }}
+                />
+              </Col>
+            </Row>
+          )}
+          {!isDirectAllocation && evalData?.poolPoints != null && evalData.poolPoints > 0 && (
             <Row gutter={16} style={{ marginTop: 8 }}>
               <Col span={12}>
                 <Tag color="purple" style={{ fontSize: 13, padding: '2px 8px' }}>
@@ -598,41 +787,134 @@ export default function BonusEvalModal({
           )}
         </Card>
 
+        {/* Credit Pool Allocation Panel */}
+        {isDirectAllocation && (
+          <Card
+            size="small"
+            title={<span style={{ color: '#722ed1' }}>Credit Pool 點數分配</span>}
+            style={{ marginBottom: 16 }}
+            extra={poolInfo ? (
+              <Space>
+                <Tag color="blue">池總點數：{poolInfo.totalPoints}</Tag>
+                <Tag color={poolInfo.remainingPoints > 0 ? 'green' : 'red'}>
+                  剩餘：{poolInfo.remainingPoints.toFixed(2)} 點
+                </Tag>
+              </Space>
+            ) : <Tag color="orange">尚無點數池（需先建立）</Tag>}
+          >
+            {/* Existing allocations */}
+            {(evalData?.poolAllocations || []).length > 0 && (
+              <Table
+                size="small"
+                pagination={false}
+                style={{ marginBottom: 12 }}
+                dataSource={evalData!.poolAllocations}
+                rowKey="id"
+                columns={[
+                  { title: '點數', dataIndex: 'points', width: 80, render: (v: number) => <b style={{ color: '#722ed1' }}>{Number(v).toFixed(2)}</b> },
+                  { title: '原因', dataIndex: 'reason' },
+                  { title: '分配人', dataIndex: 'allocatedBy', width: 120 },
+                  ...(role === 'ADMIN' ? [{
+                    title: '', width: 60,
+                    render: (_: unknown, row: { id: string }) => (
+                      <Popconfirm title="確定撤回此分配？" onConfirm={() => handleRevokeAllocation(row.id)}>
+                        <Button type="text" danger icon={<DeleteOutlined />} size="small" loading={allocating} />
+                      </Popconfirm>
+                    ),
+                  }] : []),
+                ]}
+              />
+            )}
+            {/* Input form */}
+            {role === 'ADMIN' && !isReadOnly && (
+              <Space.Compact style={{ width: '100%' }}>
+                <InputNumber
+                  placeholder="點數"
+                  value={allocPoints}
+                  onChange={setAllocPoints}
+                  min={0.01}
+                  precision={2}
+                  style={{ width: 120 }}
+                />
+                <AutoComplete
+                  placeholder="原因（必填，可手動輸入）"
+                  value={allocReason}
+                  onChange={setAllocReason}
+                  style={{ flex: 1 }}
+                  options={[
+                    { value: '內部專案' },
+                    { value: '行銷業務需求' },
+                  ]}
+                  filterOption={(input, option) =>
+                    (option?.value as string).includes(input)
+                  }
+                />
+                {evalData ? (
+                  <Button
+                    type="primary"
+                    loading={allocating}
+                    onClick={handleAllocate}
+                    disabled={!allocPoints || !allocReason.trim()}
+                  >
+                    立即分配
+                  </Button>
+                ) : (
+                  <Button type="default" disabled>
+                    儲存時分配
+                  </Button>
+                )}
+              </Space.Compact>
+            )}
+            {!evalData && allocPoints && allocReason.trim() && (
+              <div style={{ marginTop: 6, color: '#595959', fontSize: 12 }}>
+                ✓ 點擊「儲存草稿」後將自動分配 {allocPoints} 點
+              </div>
+            )}
+            {role !== 'ADMIN' && (
+              <div style={{ color: '#999', fontSize: 12 }}>僅管理員可分配點數</div>
+            )}
+          </Card>
+        )}
+
         <Row gutter={16}>
           <Col span={6}>
             <Form.Item label="評估年度" name="year">
               <InputNumber style={{ width: '100%' }} disabled={isReadOnly} />
             </Form.Item>
           </Col>
-          <Col span={6}>
-            <Form.Item label="獎金類別">
-              <Select
-                value={bonusCategory}
-                onChange={setBonusCategory}
-                disabled={isReadOnly}
-                options={BONUS_CATEGORIES.map(c => ({
-                  value: c.value,
-                  label: `${c.label}（${c.description}）`,
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={6}>
-            <Form.Item label="成案金額">
-              <InputNumber
-                style={{ width: '100%' }}
-                value={dealAmount}
-                onChange={v => setDealAmount(v || 0)}
-                formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                disabled={isReadOnly}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={6}>
-            <Form.Item label="關聯訂單">
-              <Input value={dealName || '-'} disabled />
-            </Form.Item>
-          </Col>
+          {!isDirectAllocation && (
+            <>
+              <Col span={6}>
+                <Form.Item label="獎金類別">
+                  <Select
+                    value={bonusCategory}
+                    onChange={setBonusCategory}
+                    disabled={isReadOnly}
+                    options={BONUS_CATEGORIES.map(c => ({
+                      value: c.value,
+                      label: `${c.label}（${c.description}）`,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={6}>
+                <Form.Item label="成案金額">
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    value={dealAmount}
+                    onChange={v => setDealAmount(v || 0)}
+                    formatter={v => `${v}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    disabled={isReadOnly}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={6}>
+                <Form.Item label="關聯訂單">
+                  <Input value={dealName || '-'} disabled />
+                </Form.Item>
+              </Col>
+            </>
+          )}
         </Row>
 
         {/* Warranty Score Spread */}
@@ -695,49 +977,54 @@ export default function BonusEvalModal({
           </div>
         )}
 
-        {/* Score Adjustments */}
-        <Divider style={{ margin: '12px 0 8px' }}>評分調整</Divider>
-        <Row gutter={24}>
-          <Col span={8}>
-            <Form.Item label={`${SCORE_ADJUSTMENTS.importance.label} (${importanceAdj >= 0 ? '+' : ''}${importanceAdj}%)`}>
-              <Slider
-                min={SCORE_ADJUSTMENTS.importance.min}
-                max={SCORE_ADJUSTMENTS.importance.max}
-                value={importanceAdj}
-                onChange={setImportanceAdj}
-                marks={{ 0: '0%', 10: '10%', 20: '20%' }}
-                disabled={isReadOnly}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item label={`${SCORE_ADJUSTMENTS.quality.label} (${qualityAdj >= 0 ? '+' : ''}${qualityAdj}%)`}>
-              <Slider
-                min={SCORE_ADJUSTMENTS.quality.min}
-                max={SCORE_ADJUSTMENTS.quality.max}
-                value={qualityAdj}
-                onChange={setQualityAdj}
-                marks={{ '-10': '-10%', 0: '0%', 10: '10%' }}
-                disabled={isReadOnly}
-              />
-            </Form.Item>
-          </Col>
-          <Col span={8}>
-            <Form.Item label={`${SCORE_ADJUSTMENTS.efficiency.label} (${efficiencyAdj >= 0 ? '+' : ''}${efficiencyAdj}%)`}>
-              <Slider
-                min={SCORE_ADJUSTMENTS.efficiency.min}
-                max={SCORE_ADJUSTMENTS.efficiency.max}
-                value={efficiencyAdj}
-                onChange={setEfficiencyAdj}
-                marks={{ '-10': '-10%', 0: '0%', 10: '10%' }}
-                disabled={isReadOnly}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+        {/* Score Adjustments — hidden for direct allocation */}
+        {!isDirectAllocation && (
+          <>
+            <Divider style={{ margin: '12px 0 8px' }}>評分調整</Divider>
+            <Row gutter={24}>
+              <Col span={8}>
+                <Form.Item label={`${SCORE_ADJUSTMENTS.importance.label} (${importanceAdj >= 0 ? '+' : ''}${importanceAdj}%)`}>
+                  <Slider
+                    min={SCORE_ADJUSTMENTS.importance.min}
+                    max={SCORE_ADJUSTMENTS.importance.max}
+                    value={importanceAdj}
+                    onChange={setImportanceAdj}
+                    marks={{ 0: '0%', 10: '10%', 20: '20%' }}
+                    disabled={isReadOnly}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label={`${SCORE_ADJUSTMENTS.quality.label} (${qualityAdj >= 0 ? '+' : ''}${qualityAdj}%)`}>
+                  <Slider
+                    min={SCORE_ADJUSTMENTS.quality.min}
+                    max={SCORE_ADJUSTMENTS.quality.max}
+                    value={qualityAdj}
+                    onChange={setQualityAdj}
+                    marks={{ '-10': '-10%', 0: '0%', 10: '10%' }}
+                    disabled={isReadOnly}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label={`${SCORE_ADJUSTMENTS.efficiency.label} (${efficiencyAdj >= 0 ? '+' : ''}${efficiencyAdj}%)`}>
+                  <Slider
+                    min={SCORE_ADJUSTMENTS.efficiency.min}
+                    max={SCORE_ADJUSTMENTS.efficiency.max}
+                    value={efficiencyAdj}
+                    onChange={setEfficiencyAdj}
+                    marks={{ '-10': '-10%', 0: '0%', 10: '10%' }}
+                    disabled={isReadOnly}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          </>
+        )}
 
-        {/* External Costs */}
-        <Divider style={{ margin: '12px 0 8px' }}>外部成本</Divider>
+        {/* External Costs — hidden for direct allocation */}
+        {!isDirectAllocation && (
+        <><Divider style={{ margin: '12px 0 8px' }}>外部成本</Divider>
         <Collapse
           size="small"
           activeKey={costCollapseKeys}
@@ -805,7 +1092,7 @@ export default function BonusEvalModal({
               <div style={{ textAlign: 'center', padding: '8px 0', color: '#999' }}>尚無外部成本</div>
             ),
           }]}
-        />
+        /></>)}
 
         {/* Members - Per Year Tabs */}
         <Divider style={{ margin: '12px 0 8px' }}>成員分配</Divider>

@@ -22,6 +22,7 @@ export interface ProjectBonusEvalData {
   projectName?: string
   partnerName?: string
   dealName?: string
+  isDirectAllocation?: boolean
   dealAmount: number
   year: number
   totalCost: number

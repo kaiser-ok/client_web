@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import {
   Card,
   Table,
@@ -159,7 +159,18 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
     '/api/customers?role=END_USER&pageSize=500',
     fetcher
   )
-  const endUserOptions = endUsersData?.customers?.map(c => ({ value: c.id, label: c.name })) || []
+  const { data: selfData } = useSWR<{ customer: { id: string; name: string } }>(
+    `/api/customers/${customerId}`,
+    fetcher
+  )
+  const endUserOptions = useMemo(() => {
+    const opts = endUsersData?.customers?.map(c => ({ value: c.id, label: c.name })) || []
+    // 若當前客戶不在 END_USER 列表中，仍允許選擇自己
+    if (selfData?.customer && !opts.find(o => o.value === customerId)) {
+      opts.unshift({ value: customerId, label: selfData.customer.name })
+    }
+    return opts
+  }, [endUsersData, selfData, customerId])
 
   // 計算兩個字串的共同前綴長度
   const commonPrefixLength = (a: string, b: string): number => {
@@ -502,7 +513,7 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
       width: 80,
       render: (_, record) => (
         <Space>
-          {canViewBonus && record.dealId && (
+          {canViewBonus && (
             <Tooltip title={record.bonusEvalStatus ? `獎金評估: ${record.bonusEvalStatus}` : '獎金評估'}>
               <Button
                 type="text"

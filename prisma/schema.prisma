@@ -255,6 +255,7 @@ model ProjectBonusEval {
   totalScore      Decimal  @db.Decimal(8, 2)  // 總分 = baseScore × (100% + adj%)
   warrantyYears   Int      @default(1)        // 保固年數（1=不攤分）
   scoreSpreadPcts Json?                       // 攤分比例 JSON，例如 [70, 15, 15]，加總需 = 100
+  isDirectAllocation Boolean @default(false)  // 直接分配點數（不走公式，不計入業績）
   status          String   @default("DRAFT")  // DRAFT, EVALUATED, APPROVED, PAID
   evaluatedBy     String?  // 評估人
   approvedBy      String?  // 核准人（總經理）
