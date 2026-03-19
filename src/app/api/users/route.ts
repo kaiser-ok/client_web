@@ -23,6 +23,8 @@ export async function GET(request: NextRequest) {
         name: true,
         image: true,
         role: true,
+        department: true,
+        isManager: true,
         active: true,
         createdAt: true,
         updatedAt: true,

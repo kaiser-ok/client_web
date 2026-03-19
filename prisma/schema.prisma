@@ -154,8 +154,10 @@ model User {
   email     String   @unique
   name      String?
   image     String?
-  role      String   @default("SUPPORT") // 預設角色為服務支援
-  active    Boolean  @default(true)
+  role       String   @default("SUPPORT") // 預設角色為服務支援
+  department String?                      // 部門名稱
+  isManager  Boolean  @default(false)     // 部門主管
+  active     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

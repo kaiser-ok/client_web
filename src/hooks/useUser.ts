@@ -12,6 +12,9 @@ export function useUser() {
   const user = session?.user
   const realRole = (user?.role as UserRole) || 'SUPPORT'
   const isAdmin = realRole === 'ADMIN'
+  // isManager is false when impersonating (test as other role)
+  const isManager = (user?.isManager ?? false)
+  const department = user?.department
 
   // Load impersonated role from localStorage on mount
   useEffect(() => {
@@ -25,6 +28,7 @@ export function useUser() {
 
   // The effective role (impersonated if admin, otherwise real)
   const role = (isAdmin && impersonatedRole) ? impersonatedRole : realRole
+  const isImpersonating = isAdmin && impersonatedRole !== null
 
   // Function to set impersonated role (admin only)
   const setRole = useCallback((newRole: UserRole | null) => {
@@ -49,12 +53,16 @@ export function useUser() {
     role,
     realRole,
     isAdmin,
-    isImpersonating: isAdmin && impersonatedRole !== null,
+    isManager,
+    department,
+    isImpersonating,
     impersonatedRole,
     setRole,
     clearImpersonation,
     isLoading: status === 'loading',
     isAuthenticated: status === 'authenticated',
-    can: (permission: keyof typeof PERMISSIONS) => hasPermission(role, permission),
+    // Manager permissions are suppressed while impersonating (for accurate preview)
+    can: (permission: keyof typeof PERMISSIONS) =>
+      hasPermission(role, permission, isManager && !isImpersonating),
   }
 }

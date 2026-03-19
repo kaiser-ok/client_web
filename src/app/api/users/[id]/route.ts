@@ -9,6 +9,8 @@ const USER_SELECT = {
   name: true,
   image: true,
   role: true,
+  department: true,
+  isManager: true,
   active: true,
   createdAt: true,
   updatedAt: true,
@@ -30,23 +32,36 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { role } = body
+    const { role, department, isManager } = body
 
-    const validRoles = ['ADMIN', 'SALES', 'FINANCE', 'SUPPORT', 'RD']
-    if (!validRoles.includes(role)) {
-      return NextResponse.json({ error: '無效的角色' }, { status: 400 })
+    const updateData: Record<string, unknown> = {}
+
+    if (role !== undefined) {
+      const validRoles = ['ADMIN', 'SALES', 'FINANCE', 'SUPPORT', 'RD']
+      if (!validRoles.includes(role)) {
+        return NextResponse.json({ error: '無效的角色' }, { status: 400 })
+      }
+      if (id === session.user?.id && role !== 'ADMIN') {
+        return NextResponse.json({ error: '無法移除自己的管理員權限' }, { status: 400 })
+      }
+      updateData.role = role
     }
 
-    if (id === session.user?.id && role !== 'ADMIN') {
-      return NextResponse.json(
-        { error: '無法移除自己的管理員權限' },
-        { status: 400 }
-      )
+    if (department !== undefined) {
+      updateData.department = department || null
+    }
+
+    if (isManager !== undefined) {
+      updateData.isManager = Boolean(isManager)
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: '無更新資料' }, { status: 400 })
     }
 
     const user = await prisma.user.update({
       where: { id },
-      data: { role },
+      data: updateData,
       select: USER_SELECT,
     })
 

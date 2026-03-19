@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     })
 
     // Check if user can view deal amounts
-    const canViewAmount = hasPermission(session.user?.role, 'VIEW_DEAL_AMOUNT')
+    const canViewAmount = hasPermission(session.user?.role, 'VIEW_DEAL_AMOUNT', (session.user as { isManager?: boolean })?.isManager)
 
     // Convert Decimal to number and filter sensitive fields
     const dealsWithNumber = deals.map(deal => ({

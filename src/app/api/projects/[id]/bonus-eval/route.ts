@@ -17,7 +17,8 @@ export async function GET(
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    const userRole = (session.user as { role?: string })?.role
+    const userRole = (session.user as { role?: string; isManager?: boolean })?.role
+    const isManagerSession = (session.user as { isManager?: boolean })?.isManager ?? false
     if (!hasPermission(userRole, 'VIEW_BONUS')) {
       return NextResponse.json({ error: '無權限' }, { status: 403 })
     }
@@ -115,8 +116,9 @@ export async function POST(
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    const userRole = (session.user as { role?: string })?.role
-    if (!hasPermission(userRole, 'EDIT_BONUS')) {
+    const userRole = (session.user as { role?: string; isManager?: boolean })?.role
+    const isManagerSession = (session.user as { isManager?: boolean })?.isManager ?? false
+    if (!hasPermission(userRole, 'EDIT_BONUS', isManagerSession)) {
       return NextResponse.json({ error: '無權限' }, { status: 403 })
     }
 
@@ -221,7 +223,7 @@ export async function POST(
 
     if (existing) {
       // Cannot edit approved evals unless ADMIN or FINANCE
-      if (['APPROVED'].includes(existing.status) && !hasPermission(userRole, 'EDIT_BONUS')) {
+      if (['APPROVED'].includes(existing.status) && !hasPermission(userRole, 'EDIT_BONUS', isManagerSession)) {
         return NextResponse.json({ error: '已核准的評估僅財務及管理員可修改' }, { status: 400 })
       }
 
@@ -328,7 +330,8 @@ export async function PUT(
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    const userRole = (session.user as { role?: string })?.role
+    const userRole = (session.user as { role?: string; isManager?: boolean })?.role
+    const isManagerSession = (session.user as { isManager?: boolean })?.isManager ?? false
     const { id: projectId } = await params
     const body = await request.json()
     const { action } = body // 'approve' | 'reject' | 'revert'
@@ -336,7 +339,7 @@ export async function PUT(
     // 'revert' (APPROVED → DRAFT) requires EDIT_BONUS (ADMIN + FINANCE)
     // 'approve' / 'reject' requires APPROVE_BONUS (ADMIN) or FINANCE when dealAmount < 300000
     if (action === 'revert') {
-      if (!hasPermission(userRole, 'EDIT_BONUS')) {
+      if (!hasPermission(userRole, 'EDIT_BONUS', isManagerSession)) {
         return NextResponse.json({ error: '無權限退回' }, { status: 403 })
       }
     } else if (!hasPermission(userRole, 'APPROVE_BONUS')) {

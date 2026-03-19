@@ -1,8 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Table, Select, Card, App, Tag, Avatar, Space, Typography, Button, Popconfirm } from 'antd'
-import { UserOutlined, StopOutlined, CheckCircleOutlined, DeleteOutlined } from '@ant-design/icons'
+import {
+  Table, Select, Card, App, Tag, Avatar, Space, Typography,
+  Button, Popconfirm, Switch, Input, Tooltip,
+} from 'antd'
+import {
+  UserOutlined, StopOutlined, CheckCircleOutlined, DeleteOutlined,
+  CrownOutlined,
+} from '@ant-design/icons'
 import { useUser } from '@/hooks/useUser'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -16,6 +22,8 @@ interface User {
   name: string | null
   image: string | null
   role: string
+  department: string | null
+  isManager: boolean
   active: boolean
   createdAt: string
   updatedAt: string
@@ -36,6 +44,9 @@ export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [updating, setUpdating] = useState<string | null>(null)
+  // inline dept editing
+  const [editingDept, setEditingDept] = useState<string | null>(null)
+  const [deptValue, setDeptValue] = useState('')
 
   useEffect(() => {
     if (!userLoading && isAuthenticated && role !== 'ADMIN') {
@@ -63,46 +74,53 @@ export default function AdminUsersPage() {
     }
   }
 
-  const handleRoleChange = async (uid: string, newRole: string) => {
+  const updateUser = async (uid: string, patch: Record<string, unknown>) => {
     setUpdating(uid)
     try {
       const res = await fetch(`/api/users/${uid}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ role: newRole }),
+        body: JSON.stringify(patch),
       })
-
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || '更新失敗')
       }
-
       const updatedUser = await res.json()
-      setUsers(users.map(u => u.id === uid ? updatedUser : u))
-      message.success('角色已更新')
+      setUsers(prev => prev.map(u => u.id === uid ? updatedUser : u))
+      return true
     } catch (error) {
       message.error(error instanceof Error ? error.message : '更新失敗')
+      return false
     } finally {
       setUpdating(null)
+    }
+  }
+
+  const handleRoleChange = (uid: string, newRole: string) => {
+    updateUser(uid, { role: newRole }).then(ok => ok && message.success('角色已更新'))
+  }
+
+  const handleManagerToggle = (uid: string, val: boolean) => {
+    updateUser(uid, { isManager: val }).then(ok => ok && message.success(val ? '已設為部門主管' : '已取消主管身份'))
+  }
+
+  const handleDeptSave = async (uid: string) => {
+    const ok = await updateUser(uid, { department: deptValue.trim() })
+    if (ok) {
+      message.success('部門已更新')
+      setEditingDept(null)
     }
   }
 
   const handleToggleActive = async (uid: string) => {
     setUpdating(uid)
     try {
-      const res = await fetch(`/api/users/${uid}`, {
-        method: 'PATCH',
-        credentials: 'include',
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || '操作失敗')
-      }
-
+      const res = await fetch(`/api/users/${uid}`, { method: 'PATCH', credentials: 'include' })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || '操作失敗') }
       const updatedUser = await res.json()
-      setUsers(users.map(u => u.id === uid ? updatedUser : u))
+      setUsers(prev => prev.map(u => u.id === uid ? updatedUser : u))
       message.success(updatedUser.active ? '已啟用' : '已停用')
     } catch (error) {
       message.error(error instanceof Error ? error.message : '操作失敗')
@@ -114,17 +132,9 @@ export default function AdminUsersPage() {
   const handleDelete = async (uid: string) => {
     setUpdating(uid)
     try {
-      const res = await fetch(`/api/users/${uid}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-
-      if (!res.ok) {
-        const data = await res.json()
-        throw new Error(data.error || '刪除失敗')
-      }
-
-      setUsers(users.filter(u => u.id !== uid))
+      const res = await fetch(`/api/users/${uid}`, { method: 'DELETE', credentials: 'include' })
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || '刪除失敗') }
+      setUsers(prev => prev.filter(u => u.id !== uid))
       message.success('使用者已刪除')
     } catch (error) {
       message.error(error instanceof Error ? error.message : '刪除失敗')
@@ -135,11 +145,7 @@ export default function AdminUsersPage() {
 
   const getRoleTag = (r: string) => {
     const option = ROLE_OPTIONS.find(o => o.value === r)
-    return option ? (
-      <Tag color={option.color}>{option.label}</Tag>
-    ) : (
-      <Tag>{r}</Tag>
-    )
+    return option ? <Tag color={option.color}>{option.label}</Tag> : <Tag>{r}</Tag>
   }
 
   const columns: ColumnsType<User> = [
@@ -150,48 +156,107 @@ export default function AdminUsersPage() {
         <Space>
           <Avatar src={record.image} icon={<UserOutlined />} style={!record.active ? { opacity: 0.4 } : undefined} />
           <div>
-            <div style={!record.active ? { color: '#999' } : undefined}>
-              {record.name || '未設定'}
-              {!record.active && <Tag color="default" style={{ marginLeft: 8 }}>已停用</Tag>}
-            </div>
+            <Space size={4}>
+              <span style={!record.active ? { color: '#999' } : undefined}>
+                {record.name || '未設定'}
+              </span>
+              {record.isManager && (
+                <Tooltip title="部門主管">
+                  <CrownOutlined style={{ color: '#faad14' }} />
+                </Tooltip>
+              )}
+              {!record.active && <Tag color="default">已停用</Tag>}
+            </Space>
             <div style={{ fontSize: 12, color: '#999' }}>{record.email}</div>
           </div>
         </Space>
       ),
     },
     {
-      title: '目前角色',
-      dataIndex: 'role',
-      key: 'currentRole',
-      render: (r: string) => getRoleTag(r),
+      title: '部門',
+      key: 'department',
+      width: 160,
+      render: (_, record) => {
+        const isSelf = record.id === user?.id
+        if (editingDept === record.id) {
+          return (
+            <Space.Compact size="small">
+              <Input
+                value={deptValue}
+                onChange={e => setDeptValue(e.target.value)}
+                onPressEnter={() => handleDeptSave(record.id)}
+                placeholder="部門名稱"
+                style={{ width: 100 }}
+                autoFocus
+              />
+              <Button size="small" type="primary" onClick={() => handleDeptSave(record.id)} loading={updating === record.id}>確定</Button>
+              <Button size="small" onClick={() => setEditingDept(null)}>取消</Button>
+            </Space.Compact>
+          )
+        }
+        return (
+          <span
+            style={{ cursor: isSelf ? 'default' : 'pointer', color: record.department ? undefined : '#bbb' }}
+            onClick={() => {
+              if (isSelf) return
+              setEditingDept(record.id)
+              setDeptValue(record.department || '')
+            }}
+          >
+            {record.department || (isSelf ? '—' : '點擊設定')}
+          </span>
+        )
+      },
     },
     {
-      title: '變更角色',
-      key: 'changeRole',
+      title: '角色',
+      key: 'role',
+      width: 160,
       render: (_, record) => (
         <Select
           value={record.role}
-          onChange={(value) => handleRoleChange(record.id, value)}
+          onChange={value => handleRoleChange(record.id, value)}
           loading={updating === record.id}
           disabled={updating !== null || !record.active}
-          style={{ width: 140 }}
-          options={ROLE_OPTIONS.map(r => ({
-            value: r.value,
-            label: r.label,
-          }))}
+          style={{ width: 130 }}
+          options={ROLE_OPTIONS.map(r => ({ value: r.value, label: r.label }))}
         />
       ),
+    },
+    {
+      title: (
+        <Tooltip title="主管可額外擁有：編輯獎金、管理客戶、查看業績金額、編輯專案">
+          <Space size={4}>部門主管 <span style={{ color: '#faad14' }}>ⓘ</span></Space>
+        </Tooltip>
+      ),
+      key: 'isManager',
+      width: 110,
+      align: 'center',
+      render: (_, record) => {
+        const isSelf = record.id === user?.id
+        return (
+          <Switch
+            checked={record.isManager}
+            onChange={val => handleManagerToggle(record.id, val)}
+            disabled={updating !== null || !record.active || isSelf}
+            checkedChildren={<CrownOutlined />}
+            unCheckedChildren="—"
+            size="small"
+          />
+        )
+      },
     },
     {
       title: '建立時間',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      width: 110,
       render: (date: string) => new Date(date).toLocaleDateString('zh-TW'),
     },
     {
       title: '操作',
       key: 'actions',
-      width: 160,
+      width: 150,
       render: (_, record) => {
         const isSelf = record.id === user?.id
         if (isSelf) return <span style={{ color: '#999', fontSize: 12 }}>目前登入</span>
@@ -205,8 +270,7 @@ export default function AdminUsersPage() {
               cancelText="取消"
             >
               <Button
-                type="text"
-                size="small"
+                type="text" size="small"
                 icon={record.active ? <StopOutlined /> : <CheckCircleOutlined />}
                 loading={updating === record.id}
                 danger={record.active}
@@ -219,17 +283,10 @@ export default function AdminUsersPage() {
               title="確定要刪除此使用者？"
               description="刪除後將無法恢復"
               onConfirm={() => handleDelete(record.id)}
-              okText="確定"
-              cancelText="取消"
+              okText="確定" cancelText="取消"
               okButtonProps={{ danger: true }}
             >
-              <Button
-                type="text"
-                size="small"
-                danger
-                icon={<DeleteOutlined />}
-                loading={updating === record.id}
-              >
+              <Button type="text" size="small" danger icon={<DeleteOutlined />} loading={updating === record.id}>
                 刪除
               </Button>
             </Popconfirm>
@@ -239,9 +296,7 @@ export default function AdminUsersPage() {
     },
   ]
 
-  if (userLoading || role !== 'ADMIN') {
-    return null
-  }
+  if (userLoading || role !== 'ADMIN') return null
 
   return (
     <AppLayout>

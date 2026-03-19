@@ -115,6 +115,8 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           session.user.id = dbUser.id
           session.user.role = dbUser.role
+          session.user.isManager = dbUser.isManager
+          session.user.department = dbUser.department ?? undefined
         }
       }
       return session
@@ -137,6 +139,8 @@ declare module 'next-auth' {
       name?: string | null
       image?: string | null
       role: string
+      isManager: boolean
+      department?: string
     }
   }
 }

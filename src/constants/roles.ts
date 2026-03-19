@@ -57,9 +57,23 @@ export const PERMISSIONS = {
   APPROVE_BONUS: ['ADMIN'],
 } as const
 
-// 檢查使用者是否有權限
-export function hasPermission(userRole: string | undefined, permission: keyof typeof PERMISSIONS): boolean {
+// 部門主管額外可獲得的權限（在原角色之上疊加）
+export const MANAGER_EXTRA_PERMISSIONS: Array<keyof typeof PERMISSIONS> = [
+  'EDIT_BONUS',
+  'MANAGE_CUSTOMER',
+  'VIEW_DEAL_AMOUNT',
+  'EDIT_PROJECT',
+]
+
+// 檢查使用者是否有權限（isManager 為部門主管旗標）
+export function hasPermission(
+  userRole: string | undefined,
+  permission: keyof typeof PERMISSIONS,
+  isManager?: boolean
+): boolean {
   if (!userRole) return false
+  // 部門主管在額外權限清單內直接通過
+  if (isManager && MANAGER_EXTRA_PERMISSIONS.includes(permission)) return true
   const allowedRoles = PERMISSIONS[permission] as readonly string[]
   return allowedRoles.includes(userRole)
 }

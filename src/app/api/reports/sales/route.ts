@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 檢查權限
-    if (!hasPermission(session.user?.role, 'VIEW_DEAL_AMOUNT')) {
+    if (!hasPermission(session.user?.role, 'VIEW_DEAL_AMOUNT', (session.user as { isManager?: boolean })?.isManager)) {
       return NextResponse.json({ error: '權限不足' }, { status: 403 })
     }
 
