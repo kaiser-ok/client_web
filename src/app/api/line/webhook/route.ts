@@ -10,7 +10,7 @@ import {
   LineWebhookEvent,
 } from '@/lib/line'
 import { lineEvents } from '@/lib/line-events'
-import { normalizeLineMessage, enqueueMessage } from '@/lib/message-pipeline'
+import { normalizeLineMessage, processMessage } from '@/lib/message-pipeline'
 
 /**
  * LINE Webhook 端點
@@ -163,10 +163,14 @@ async function handleMessageEvent(
     },
   })
 
-  // 更新頻道最後訊息時間
+  // 更新頻道最後訊息時間，若已解決則重新開啟
   await prisma.lineChannel.update({
     where: { id: channelDbId },
     data: { lastMessageAt: new Date(event.timestamp) },
+  })
+  await prisma.lineChannel.updateMany({
+    where: { id: channelDbId, status: 'RESOLVED' },
+    data: { status: 'OPEN' },
   })
 
   // 送入 Unified Message Pipeline（非同步，不影響主流程）
@@ -177,7 +181,7 @@ async function handleMessageEvent(
         prisma.lineChannel.findUnique({ where: { id: channelDbId } }),
       ])
       const message = normalizeLineMessage(event, user, channel)
-      await enqueueMessage(message)
+      await processMessage(message)
     })().catch(err => {
       console.error('Failed to enqueue LINE message:', err)
     })

@@ -150,6 +150,7 @@ export async function GET(
         projectId: channel.projectId,
         projectName: channel.project?.name || null,
         isActive: channel.isActive,
+        status: channel.status,
         lastMessageAt: channel.lastMessageAt,
         createdAt: channel.createdAt,
         labels: channel.labels || [],
@@ -195,7 +196,12 @@ export async function PUT(
     const body = await request.json()
     // Support both partnerId and customerId for backward compatibility
     const partnerId = body.partnerId || body.customerId
-    const { projectId, channelName, isActive, needsFollowUp, followUpNote } = body
+    const { projectId, channelName, isActive, needsFollowUp, followUpNote, status } = body
+
+    const VALID_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED']
+    if (status !== undefined && !VALID_STATUSES.includes(status)) {
+      return NextResponse.json({ error: '無效的狀態值' }, { status: 400 })
+    }
 
     // 確認頻道存在
     const existing = await prisma.lineChannel.findUnique({
@@ -232,6 +238,11 @@ export async function PUT(
       projectId: projectId !== undefined ? (projectId || null) : existing.projectId,
       channelName: channelName !== undefined ? channelName : existing.channelName,
       isActive: isActive !== undefined ? isActive : existing.isActive,
+    }
+
+    // 頻道狀態
+    if (status !== undefined) {
+      updateData.status = status
     }
 
     // 追蹤狀態
@@ -281,6 +292,7 @@ export async function PUT(
         projectId: updated.projectId,
         projectName: updated.project?.name || null,
         isActive: updated.isActive,
+        status: updated.status,
         needsFollowUp: updated.needsFollowUp,
         followUpNote: updated.followUpNote,
         followUpAt: updated.followUpAt,

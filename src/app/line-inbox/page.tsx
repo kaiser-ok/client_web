@@ -115,6 +115,7 @@ interface LineChannel {
   followUpNote?: string | null
   followUpAt?: string | null
   followUpBy?: string | null
+  status?: string
   messageCount: number
   lastMessageAt: string | null
   labels?: ChannelLabel[]
@@ -148,6 +149,12 @@ interface TriageItem {
   suggestion: string
 }
 
+const CHANNEL_STATUS: Record<string, { label: string; color: string; tagColor: string }> = {
+  OPEN:        { label: '待處理', color: '#ff4d4f', tagColor: 'error' },
+  IN_PROGRESS: { label: '處理中', color: '#fa8c16', tagColor: 'warning' },
+  RESOLVED:    { label: '已解決', color: '#52c41a', tagColor: 'success' },
+}
+
 const TRIAGE_STATUS = {
   urgent: { label: '緊急', color: '#ff4d4f', icon: <AlertOutlined />, tagColor: 'red' },
   action_needed: { label: '需處理', color: '#fa8c16', icon: <ExclamationCircleOutlined />, tagColor: 'orange' },
@@ -173,6 +180,7 @@ export default function LineInboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
   const [filterFollowUp, setFilterFollowUp] = useState(false)
+  const [filterStatus, setFilterStatus] = useState<string[]>([])
   // Label system
   const [labelDefs, setLabelDefs] = useState<LabelDefinition[]>([])
   const [filterLabels, setFilterLabels] = useState<string[]>([])
@@ -442,6 +450,27 @@ export default function LineInboxPage() {
     }
   }
 
+  const changeChannelStatus = async (channel: LineChannel, newStatus: string) => {
+    try {
+      const res = await fetch(`/api/line/channels/${channel.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+      if (res.ok) {
+        setChannels(prev => prev.map(c =>
+          c.id === channel.id ? { ...c, status: newStatus } : c
+        ))
+        if (activeChannel?.id === channel.id) {
+          setActiveChannel(prev => prev ? { ...prev, status: newStatus } : prev)
+        }
+        message.success(`狀態已更新：${CHANNEL_STATUS[newStatus]?.label}`)
+      }
+    } catch {
+      message.error('操作失敗')
+    }
+  }
+
   const handleUploadImage = async (file: File) => {
     if (!activeChannel) return false
 
@@ -579,10 +608,11 @@ export default function LineInboxPage() {
     }
   }
 
-  // Filter channels by search, follow-up, and labels
+  // Filter channels by search, follow-up, labels, and status
   const filteredChannels = channels
     .filter(c => {
       if (filterFollowUp && !c.needsFollowUp) return false
+      if (filterStatus.length > 0 && !filterStatus.includes(c.status || 'OPEN')) return false
       // Label filter
       if (filterLabels.length > 0) {
         const channelLabelIds = (c.labels || []).map(l => l.labelId)
@@ -597,6 +627,11 @@ export default function LineInboxPage() {
       )
     })
     .sort((a, b) => {
+      // 狀態排序：OPEN > IN_PROGRESS > RESOLVED
+      const statusOrder: Record<string, number> = { OPEN: 0, IN_PROGRESS: 1, RESOLVED: 2 }
+      const aOrder = statusOrder[a.status || 'OPEN'] ?? 1
+      const bOrder = statusOrder[b.status || 'OPEN'] ?? 1
+      if (aOrder !== bOrder) return aOrder - bOrder
       // 尚無訊息的放最後
       if (!a.lastMessageAt && !b.lastMessageAt) return 0
       if (!a.lastMessageAt) return 1
@@ -668,6 +703,24 @@ export default function LineInboxPage() {
                 placement="bottomRight"
                 content={
                   <div style={{ minWidth: 180 }}>
+                    <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>
+                      按狀態篩選
+                    </Text>
+                    {Object.entries(CHANNEL_STATUS).map(([key, val]) => (
+                      <div key={key} style={{ marginBottom: 4 }}>
+                        <Checkbox
+                          checked={filterStatus.includes(key)}
+                          onChange={e => {
+                            setFilterStatus(prev =>
+                              e.target.checked ? [...prev, key] : prev.filter(s => s !== key)
+                            )
+                          }}
+                        >
+                          <Tag color={val.tagColor} style={{ fontSize: 11 }}>{val.label}</Tag>
+                        </Checkbox>
+                      </div>
+                    ))}
+                    <Divider style={{ margin: '8px 0' }} />
                     <div style={{ marginBottom: 8 }}>
                       <Checkbox
                         checked={filterFollowUp}
@@ -699,28 +752,28 @@ export default function LineInboxPage() {
                             </Checkbox>
                           </div>
                         ))}
-                        {filterLabels.length > 0 && (
-                          <Button
-                            type="link"
-                            size="small"
-                            onClick={() => { setFilterLabels([]); setFilterFollowUp(false) }}
-                            style={{ padding: 0, fontSize: 11 }}
-                          >
-                            清除篩選
-                          </Button>
-                        )}
                       </>
+                    )}
+                    {(filterLabels.length > 0 || filterFollowUp || filterStatus.length > 0) && (
+                      <Button
+                        type="link"
+                        size="small"
+                        onClick={() => { setFilterLabels([]); setFilterFollowUp(false); setFilterStatus([]) }}
+                        style={{ padding: 0, fontSize: 11 }}
+                      >
+                        清除所有篩選
+                      </Button>
                     )}
                   </div>
                 }
               >
-                <Tooltip title="標籤篩選">
-                  <Badge count={filterLabels.length + (filterFollowUp ? 1 : 0)} size="small">
+                <Tooltip title="篩選">
+                  <Badge count={filterLabels.length + (filterFollowUp ? 1 : 0) + filterStatus.length} size="small">
                     <Button
-                      type={(filterFollowUp || filterLabels.length > 0) ? 'primary' : 'text'}
+                      type={(filterFollowUp || filterLabels.length > 0 || filterStatus.length > 0) ? 'primary' : 'text'}
                       icon={<TagsOutlined />}
                       size="small"
-                      danger={filterFollowUp || filterLabels.length > 0}
+                      danger={filterFollowUp || filterLabels.length > 0 || filterStatus.length > 0}
                     />
                   </Badge>
                 </Tooltip>
@@ -847,12 +900,28 @@ export default function LineInboxPage() {
                           {getChannelPreview(channel)}
                         </Text>
                       </div>
-                      <div style={{ marginTop: 2 }}>
+                      <div style={{ marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Text type="secondary" style={{ fontSize: 12 }}>
                           {getChannelTypeLabel(channel.channelType)}
                           {' · '}
                           {channel.messageCount} 則
                         </Text>
+                        {channel.status && channel.status !== 'OPEN' && (
+                          <Tag
+                            color={CHANNEL_STATUS[channel.status]?.tagColor}
+                            style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}
+                          >
+                            {CHANNEL_STATUS[channel.status]?.label}
+                          </Tag>
+                        )}
+                        {(!channel.status || channel.status === 'OPEN') && (
+                          <Tag
+                            color="error"
+                            style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}
+                          >
+                            待處理
+                          </Tag>
+                        )}
                       </div>
                       {/* Labels */}
                       {channel.labels && channel.labels.length > 0 && (
@@ -996,6 +1065,24 @@ export default function LineInboxPage() {
                         </div>
                       )
                     })}
+                    <Divider style={{ margin: '8px 0' }} />
+                    <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>頻道狀態</Text>
+                    <Space direction="vertical" style={{ width: '100%' }}>
+                      {Object.entries(CHANNEL_STATUS).map(([key, val]) => {
+                        const isActive = (activeChannel.status || 'OPEN') === key
+                        return (
+                          <Tag
+                            key={key}
+                            color={isActive ? val.tagColor : 'default'}
+                            style={{ cursor: 'pointer', width: '100%', textAlign: 'center', margin: 0 }}
+                            onClick={() => !isActive && changeChannelStatus(activeChannel, key)}
+                          >
+                            {isActive && <CheckOutlined style={{ marginRight: 4 }} />}
+                            {val.label}
+                          </Tag>
+                        )
+                      })}
+                    </Space>
                     <Divider style={{ margin: '8px 0' }} />
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                       <Checkbox

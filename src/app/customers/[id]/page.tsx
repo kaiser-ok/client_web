@@ -63,7 +63,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       const response = await fetch(`/api/open-items/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: id }),
+        body: JSON.stringify({ partnerId: id }),
       })
 
       if (!response.ok) {
@@ -84,7 +84,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       const response = await fetch(`/api/odoo/sync-tags`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: id }),
+        body: JSON.stringify({ partnerId: id }),
       })
 
       if (!response.ok) {
@@ -109,7 +109,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       const response = await fetch(`/api/odoo/sync-invoices`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: id }),
+        body: JSON.stringify({ partnerId: id }),
       })
 
       if (!response.ok) {
@@ -149,7 +149,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       const response = await fetch(`/api/gmail/sync`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: id, maxResults: 50 }),
+        body: JSON.stringify({ partnerId: id, maxResults: 50 }),
       })
 
       const result = await response.json()
@@ -194,7 +194,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       const response = await fetch(`/api/slack/summarize`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerId: id, days, force }),
+        body: JSON.stringify({ partnerId: id, days, force }),
       })
 
       const result = await response.json()
@@ -238,7 +238,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
     try {
       message.loading({ content: '正在清除 Slack 活動...', key: 'slack-clear' })
 
-      const response = await fetch(`/api/activities?source=SLACK&customerId=${id}`, {
+      const response = await fetch(`/api/activities?source=SLACK&partnerId=${id}`, {
         method: 'DELETE',
       })
 
@@ -272,7 +272,7 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       children: (
         <div>
           <div style={{ marginBottom: 16 }}>
-            <ProjectsCard customerId={id} limit={5} />
+            <ProjectsCard customerId={id} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: 16 }}>
             <DealsCard customerId={id} />

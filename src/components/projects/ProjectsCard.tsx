@@ -99,7 +99,6 @@ const getOdooOrderUrl = (odooId: number) => {
 
 interface ProjectsCardProps {
   customerId: string
-  limit?: number
 }
 
 const STATUS_OPTIONS = [
@@ -125,7 +124,7 @@ const getStatusInfo = (status: string) => {
   return STATUS_OPTIONS.find(s => s.value === status) || STATUS_OPTIONS[0]
 }
 
-export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
+export default function ProjectsCard({ customerId }: ProjectsCardProps) {
   const { message } = App.useApp()
   const { can } = useUser()
   const [modalOpen, setModalOpen] = useState(false)
@@ -236,7 +235,7 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
 
   const projects = data?.projects || []
   const filteredProjects = statusFilter ? projects.filter(p => p.status === statusFilter) : projects
-  const displayProjects = limit ? filteredProjects.slice(0, limit) : filteredProjects
+  const displayProjects = filteredProjects
 
   // 上傳圖片
   const uploadImage = useCallback(async (file: File, projectId: string): Promise<string | null> => {
@@ -619,16 +618,13 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
           )}
         </Empty>
       ) : (
-        <Table dataSource={displayProjects} columns={columns} rowKey="id" size="small" loading={isLoading} pagination={false} />
-      )}
-      {limit && filteredProjects.length > limit && (
-        <div style={{ textAlign: 'center', marginTop: 12 }}>還有 {filteredProjects.length - limit} 個專案</div>
+        <Table dataSource={displayProjects} columns={columns} rowKey="id" size="small" loading={isLoading} pagination={{ pageSize: 10, size: 'small', hideOnSinglePage: true }} />
       )}
     </>
   )
 
   // 作為最終用戶的專案內容
-  const displayEndUserProjects = limit ? filteredEndUserProjects.slice(0, limit) : filteredEndUserProjects
+  const displayEndUserProjects = filteredEndUserProjects
   const endUserProjectsContent = (
     <>
       {displayEndUserProjects.length === 0 ? (
@@ -640,11 +636,8 @@ export default function ProjectsCard({ customerId, limit }: ProjectsCardProps) {
           rowKey="id"
           size="small"
           loading={isLoadingEndUser}
-          pagination={false}
+          pagination={{ pageSize: 10, size: 'small', hideOnSinglePage: true }}
         />
-      )}
-      {limit && filteredEndUserProjects.length > limit && (
-        <div style={{ textAlign: 'center', marginTop: 12 }}>還有 {filteredEndUserProjects.length - limit} 個專案</div>
       )}
     </>
   )
