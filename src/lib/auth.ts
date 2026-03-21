@@ -65,24 +65,33 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        // 建立或更新資料庫使用者
-        const dbUser = await prisma.user.upsert({
-          where: { email: ldapUser.email },
-          update: {
-            name: ldapUser.name,
-          },
-          create: {
-            email: ldapUser.email,
-            name: ldapUser.name,
-            role: 'SUPPORT', // 預設角色
-          },
-        })
+        console.log(`[AUTH] LDAP user: username=${ldapUser.username} email=${ldapUser.email} name=${ldapUser.name}`)
 
-        return {
-          id: dbUser.id,
-          email: dbUser.email,
-          name: dbUser.name,
-          role: dbUser.role as UserRole,
+        // 建立或更新資料庫使用者
+        try {
+          const dbUser = await prisma.user.upsert({
+            where: { email: ldapUser.email },
+            update: {
+              name: ldapUser.name,
+            },
+            create: {
+              email: ldapUser.email,
+              name: ldapUser.name,
+              role: 'SUPPORT', // 預設角色
+            },
+          })
+
+          console.log(`[AUTH] DB user: id=${dbUser.id} email=${dbUser.email} role=${dbUser.role}`)
+
+          return {
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            role: dbUser.role as UserRole,
+          }
+        } catch (err) {
+          console.error(`[AUTH] upsert failed for ${ldapUser.email}:`, err)
+          return null
         }
       },
     }),

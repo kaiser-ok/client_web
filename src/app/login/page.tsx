@@ -173,7 +173,7 @@ function LoginContent() {
             defaultActiveKey="ad"
             items={tabItems}
             centered
-            destroyInactiveTabPane={false}
+            destroyOnHidden={false}
           />
 
           <Text type="secondary" style={{ fontSize: 12 }}>

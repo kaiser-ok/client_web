@@ -133,10 +133,15 @@ async function tryAuthenticate(
       id = `ldap-${username}`
     }
 
+    const mailAttr = entry.mail
+    const mailStr = (Array.isArray(mailAttr) ? mailAttr[0] : mailAttr) as string
+    const email = (mailStr?.trim()) || `${username}@gentrice.net`
+    logLdap('INFO', `使用者 ${username} email 解析: mail="${mailAttr}" -> email="${email}"`)
+
     const user: LdapUser = {
       id,
-      email: (entry.mail as string) || `${username}@gentrice.tw`,
-      name: (entry.displayName as string) || (entry.cn as string) || username,
+      email,
+      name: ((Array.isArray(entry.displayName) ? entry.displayName[0] : entry.displayName) as string) || ((Array.isArray(entry.cn) ? entry.cn[0] : entry.cn) as string) || username,
       username: entry.sAMAccountName as string,
       department: entry.department as string | undefined,
       title: entry.title as string | undefined,
