@@ -5,6 +5,8 @@
 
 import { Queue, Worker, Job } from 'bullmq'
 import prisma from '@/lib/prisma'
+import { chatCompletion } from '@/lib/llm'
+import { autoCreateEventFromLabel } from '@/lib/line-event-auto'
 import {
   LineLabelConfig,
   DEFAULT_LINE_LABEL_CONFIG,
@@ -217,41 +219,22 @@ ${messageText}
 3. confidence 表示你的信心度（0-1）
 4. 只在有明確證據時才建議標籤`
 
-  // Call LLM
-  const OPENAI_API_KEY = process.env.OPENAI_API_KEY
-  if (!OPENAI_API_KEY) {
-    console.error('[line-label] OPENAI_API_KEY not set, skipping analysis')
-    return
-  }
-
+  // Call LLM（使用系統預設設定）
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
-        messages: [
-          { role: 'system', content: '你是一個 LINE 訊息分析助手，負責為對話自動標注標籤。請只回覆 JSON 格式。' },
-          { role: 'user', content: prompt },
-        ],
-        temperature: config.llmSettings.temperature,
-        response_format: { type: 'json_object' },
-      }),
+    const content = await chatCompletion([
+      { role: 'system', content: '你是一個 LINE 訊息分析助手，負責為對話自動標注標籤。請只回覆 JSON 格式。' },
+      { role: 'user', content: prompt },
+    ], {
+      maxTokens: 1000,
+      temperature: config.llmSettings.temperature,
     })
 
-    if (!response.ok) {
-      console.error(`[line-label] LLM API error: ${response.status}`)
-      return
-    }
-
-    const data = await response.json()
-    const content = data.choices?.[0]?.message?.content
     if (!content) return
 
-    const suggestions: LLMLabelSuggestion = JSON.parse(content)
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return
+
+    const suggestions: LLMLabelSuggestion = JSON.parse(jsonMatch[0])
     const threshold = config.llmSettings.autoApplyThreshold
 
     // Process additions
@@ -290,6 +273,9 @@ ${messageText}
             data: { needsFollowUp: true, followUpAt: new Date(), followUpBy: 'system' },
           })
         }
+
+        // 自動建立事件（P1/P2 標籤觸發）
+        autoCreateEventFromLabel(channelId, item.labelId, 'llm', 'system', item.reason).catch(console.error)
 
         console.log(`[line-label] Auto-applied label '${item.labelId}' to channel ${channelId} (confidence: ${item.confidence})`)
       } else {

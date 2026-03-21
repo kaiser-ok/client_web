@@ -198,7 +198,7 @@ export async function PUT(
     const partnerId = body.partnerId || body.customerId
     const { projectId, channelName, isActive, needsFollowUp, followUpNote, status } = body
 
-    const VALID_STATUSES = ['OPEN', 'IN_PROGRESS', 'RESOLVED']
+    const VALID_STATUSES = ['OPEN', 'IN_PROGRESS']
     if (status !== undefined && !VALID_STATUSES.includes(status)) {
       return NextResponse.json({ error: '無效的狀態值' }, { status: 400 })
     }

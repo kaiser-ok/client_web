@@ -110,7 +110,7 @@ export const DEFAULT_LLM_SETTINGS: LineLabelLLMSettings = {
   enabled: true,
   debounceSeconds: 120,
   minMessages: 3,
-  analysisWindow: 60,    // 60 分鐘
+  analysisWindow: 180,   // 180 分鐘
   temperature: 0.3,
   autoApplyThreshold: 0.8,
 }

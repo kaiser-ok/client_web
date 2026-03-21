@@ -54,6 +54,7 @@ const SOURCE_TYPE_CONFIG: Record<string, { label: string; icon: React.ReactNode;
   LINE: { label: 'LINE', icon: <MessageOutlined />, color: 'green' },
   EMAIL: { label: 'Email', icon: <MailOutlined />, color: 'blue' },
   ACTIVITY: { label: '活動', icon: <FileTextOutlined />, color: 'purple' },
+  DEAL: { label: '訂單', icon: <FileTextOutlined />, color: 'gold' },
   FILE: { label: '檔案', icon: <FileTextOutlined />, color: 'orange' },
 }
 
@@ -108,7 +109,7 @@ export default function ChatPage() {
         credentials: 'include',
         body: JSON.stringify({
           query: userMessage.content,
-          customerId: selectedCustomer,
+          partnerId: selectedCustomer,
           sourceType,
           limit: 5,
         }),
@@ -192,6 +193,7 @@ export default function ChatPage() {
                 { value: 'LINE', label: 'LINE 訊息' },
                 { value: 'EMAIL', label: 'Email' },
                 { value: 'ACTIVITY', label: '活動記錄' },
+                { value: 'DEAL', label: '訂單' },
                 { value: 'FILE', label: '檔案' },
               ]}
             />
@@ -223,7 +225,7 @@ export default function ChatPage() {
                   <Text type="secondary">開始與 AI 助理對話</Text>
                   <br />
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    可以詢問客戶相關問題，AI 會從 LINE 訊息、活動記錄等資料中搜尋答案
+                    可以詢問客戶相關問題，AI 會從 LINE 訊息、活動記錄、訂單等資料中搜尋答案
                   </Text>
                 </div>
               }

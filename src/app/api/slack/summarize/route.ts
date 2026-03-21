@@ -57,9 +57,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    if (!process.env.SLACK_BOT_TOKEN) {
+    if (!process.env.SLACK_USER_TOKEN) {
       return NextResponse.json(
-        { error: 'Slack 尚未設定，請先設定 SLACK_BOT_TOKEN' },
+        { error: 'Slack 尚未設定，請先設定 SLACK_USER_TOKEN' },
         { status: 400 }
       )
     }
@@ -290,7 +290,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    if (!process.env.SLACK_BOT_TOKEN) {
+    if (!process.env.SLACK_USER_TOKEN) {
       return NextResponse.json(
         { error: 'Slack 尚未設定' },
         { status: 400 }

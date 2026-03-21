@@ -1,6 +1,6 @@
 /**
  * RAG 對話 API
- * 結合向量搜尋和 LLM 生成回答
+ * 結合向量搜尋、結構化技能和 LLM 生成回答
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -9,6 +9,7 @@ import { authOptions } from '@/lib/auth'
 import { searchSimilar, searchBasic } from '@/lib/embedding'
 import { chatWithDify, checkDifyHealth } from '@/lib/dify'
 import { chatCompletion } from '@/lib/llm'
+import { classifyIntent, executeSkill } from '@/lib/chat-skills'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,7 +32,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '缺少查詢內容' }, { status: 400 })
     }
 
-    // 1. 檢索相關內容
+    // Step 1: 意圖分類 — 判斷使用 skill 還是 RAG
+    const intent = await classifyIntent(query, partnerId)
+
+    // Step 2: 如果匹配到 skill，執行結構化查詢
+    if (intent.skill) {
+      const skillResult = await executeSkill(intent.skill, intent.params)
+
+      if (skillResult) {
+        // 用 LLM 把結構化資料轉為自然語言回答
+        const answer = await generateSkillAnswer(query, skillResult.summary)
+
+        return NextResponse.json({
+          answer,
+          sources: [],
+          metadata: {
+            skill: skillResult.skill,
+            intent: intent.reasoning,
+          },
+        })
+      }
+    }
+
+    // Step 3: RAG 向量搜尋流程
     let sources: Array<{
       id: string
       sourceType: string
@@ -41,7 +64,6 @@ export async function POST(request: NextRequest) {
     }> = []
 
     try {
-      // 嘗試使用 pgvector 搜尋
       sources = await searchSimilar(query, {
         limit,
         sourceType,
@@ -49,7 +71,6 @@ export async function POST(request: NextRequest) {
         minSimilarity: 0.6,
       })
     } catch {
-      // 回退到基本搜尋
       sources = await searchBasic(query, {
         limit,
         sourceType,
@@ -57,7 +78,6 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 2. 檢查是否有找到相關資料
     if (sources.length === 0) {
       return NextResponse.json({
         answer: '抱歉，在系統資料庫中找不到與您問題相關的資料。請嘗試：\n1. 使用不同的關鍵字搜尋\n2. 確認資料是否已同步到系統\n3. 選擇特定的客戶或資料來源篩選',
@@ -66,7 +86,7 @@ export async function POST(request: NextRequest) {
       })
     }
 
-    // 3. 組合上下文
+    // 組合上下文
     const context = sources
       .map((s, i) => `[來源 ${i + 1} - ${s.sourceType}]\n${s.content}`)
       .join('\n\n---\n\n')
@@ -74,9 +94,7 @@ export async function POST(request: NextRequest) {
     let answer: string
     let metadata: Record<string, unknown> = {}
 
-    // 4. 生成回答
     if (useDify) {
-      // 使用 Dify
       const difyAvailable = await checkDifyHealth()
       if (difyAvailable) {
         const response = await chatWithDify({
@@ -91,11 +109,9 @@ export async function POST(request: NextRequest) {
           usage: response.metadata.usage,
         }
       } else {
-        // Dify 不可用，回退到直接 LLM
         answer = await generateAnswer(query, context)
       }
     } else {
-      // 直接使用 LLM
       answer = await generateAnswer(query, context)
     }
 
@@ -120,7 +136,7 @@ export async function POST(request: NextRequest) {
 }
 
 /**
- * 使用 LLM 生成回答（僅根據提供的資料）
+ * 使用 LLM 生成回答（僅根據提供的資料 - RAG 模式）
  */
 async function generateAnswer(query: string, context: string): Promise<string> {
   const systemPrompt = `你是一個專業的客戶服務助理。你的任務是**嚴格根據提供的參考資料**來回答問題。
@@ -147,5 +163,38 @@ ${context}`
   } catch (error) {
     console.error('LLM error:', error)
     throw new Error('生成回答時發生錯誤')
+  }
+}
+
+/**
+ * 使用 LLM 根據 skill 查詢結果生成自然語言回答
+ */
+async function generateSkillAnswer(query: string, skillData: string): Promise<string> {
+  const systemPrompt = `你是一個專業的客戶服務助理。根據系統查詢到的資料，用清楚易讀的方式回答用戶的問題。
+
+重要規則：
+1. 根據查詢結果如實回答，不要編造資料
+2. 使用表格或列表讓資料更易讀
+3. 如果資料量大，先給出總結再列出細節
+4. 金額請使用千分位格式
+5. 日期使用 YYYY-MM-DD 格式
+6. 回答要簡潔專業
+
+查詢結果：
+${skillData}`
+
+  try {
+    const response = await chatCompletion(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query },
+      ],
+      { maxTokens: 2000, temperature: 0.3 }
+    )
+    return response
+  } catch (error) {
+    console.error('Skill answer LLM error:', error)
+    // 如果 LLM 失敗，直接返回原始資料
+    return skillData
   }
 }

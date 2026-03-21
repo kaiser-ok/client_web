@@ -152,28 +152,10 @@ export function normalizeEmail(
 }
 
 // ============================================
-// Enqueue
+// Core Processing (no Redis required)
 // ============================================
 
-export async function enqueueMessage(message: UnifiedMessage): Promise<void> {
-  const queue = getMessagePipelineQueue()
-  await queue.add(
-    `msg-${message.channel}-${message.channelMessageId}`,
-    { message } satisfies MessagePipelineJobData,
-    {
-      jobId: `${message.channel}-${message.channelMessageId}`,
-    }
-  )
-}
-
-// ============================================
-// Worker
-// ============================================
-
-let messagePipelineWorker: Worker | null = null
-
-export async function processMessagePipelineJob(job: Job<MessagePipelineJobData>): Promise<void> {
-  const { message } = job.data
+export async function processMessage(message: UnifiedMessage): Promise<void> {
   console.log(`[message-pipeline] Processing ${message.channel} message: ${message.channelMessageId}`)
 
   // Resolve partnerId via centralized entity resolution service
@@ -223,6 +205,31 @@ export async function processMessagePipelineJob(job: Job<MessagePipelineJobData>
       console.error('[message-pipeline] Failed to enqueue label analysis:', error)
     }
   }
+}
+
+// ============================================
+// Enqueue
+// ============================================
+
+export async function enqueueMessage(message: UnifiedMessage): Promise<void> {
+  const queue = getMessagePipelineQueue()
+  await queue.add(
+    `msg-${message.channel}-${message.channelMessageId}`,
+    { message } satisfies MessagePipelineJobData,
+    {
+      jobId: `${message.channel}-${message.channelMessageId}`,
+    }
+  )
+}
+
+// ============================================
+// Worker
+// ============================================
+
+let messagePipelineWorker: Worker | null = null
+
+export async function processMessagePipelineJob(job: Job<MessagePipelineJobData>): Promise<void> {
+  await processMessage(job.data.message)
 }
 
 export function startMessagePipelineWorker(): Worker {

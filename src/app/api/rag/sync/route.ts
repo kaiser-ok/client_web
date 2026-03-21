@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { saveDocumentChunks, generateEmbeddingsForNewChunks } from '@/lib/embedding'
+import { saveDocumentChunks, generateEmbeddingsForNewChunks, syncDealsToChunks } from '@/lib/embedding'
 import { fetchSystemMailboxEmails, findCustomerByEmail } from '@/lib/gmail'
 
 export async function POST(request: NextRequest) {
@@ -46,14 +46,30 @@ export async function POST(request: NextRequest) {
         rematchedCount = await rematchUncategorizedEmails()
         break
 
-      case 'all':
+      case 'deals': {
+        if (forceRefresh) {
+          await prisma.documentChunk.deleteMany({
+            where: {
+              sourceType: 'DEAL',
+              ...(resolvedPartnerId ? { partnerId: resolvedPartnerId } : {}),
+            },
+          })
+        }
+        const dealResult = await syncDealsToChunks(resolvedPartnerId)
+        syncedCount = dealResult.synced
+        break
+      }
+
+      case 'all': {
         // 同步所有類型
         const lineCount = await syncAllLineChannels(forceRefresh)
         const activityCount = await syncAllActivities(forceRefresh)
         const gmailCount = await syncGmailEmails(forceRefresh)
+        const dealAllResult = await syncDealsToChunks()
         rematchedCount = await rematchUncategorizedEmails()
-        syncedCount = lineCount + activityCount + gmailCount
+        syncedCount = lineCount + activityCount + gmailCount + dealAllResult.synced
         break
+      }
 
       default:
         return NextResponse.json({ error: '不支援的同步類型' }, { status: 400 })

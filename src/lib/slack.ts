@@ -3,7 +3,7 @@
  * 用於讀取 Slack 頻道訊息
  */
 
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN
+const SLACK_USER_TOKEN = process.env.SLACK_USER_TOKEN
 
 interface SlackMessage {
   type: string
@@ -65,17 +65,17 @@ interface UsersInfoResponse {
  * 建立 Slack API 客戶端
  */
 export function createSlackClient(token?: string) {
-  const botToken = token || SLACK_BOT_TOKEN
+  const userToken = token || SLACK_USER_TOKEN
 
-  if (!botToken) {
-    throw new Error('SLACK_BOT_TOKEN is not configured')
+  if (!userToken) {
+    throw new Error('SLACK_USER_TOKEN is not configured')
   }
 
   const slackFetch = async <T>(endpoint: string, options: RequestInit = {}): Promise<T> => {
     const response = await fetch(`https://slack.com/api${endpoint}`, {
       ...options,
       headers: {
-        'Authorization': `Bearer ${botToken}`,
+        'Authorization': `Bearer ${userToken}`,
         'Content-Type': 'application/json; charset=utf-8',
         ...options.headers,
       },

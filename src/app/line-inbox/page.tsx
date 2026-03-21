@@ -42,11 +42,13 @@ import {
   CheckOutlined,
   CloseOutlined,
   PlusOutlined,
+  CalendarOutlined,
 } from '@ant-design/icons'
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
 import AppLayout from '@/components/layout/AppLayout'
 import LineEmojiText from '@/components/line/LineEmojiText'
+import LineEventPanel from '@/components/line/LineEventPanel'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import 'dayjs/locale/zh-tw'
@@ -152,7 +154,6 @@ interface TriageItem {
 const CHANNEL_STATUS: Record<string, { label: string; color: string; tagColor: string }> = {
   OPEN:        { label: '待處理', color: '#ff4d4f', tagColor: 'error' },
   IN_PROGRESS: { label: '處理中', color: '#fa8c16', tagColor: 'warning' },
-  RESOLVED:    { label: '已解決', color: '#52c41a', tagColor: 'success' },
 }
 
 const TRIAGE_STATUS = {
@@ -193,6 +194,7 @@ export default function LineInboxPage() {
   const [triageLoading, setTriageLoading] = useState(false)
   const [triageInfo, setTriageInfo] = useState<{ analyzedChannels: number; timeRange: number } | null>(null)
   const [showTriage, setShowTriage] = useState(false)
+  const [showEventsPanel, setShowEventsPanel] = useState(false)
 
   // Derive unique users from chat messages for @mention
   const mentionOptions = useMemo(() => {
@@ -628,7 +630,7 @@ export default function LineInboxPage() {
     })
     .sort((a, b) => {
       // 狀態排序：OPEN > IN_PROGRESS > RESOLVED
-      const statusOrder: Record<string, number> = { OPEN: 0, IN_PROGRESS: 1, RESOLVED: 2 }
+      const statusOrder: Record<string, number> = { OPEN: 0, IN_PROGRESS: 1 }
       const aOrder = statusOrder[a.status || 'OPEN'] ?? 1
       const bOrder = statusOrder[b.status || 'OPEN'] ?? 1
       if (aOrder !== bOrder) return aOrder - bOrder
@@ -1067,7 +1069,7 @@ export default function LineInboxPage() {
                     })}
                     <Divider style={{ margin: '8px 0' }} />
                     <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 6 }}>頻道狀態</Text>
-                    <Space direction="vertical" style={{ width: '100%' }}>
+                    <Space orientation="vertical" style={{ width: '100%' }}>
                       {Object.entries(CHANNEL_STATUS).map(([key, val]) => {
                         const isActive = (activeChannel.status || 'OPEN') === key
                         return (
@@ -1105,6 +1107,13 @@ export default function LineInboxPage() {
                   </Badge>
                 </Tooltip>
               </Popover>
+              <Tooltip title={showEventsPanel ? '關閉事件面板' : '事件管理'}>
+                <Button
+                  type={showEventsPanel ? 'primary' : 'text'}
+                  icon={<CalendarOutlined />}
+                  onClick={() => setShowEventsPanel(v => !v)}
+                />
+              </Tooltip>
               <Button
                 type="text"
                 icon={<ReloadOutlined spin={loadingChat} />}
@@ -1376,6 +1385,24 @@ export default function LineInboxPage() {
             <Empty
               description="選擇一個頻道開始對話"
               image={Empty.PRESENTED_IMAGE_SIMPLE}
+            />
+          </div>
+        )}
+
+        {/* Right: Events panel */}
+        {activeChannel && showEventsPanel && (
+          <div style={{
+            width: 320,
+            borderLeft: '1px solid #f0f0f0',
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#fafafa',
+            flexShrink: 0,
+            overflow: 'hidden',
+          }}>
+            <LineEventPanel
+              channelId={activeChannel.id}
+              onNavigateToEvents={() => window.open('/line-events', '_blank')}
             />
           </div>
         )}

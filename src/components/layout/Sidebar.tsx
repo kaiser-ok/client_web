@@ -25,6 +25,7 @@ import {
   TrophyOutlined,
   AudioOutlined,
   BankOutlined,
+  AlertOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
@@ -134,6 +135,11 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         key: '/line-inbox',
         icon: <MessageOutlined />,
         label: 'LINE 收件箱',
+      },
+      {
+        key: '/line-events',
+        icon: <AlertOutlined />,
+        label: 'LINE 事件管理',
       },
       {
         key: '/chat',

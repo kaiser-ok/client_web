@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
+import { autoCreateEventFromLabel } from '@/lib/line-event-auto'
 
 /**
  * GET /api/line/channels/[id]/labels
@@ -92,6 +93,24 @@ export async function PUT(
           },
         })
       }
+
+      // 自動建立事件（P1/P2 標籤觸發，非同步不阻塞）
+      autoCreateEventFromLabel(id, labelId, 'manual', session.user.email!).catch(console.error)
+
+      // 同步標籤到此頻道進行中的事件（非同步）
+      ;(async () => {
+        const activeEventChannels = await prisma.lineEventChannel.findMany({
+          where: { channelId: id, event: { status: { in: ['NEW', 'IN_PROGRESS'] } } },
+          select: { eventId: true },
+        })
+        await Promise.all(activeEventChannels.map(ec =>
+          prisma.lineEventLabel.upsert({
+            where: { eventId_labelId: { eventId: ec.eventId, labelId } },
+            update: { appliedBy: session.user!.email!, appliedAt: new Date() },
+            create: { eventId: ec.eventId, labelId, source: 'manual', appliedBy: session.user!.email! },
+          })
+        ))
+      })().catch(console.error)
 
       return NextResponse.json({ success: true, label })
     }

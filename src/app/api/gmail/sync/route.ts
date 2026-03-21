@@ -8,7 +8,7 @@ import {
   findCustomerByEmail,
 } from '@/lib/gmail'
 import { summarizeEmail, identifyCustomerFromEmail } from '@/lib/llm'
-import { normalizeEmail, enqueueMessage } from '@/lib/message-pipeline'
+import { normalizeEmail, processMessage } from '@/lib/message-pipeline'
 import {
   GmailConfig,
   GMAIL_CONFIG_KEY,
@@ -466,7 +466,7 @@ export async function POST() {
         // 送入 Unified Message Pipeline
         try {
           const unifiedMessage = normalizeEmail(email, customer.id, matchMethod)
-          await enqueueMessage(unifiedMessage)
+          await processMessage(unifiedMessage)
         } catch (pipelineError) {
           console.error(`Failed to enqueue email to pipeline: ${email.messageId}`, pipelineError)
         }

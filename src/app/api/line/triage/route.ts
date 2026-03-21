@@ -117,8 +117,8 @@ export async function POST(request: NextRequest) {
     }
 
     // 組合所有頻道的對話，交給 LLM 分析
-    const channelTexts = channelSummaries.map((ch, idx) =>
-      `=== 頻道 ${idx + 1}: ${ch.channelName}${ch.partnerName ? ` (客戶: ${ch.partnerName})` : ''} ===\n${ch.messages}`
+    const channelTexts = channelSummaries.map(ch =>
+      `=== 頻道「${ch.channelName}」${ch.partnerName ? ` (客戶: ${ch.partnerName})` : ''} ===\n${ch.messages}`
     ).join('\n\n')
 
     const systemPrompt = `你是一個 IT 服務支援助理，負責分析 LINE 客戶對話，找出需要 IT 人員注意或回覆的訊息。
@@ -145,7 +145,7 @@ ${channelTexts}
 回覆 JSON 陣列，只列出需要注意的頻道（排除 status=ok 的），按緊急程度排序：
 [
   {
-    "channelIndex": 0,
+    "channelName": "頻道名稱（完整複製頻道標題）",
     "status": "urgent|action_needed|follow_up",
     "summary": "30字內摘要說明需要處理什麼",
     "lastCustomerMessage": "客戶最後說了什麼（20字內）",
@@ -180,9 +180,11 @@ ${channelTexts}
         const parsed = JSON.parse(jsonMatch[0])
         if (Array.isArray(parsed)) {
           items = parsed
-            .filter(item => item.channelIndex != null && item.channelIndex < channelSummaries.length)
+            .filter(item => item.channelName != null)
             .map(item => {
-              const ch = channelSummaries[item.channelIndex]
+              // 用 channelName 比對，避免 index 偏移問題
+              const ch = channelSummaries.find(c => c.channelName === item.channelName)
+              if (!ch) return null
               return {
                 channelId: ch.channelId,
                 channelName: ch.channelName,
@@ -193,6 +195,7 @@ ${channelTexts}
                 suggestion: item.suggestion || '',
               }
             })
+            .filter((item): item is NonNullable<typeof item> => item !== null)
         }
       }
     } catch (e) {

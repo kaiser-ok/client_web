@@ -51,6 +51,7 @@ model Partner {
   // LINE 關聯
   lineChannels              LineChannel[]
   lineChannelAssociations   LineChannelAssociation[]
+  lineEvents                LineEvent[]
   lineUsers                 LineUser[]
 
   // 身分識別
@@ -162,6 +163,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   bonusAllocations ProjectBonusMember[]
+  assignedEvents   LineEvent[]          @relation("EventAssignee")
 
   @@map("users")
 }
@@ -230,6 +232,7 @@ model Project {
   activities   Activity[]    // 相關活動
   lineChannels LineChannel[] // 相關 LINE 頻道
   bonusEval    ProjectBonusEval? // 獎金評估
+  lineEvents   LineEvent[]   // 相關事件
 
   @@index([partnerId])
   @@index([endUserId])
@@ -522,6 +525,7 @@ model LineChannel {
   associations    LineChannelAssociation[]
   summaries       LineSummary[]
   labels          LineChannelLabel[]
+  eventChannels   LineEventChannel[]
 
   @@index([partnerId])
   @@index([projectId])
@@ -596,6 +600,140 @@ model LineSummary {
   @@unique([channelId, month])
   @@index([channelId])
   @@map("line_summaries")
+}
+
+// ============================================
+// LINE 事件管理
+// ============================================
+
+model LineEvent {
+  id              String    @id @default(cuid())
+  title           String?                          // 事件標題（手動或 LLM 生成）
+  description     String?   @db.Text               // 問題摘要
+  status          String    @default("NEW")         // NEW | IN_PROGRESS | RESOLVED | CLOSED
+  priority        String    @default("NORMAL")      // P1 | P2 | NORMAL
+  source          String    @default("manual")      // manual | auto
+
+  // 關聯客戶（選填）
+  partnerId       String?
+  partner         Partner?  @relation(fields: [partnerId], references: [id])
+
+  // 關聯專案（選填）
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id])
+
+  // 指派人（關聯內部 User）
+  assigneeId      String?
+  assignee        User?     @relation("EventAssignee", fields: [assigneeId], references: [id])
+
+  // SLA
+  slaResponseDue  DateTime?                        // 回應截止時間
+  slaResolveDue   DateTime?                        // 解決截止時間
+  slaResponseAt   DateTime?                        // 實際首次回應時間
+  slaBreached     Boolean   @default(false)         // 是否已違反 SLA
+
+  // 生命週期
+  createdBy       String                           // email
+  resolvedAt      DateTime?
+  resolvedBy      String?
+  closedAt        DateTime?
+  closedBy        String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  channels        LineEventChannel[]
+  comments        LineEventComment[]
+  labels          LineEventLabel[]
+  notifications   LineEventNotification[]
+  histories       LineEventHistory[]
+
+  @@index([status])
+  @@index([assigneeId])
+  @@index([partnerId])
+  @@index([projectId])
+  @@index([slaResolveDue])
+  @@index([slaBreached])
+  @@map("line_events")
+}
+
+// 事件狀態變更歷史
+model LineEventHistory {
+  id          String    @id @default(cuid())
+  eventId     String
+  event       LineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  action      String                           // assign | start | resolve | close | reopen | priority_change
+  fromStatus  String?
+  toStatus    String?
+  fromValue   String?                          // 用於 priority_change 等其他欄位變更
+  toValue     String?
+  note        String?                          // 附加說明（如結案回覆內容摘要）
+  byEmail     String
+  createdAt   DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([createdAt])
+  @@map("line_event_histories")
+}
+
+// 事件 ↔ 頻道（多對多，含訊息範圍）
+model LineEventChannel {
+  id              String      @id @default(cuid())
+  eventId         String
+  event           LineEvent   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  channelId       String
+  channel         LineChannel @relation(fields: [channelId], references: [id])
+  startMessageId  String?                          // 事件起始訊息 ID
+  endMessageId    String?                          // 事件結案訊息 ID
+  addedAt         DateTime    @default(now())
+  addedBy         String?
+
+  @@unique([eventId, channelId])
+  @@index([channelId])
+  @@map("line_event_channels")
+}
+
+// 事件內部備註
+model LineEventComment {
+  id          String    @id @default(cuid())
+  eventId     String
+  event       LineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  content     String    @db.Text
+  authorEmail String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([eventId])
+  @@map("line_event_comments")
+}
+
+// 事件標籤（重用 line_label_config 定義）
+model LineEventLabel {
+  id        String    @id @default(cuid())
+  eventId   String
+  event     LineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  labelId   String
+  source    String    @default("manual")           // manual | auto
+  appliedBy String?
+  appliedAt DateTime  @default(now())
+
+  @@unique([eventId, labelId])
+  @@index([eventId])
+  @@map("line_event_labels")
+}
+
+// 通知記錄（避免重複發送）
+model LineEventNotification {
+  id        String    @id @default(cuid())
+  eventId   String
+  event     LineEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  type      String    // ASSIGNED | SLA_WARNING | SLA_BREACH | NEW_MESSAGE | COMMENT | CLOSED
+  channel   String    // slack | email
+  recipient String    // email
+  sentAt    DateTime  @default(now())
+  success   Boolean   @default(true)
+
+  @@index([eventId, type])
+  @@map("line_event_notifications")
 }
 
 // ============================================

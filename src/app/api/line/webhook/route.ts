@@ -11,6 +11,7 @@ import {
 } from '@/lib/line'
 import { lineEvents } from '@/lib/line-events'
 import { normalizeLineMessage, processMessage } from '@/lib/message-pipeline'
+import { notifyReopened } from '@/lib/line-event-notifier'
 
 /**
  * LINE Webhook 端點
@@ -172,6 +173,32 @@ async function handleMessageEvent(
     where: { id: channelDbId, status: 'RESOLVED' },
     data: { status: 'OPEN' },
   })
+
+  // RESOLVED 事件重新開啟（非同步）
+  ;(async () => {
+    const resolvedEventChannels = await prisma.lineEventChannel.findMany({
+      where: {
+        channelId: channelDbId,
+        event: { status: 'RESOLVED' },
+      },
+      include: {
+        event: { select: { id: true, title: true, assigneeId: true, assignee: { select: { email: true } } } },
+        channel: { select: { channelName: true } },
+      },
+    })
+
+    for (const ec of resolvedEventChannels) {
+      await prisma.lineEvent.update({
+        where: { id: ec.event.id },
+        data: { status: 'IN_PROGRESS', resolvedAt: null, resolvedBy: null },
+      })
+      if (ec.event.assignee?.email) {
+        notifyReopened(ec.event.id, ec.event.assignee.email, ec.channel.channelName ?? undefined)
+          .catch(console.error)
+      }
+      console.log(`[webhook] Reopened event ${ec.event.id} due to new message in channel ${channelDbId}`)
+    }
+  })().catch(err => console.error('[webhook] Event reopen error:', err))
 
   // 送入 Unified Message Pipeline（非同步，不影響主流程）
   if (content && event.message.type === 'text') {

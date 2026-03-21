@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
 import { createSlackClient } from '@/lib/slack'
-import { normalizeSlackMessage, enqueueMessage } from '@/lib/message-pipeline'
+import { normalizeSlackMessage, processMessage } from '@/lib/message-pipeline'
 import { PrismaClient } from '@prisma/client'
 
 const SLACK_SIGNING_SECRET = process.env.SLACK_SIGNING_SECRET
@@ -48,10 +48,10 @@ function verifySlackSignature(
     .update(sigBasestring)
     .digest('hex')
 
-  return crypto.timingSafeEqual(
-    Buffer.from(mySignature),
-    Buffer.from(signature)
-  )
+  const myBuffer = Buffer.from(mySignature)
+  const theirBuffer = Buffer.from(signature)
+  if (myBuffer.length !== theirBuffer.length) return false
+  return crypto.timingSafeEqual(myBuffer, theirBuffer)
 }
 
 /**
@@ -60,6 +60,14 @@ function verifySlackSignature(
 export async function POST(request: NextRequest) {
   try {
     const body = await request.text()
+
+    const event: SlackEvent = JSON.parse(body)
+
+    // 處理 URL 驗證挑戰（不需驗簽章）
+    if (event.type === 'url_verification') {
+      return NextResponse.json({ challenge: event.challenge })
+    }
+
     const timestamp = request.headers.get('x-slack-request-timestamp') || ''
     const signature = request.headers.get('x-slack-signature') || ''
 
@@ -67,13 +75,6 @@ export async function POST(request: NextRequest) {
     if (!verifySlackSignature(body, timestamp, signature)) {
       console.error('Slack webhook signature verification failed')
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-    }
-
-    const event: SlackEvent = JSON.parse(body)
-
-    // 處理 URL 驗證挑戰
-    if (event.type === 'url_verification') {
-      return NextResponse.json({ challenge: event.challenge })
     }
 
     // 處理事件回調
@@ -147,7 +148,7 @@ async function processSlackEvent(
     }
 
     const message = normalizeSlackMessage(event, senderName, channelName, partnerId, eventTime)
-    await enqueueMessage(message)
+    await processMessage(message)
   })().catch(err => {
     console.error('Failed to enqueue Slack message:', err)
   })

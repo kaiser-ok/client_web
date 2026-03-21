@@ -110,7 +110,7 @@ export async function searchSimilar(
     minSimilarity?: number
   } = {}
 ): Promise<SearchResult[]> {
-  const { limit = 5, sourceType, partnerId, minSimilarity = 0.7 } = options
+  const { limit = 5, sourceType, partnerId, minSimilarity = 0.6 } = options
 
   // 生成查詢向量
   const queryEmbedding = await generateEmbedding(query)
@@ -122,13 +122,13 @@ export async function searchSimilar(
   let paramIndex = 1
 
   if (sourceType) {
-    conditions.push(`source_type = $${paramIndex}`)
+    conditions.push(`"sourceType" = $${paramIndex}`)
     params.push(sourceType)
     paramIndex++
   }
 
   if (partnerId) {
-    conditions.push(`partner_id = $${paramIndex}`)
+    conditions.push(`"partnerId" = $${paramIndex}`)
     params.push(partnerId)
     paramIndex++
   }
@@ -141,9 +141,9 @@ export async function searchSimilar(
     const results = await prisma.$queryRawUnsafe<SearchResult[]>(`
       SELECT
         id,
-        source_type as "sourceType",
-        source_id as "sourceId",
-        partner_id as "partnerId",
+        "sourceType",
+        "sourceId",
+        "partnerId",
         content,
         metadata,
         1 - (embedding <=> '${embeddingStr}'::vector) as similarity
@@ -382,4 +382,103 @@ export async function syncLineMessagesToChunks(
   }
 
   return saveDocumentChunks(chunks)
+}
+
+/**
+ * 將訂單（Deal）同步到 DocumentChunk
+ * 支援單一客戶或全部客戶
+ */
+export async function syncDealsToChunks(
+  partnerId?: string
+): Promise<{ synced: number; skipped: number }> {
+  const where: Record<string, unknown> = {}
+  if (partnerId) {
+    where.partnerId = partnerId
+  }
+
+  const deals = await prisma.deal.findMany({
+    where,
+    include: { partner: { select: { name: true } } },
+    orderBy: { closedAt: 'desc' },
+  })
+
+  if (deals.length === 0) {
+    return { synced: 0, skipped: 0 }
+  }
+
+  // 查詢已存在的 DEAL chunk，避免重複
+  const existingChunks = await prisma.documentChunk.findMany({
+    where: { sourceType: 'DEAL' },
+    select: { sourceId: true },
+  })
+  const existingIds = new Set(existingChunks.map(c => c.sourceId))
+
+  const chunks: Array<{
+    sourceType: string
+    sourceId: string
+    partnerId?: string
+    content: string
+    metadata: Record<string, unknown>
+  }> = []
+
+  for (const deal of deals) {
+    if (existingIds.has(deal.id)) continue
+
+    // 組合訂單內容為可搜尋的文本
+    const lines: string[] = [
+      `訂單：${deal.name}`,
+      `客戶：${deal.partner.name}`,
+    ]
+    if (deal.projectName) lines.push(`專案名稱：${deal.projectName}`)
+    if (deal.clientOrderRef) lines.push(`客戶參照：${deal.clientOrderRef}`)
+    if (deal.projectType) lines.push(`專案類型：${deal.projectType}`)
+    lines.push(`類型：${deal.type}`)
+    if (deal.amount) lines.push(`金額：${deal.amount}`)
+    if (deal.products) lines.push(`產品：${deal.products}`)
+    if (deal.salesRep) lines.push(`負責業務：${deal.salesRep}`)
+    lines.push(`成交日期：${deal.closedAt.toISOString().slice(0, 10)}`)
+    if (deal.startDate) lines.push(`服務開始：${deal.startDate.toISOString().slice(0, 10)}`)
+    if (deal.endDate) lines.push(`服務到期：${deal.endDate.toISOString().slice(0, 10)}`)
+    if (deal.autoRenew) lines.push(`自動續約：是`)
+    if (deal.notes) lines.push(`備註：${deal.notes}`)
+    lines.push(`來源：${deal.source}`)
+
+    // 產品明細
+    if (deal.productsJson) {
+      try {
+        const products = deal.productsJson as Array<{ name: string; quantity: number; unitPrice: number; subtotal: number }>
+        if (products.length > 0) {
+          lines.push('產品明細：')
+          for (const p of products) {
+            lines.push(`  - ${p.name}，數量 ${p.quantity}，單價 ${p.unitPrice}，小計 ${p.subtotal}`)
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    chunks.push({
+      sourceType: 'DEAL',
+      sourceId: deal.id,
+      partnerId: deal.partnerId,
+      content: lines.join('\n'),
+      metadata: {
+        dealName: deal.name,
+        partnerName: deal.partner.name,
+        amount: deal.amount?.toString(),
+        closedAt: deal.closedAt.toISOString(),
+        endDate: deal.endDate?.toISOString(),
+        type: deal.type,
+        projectType: deal.projectType,
+      },
+    })
+  }
+
+  if (chunks.length === 0) {
+    return { synced: 0, skipped: deals.length }
+  }
+
+  const count = await saveDocumentChunks(chunks)
+  return { synced: count, skipped: deals.length - chunks.length }
 }

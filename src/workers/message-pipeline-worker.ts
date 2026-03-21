@@ -5,11 +5,14 @@
 
 import { startMessagePipelineWorker, stopMessagePipelineWorker } from '../lib/message-pipeline'
 import { startLabelAnalysisWorker, stopLabelAnalysisWorker } from '../lib/line-label-analyzer'
+import { startSLAWorker, startSLACronJob, stopSLAWorker } from '../lib/line-event-sla-scheduler'
 
 console.log('[message-pipeline-worker] Starting...')
 
 const worker = startMessagePipelineWorker()
 const labelWorker = startLabelAnalysisWorker()
+const slaWorker = startSLAWorker()
+startSLACronJob().catch(err => console.error('[message-pipeline-worker] SLA cron error:', err))
 
 // Graceful shutdown
 async function shutdown(signal: string) {
@@ -17,6 +20,7 @@ async function shutdown(signal: string) {
   try {
     await stopMessagePipelineWorker()
     await stopLabelAnalysisWorker()
+    await stopSLAWorker(slaWorker)
     console.log('[message-pipeline-worker] Shutdown complete')
     process.exit(0)
   } catch (err) {
@@ -35,6 +39,10 @@ worker.on('error', (err) => {
 
 labelWorker.on('error', (err) => {
   console.error('[message-pipeline-worker] Label worker error:', err)
+})
+
+slaWorker.on('error', (err) => {
+  console.error('[message-pipeline-worker] SLA worker error:', err)
 })
 
 console.log('[message-pipeline-worker] Ready and listening for jobs')
