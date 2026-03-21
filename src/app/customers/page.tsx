@@ -62,6 +62,19 @@ export default function CustomersPage() {
   const [smartQuotationOpen, setSmartQuotationOpen] = useState(false)
   const [mergeModalOpen, setMergeModalOpen] = useState(false)
   const [mergeSourceId, setMergeSourceId] = useState<string | null>(null)
+  const [orderSearchOpen, setOrderSearchOpen] = useState(false)
+  const [orderQuery, setOrderQuery] = useState('')
+  const [orderResults, setOrderResults] = useState<Array<{
+    id: string
+    name: string
+    odooId: number | null
+    amount: number | null
+    closedAt: string
+    type: string
+    partner: { id: string; name: string }
+  }>>([])
+  const [orderSearching, setOrderSearching] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
   const [form] = Form.useForm()
   const [users, setUsers] = useState<Array<{ id: string; name: string | null; email: string }>>([])
 
@@ -100,6 +113,40 @@ export default function CustomersPage() {
       mutate()
     } catch (error) {
       message.error(error instanceof Error ? error.message : '刪除失敗')
+    }
+  }
+
+  const isOrderFormat = (value: string) => /^S\d+/i.test(value.trim())
+
+  const handleSearchInput = (value: string) => {
+    const q = value.trim()
+    if (!q) {
+      setSearch('')
+      return
+    }
+    if (isOrderFormat(q)) {
+      setOrderQuery(q)
+      setOrderResults([])
+      setOrderSearchOpen(true)
+      handleOrderSearch(q)
+    } else {
+      setSearch(q)
+      setPage(1)
+    }
+  }
+
+  const handleOrderSearch = async (value: string) => {
+    const q = value.trim()
+    if (!q) return
+    setOrderSearching(true)
+    try {
+      const res = await fetch(`/api/deals/search-by-order?order=${encodeURIComponent(q)}`)
+      const data = await res.json()
+      setOrderResults(Array.isArray(data) ? data : [])
+    } catch {
+      message.error('搜尋失敗')
+    } finally {
+      setOrderSearching(false)
     }
   }
 
@@ -250,10 +297,12 @@ export default function CustomersPage() {
             options={ROLE_OPTIONS}
           />
           <Search
-            placeholder="搜尋客戶..."
+            placeholder="搜尋客戶 或 訂單編號(S00511)..."
             allowClear
-            onSearch={setSearch}
-            style={{ width: 200 }}
+            value={searchInput}
+            onChange={e => setSearchInput(e.target.value)}
+            onSearch={handleSearchInput}
+            style={{ width: 240 }}
           />
           {can('MERGE_PARTNER') && (
             <Button
@@ -407,6 +456,74 @@ export default function CustomersPage() {
         }}
         onSuccess={() => mutate()}
       />
+
+      <Modal
+        title="訂單查客戶"
+        open={orderSearchOpen}
+        onCancel={() => setOrderSearchOpen(false)}
+        footer={null}
+        width={560}
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Search
+            placeholder="輸入訂單編號，例如 S00511"
+            allowClear
+            enterButton="搜尋"
+            value={orderQuery}
+            onChange={e => setOrderQuery(e.target.value)}
+            onSearch={(v) => { setOrderQuery(v); handleOrderSearch(v) }}
+            loading={orderSearching}
+            autoFocus
+          />
+          {orderResults.length > 0 && (
+            <Table
+              size="small"
+              dataSource={orderResults}
+              rowKey="id"
+              pagination={false}
+              columns={[
+                {
+                  title: '訂單',
+                  dataIndex: 'name',
+                  key: 'name',
+                  width: 100,
+                },
+                {
+                  title: '客戶',
+                  key: 'partner',
+                  render: (_, r) => (
+                    <a onClick={() => {
+                      router.push(`/customers/${r.partner.id}`)
+                      setOrderSearchOpen(false)
+                    }}>
+                      {r.partner.name}
+                    </a>
+                  ),
+                },
+                {
+                  title: '金額',
+                  dataIndex: 'amount',
+                  key: 'amount',
+                  width: 110,
+                  render: (v) => v != null ? `$${Number(v).toLocaleString()}` : '-',
+                },
+                {
+                  title: '日期',
+                  dataIndex: 'closedAt',
+                  key: 'closedAt',
+                  width: 100,
+                  render: (v) => v ? new Date(v).toLocaleDateString('zh-TW') : '-',
+                },
+              ]}
+            />
+          )}
+          {!orderSearching && orderQuery && orderResults.length === 0 && (
+            <div style={{ textAlign: 'center', color: '#999', padding: '16px 0' }}>
+              找不到訂單「{orderQuery}」
+            </div>
+          )}
+        </Space>
+      </Modal>
     </AppLayout>
   )
 }
