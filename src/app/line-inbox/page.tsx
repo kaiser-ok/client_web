@@ -154,6 +154,7 @@ interface TriageItem {
 const CHANNEL_STATUS: Record<string, { label: string; color: string; tagColor: string }> = {
   OPEN:        { label: '待處理', color: '#ff4d4f', tagColor: 'error' },
   IN_PROGRESS: { label: '處理中', color: '#fa8c16', tagColor: 'warning' },
+  CLEAR:       { label: '已清除', color: '#52c41a', tagColor: 'success' },
 }
 
 const TRIAGE_STATUS = {
@@ -614,7 +615,7 @@ export default function LineInboxPage() {
   const filteredChannels = channels
     .filter(c => {
       if (filterFollowUp && !c.needsFollowUp) return false
-      if (filterStatus.length > 0 && !filterStatus.includes(c.status || 'OPEN')) return false
+      if (filterStatus.length > 0 && !filterStatus.includes(c.status || 'CLEAR')) return false
       // Label filter
       if (filterLabels.length > 0) {
         const channelLabelIds = (c.labels || []).map(l => l.labelId)
@@ -629,10 +630,10 @@ export default function LineInboxPage() {
       )
     })
     .sort((a, b) => {
-      // 狀態排序：OPEN > IN_PROGRESS > RESOLVED
-      const statusOrder: Record<string, number> = { OPEN: 0, IN_PROGRESS: 1 }
-      const aOrder = statusOrder[a.status || 'OPEN'] ?? 1
-      const bOrder = statusOrder[b.status || 'OPEN'] ?? 1
+      // 狀態排序：OPEN > IN_PROGRESS > CLEAR
+      const statusOrder: Record<string, number> = { OPEN: 0, IN_PROGRESS: 1, CLEAR: 2 }
+      const aOrder = statusOrder[a.status || 'CLEAR'] ?? 2
+      const bOrder = statusOrder[b.status || 'CLEAR'] ?? 2
       if (aOrder !== bOrder) return aOrder - bOrder
       // 尚無訊息的放最後
       if (!a.lastMessageAt && !b.lastMessageAt) return 0
@@ -908,20 +909,12 @@ export default function LineInboxPage() {
                           {' · '}
                           {channel.messageCount} 則
                         </Text>
-                        {channel.status && channel.status !== 'OPEN' && (
+                        {channel.status && channel.status !== 'CLEAR' && CHANNEL_STATUS[channel.status] && (
                           <Tag
-                            color={CHANNEL_STATUS[channel.status]?.tagColor}
+                            color={CHANNEL_STATUS[channel.status].tagColor}
                             style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}
                           >
-                            {CHANNEL_STATUS[channel.status]?.label}
-                          </Tag>
-                        )}
-                        {(!channel.status || channel.status === 'OPEN') && (
-                          <Tag
-                            color="error"
-                            style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0 }}
-                          >
-                            待處理
+                            {CHANNEL_STATUS[channel.status].label}
                           </Tag>
                         )}
                       </div>

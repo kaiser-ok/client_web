@@ -182,7 +182,7 @@ export async function PUT(
               await prisma.lineChannelLabel.deleteMany({ where: { channelId } })
               await prisma.lineChannel.update({
                 where: { id: channelId },
-                data: { status: 'OPEN' },
+                data: { status: 'CLEAR' },
               })
             }
           }
