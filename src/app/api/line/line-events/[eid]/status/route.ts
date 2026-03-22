@@ -120,15 +120,19 @@ export async function PUT(
       try {
         const lineClient = createLineClient()
         const text = closeMessage.trim()
-        const staffUserId = `staff:${email}`
+        const staffUserId = `SYSTEM_${email}`
+
+        const staffUser = await prisma.user.findUnique({ where: { email }, select: { name: true } })
+        const staffDisplayName = staffUser?.name || email.split('@')[0]
 
         await prisma.lineUser.upsert({
           where: { lineUserId: staffUserId },
-          update: {},
+          update: { displayName: staffDisplayName },
           create: {
             lineUserId: staffUserId,
-            displayName: email.split('@')[0],
+            displayName: staffDisplayName,
             identityType: 'STAFF',
+            staffEmail: email,
           },
         })
 
@@ -143,7 +147,7 @@ export async function PUT(
             const msgTimestamp = new Date()
             await prisma.lineMessage.create({
               data: {
-                lineMessageId: `staff-resolve-${eid}-${ec.channel.id}-${Date.now()}`,
+                lineMessageId: `SYSTEM-resolve-${eid}-${ec.channel.id}-${Date.now()}`,
                 channelId: ec.channel.id,
                 lineUserId: staffUserId,
                 messageType: 'text',

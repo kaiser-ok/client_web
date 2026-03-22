@@ -1159,7 +1159,7 @@ export default function LineInboxPage() {
                           />
                         )}
                         <div style={{ maxWidth: '70%' }} className="line-msg-row">
-                          {!isStaff && (
+                          <div style={{ textAlign: isStaff ? 'right' : 'left' }}>
                             <Space size={4}>
                               <Text type="secondary" style={{ fontSize: 11 }}>
                                 {msg.displayName}
@@ -1173,7 +1173,7 @@ export default function LineInboxPage() {
                                 </Tag>
                               )}
                             </Space>
-                          )}
+                          </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: isStaff ? 'row-reverse' : 'row' }}>
                           <div style={{ flex: '0 1 auto', minWidth: 0 }}>
                           {hasMedia ? (

@@ -89,12 +89,13 @@ export async function POST(
 
       // 確保有對應的 LineUser 記錄（代表系統發送）
       const systemUserId = `SYSTEM_${session.user.email}`
+      const staffDisplayName = user?.name || session.user.email || 'System'
       await prisma.lineUser.upsert({
         where: { lineUserId: systemUserId },
-        update: {},
+        update: { displayName: staffDisplayName },
         create: {
           lineUserId: systemUserId,
-          displayName: user?.name || session.user.email || 'System',
+          displayName: staffDisplayName,
           identityType: 'STAFF',
           staffEmail: session.user.email,
         },
