@@ -7,7 +7,7 @@ import {
 } from 'antd'
 import {
   UserOutlined, StopOutlined, CheckCircleOutlined, DeleteOutlined,
-  CrownOutlined,
+  CrownOutlined, ToolOutlined,
 } from '@ant-design/icons'
 import { useUser } from '@/hooks/useUser'
 import { useRouter } from 'next/navigation'
@@ -24,10 +24,22 @@ interface User {
   role: string
   department: string | null
   isManager: boolean
+  skills: string | null
   active: boolean
   createdAt: string
   updatedAt: string
 }
+
+function parseSkills(raw: string | null): string[] {
+  if (!raw) return []
+  try { return JSON.parse(raw) } catch { return [] }
+}
+
+const PREDEFINED_SKILLS = [
+  '網路', '伺服器', '資安', '雲端', '客服',
+  '業務', '財務', '軟體開發', '硬體', '資料庫',
+  '虛擬化', 'Linux', 'Windows', '備份', 'AI/ML',
+]
 
 const ROLE_OPTIONS = [
   { value: 'ADMIN', label: '管理員', color: 'red' },
@@ -104,6 +116,10 @@ export default function AdminUsersPage() {
 
   const handleManagerToggle = (uid: string, val: boolean) => {
     updateUser(uid, { isManager: val }).then(ok => ok && message.success(val ? '已設為部門主管' : '已取消主管身份'))
+  }
+
+  const handleSkillsChange = (uid: string, skills: string[]) => {
+    updateUser(uid, { skills }).then(ok => ok && message.success('技能已更新'))
   }
 
   const handleDeptSave = async (uid: string) => {
@@ -245,6 +261,30 @@ export default function AdminUsersPage() {
           />
         )
       },
+    },
+    {
+      title: (
+        <Tooltip title="用於 AI 指派事件的技能配對">
+          <Space size={4}><ToolOutlined />技能 <span style={{ color: '#faad14' }}>ⓘ</span></Space>
+        </Tooltip>
+      ),
+      key: 'skills',
+      width: 220,
+      render: (_, record) => (
+        <Select
+          mode="tags"
+          size="small"
+          value={parseSkills(record.skills)}
+          onChange={val => handleSkillsChange(record.id, val)}
+          disabled={updating !== null || !record.active}
+          loading={updating === record.id}
+          options={PREDEFINED_SKILLS.map(s => ({ value: s, label: s }))}
+          placeholder="新增技能標籤"
+          style={{ width: '100%', minWidth: 160 }}
+          maxTagCount={3}
+          tokenSeparators={[',']}
+        />
+      ),
     },
     {
       title: '建立時間',

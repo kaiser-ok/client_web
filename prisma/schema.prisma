@@ -158,6 +158,7 @@ model User {
   role       String   @default("SUPPORT") // 預設角色為服務支援
   department String?                      // 部門名稱
   isManager  Boolean  @default(false)     // 部門主管
+  skills     String?                      // JSON 陣列，如 ["網路","伺服器","客服"]
   active     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

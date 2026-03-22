@@ -131,16 +131,41 @@ export async function POST(
 
     // 處理文字訊息
     const body = await request.json()
-    const { message } = body
+    const { message, mentionees } = body as {
+      message: string
+      mentionees?: Array<{ index: number; length: number; lineUserId: string }>
+    }
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
       return NextResponse.json({ error: '請輸入訊息內容' }, { status: 400 })
     }
 
+    // 組裝 LINE 文字訊息
+    let lineTextMessage: Record<string, unknown>
+
+    if (mentionees && mentionees.length > 0) {
+      // textV2 格式：用 {key} placeholder 替換 @mention，搭配 substitution map
+      // 從後往前替換，避免 index 位移
+      const sorted = [...mentionees].sort((a, b) => b.index - a.index)
+      let modifiedText = message.trim()
+      const substitution: Record<string, unknown> = {}
+
+      sorted.forEach((m, i) => {
+        const key = `m${sorted.length - 1 - i}` // m0 = 最前面的 mention
+        modifiedText = modifiedText.slice(0, m.index) + `{${key}}` + modifiedText.slice(m.index + m.length)
+        substitution[key] = {
+          type: 'mention',
+          mentionee: { type: 'user', userId: m.lineUserId },
+        }
+      })
+
+      lineTextMessage = { type: 'textV2', text: modifiedText, substitution }
+    } else {
+      lineTextMessage = { type: 'text', text: message.trim() }
+    }
+
     // 發送文字訊息
-    await lineClient.pushMessage(channel.lineChannelId, [
-      { type: 'text', text: message.trim() },
-    ])
+    await lineClient.pushMessage(channel.lineChannelId, [lineTextMessage as { type: string; [key: string]: unknown }])
 
     // 記錄發送的訊息
     const user = await prisma.user.findUnique({

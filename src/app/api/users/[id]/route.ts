@@ -11,6 +11,7 @@ const USER_SELECT = {
   role: true,
   department: true,
   isManager: true,
+  skills: true,
   active: true,
   createdAt: true,
   updatedAt: true,
@@ -26,17 +27,22 @@ export async function PUT(
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    if (session.user?.role !== 'ADMIN') {
+    const isAdmin = session.user?.role === 'ADMIN'
+    const isManagerUser = session.user?.isManager === true
+
+    if (!isAdmin && !isManagerUser) {
       return NextResponse.json({ error: '權限不足' }, { status: 403 })
     }
 
     const { id } = await params
     const body = await request.json()
-    const { role, department, isManager } = body
+    const { role, department, isManager, skills } = body
 
     const updateData: Record<string, unknown> = {}
 
+    // Only ADMIN can change role, department, isManager
     if (role !== undefined) {
+      if (!isAdmin) return NextResponse.json({ error: '權限不足' }, { status: 403 })
       const validRoles = ['ADMIN', 'SALES', 'FINANCE', 'SUPPORT', 'RD']
       if (!validRoles.includes(role)) {
         return NextResponse.json({ error: '無效的角色' }, { status: 400 })
@@ -48,11 +54,17 @@ export async function PUT(
     }
 
     if (department !== undefined) {
+      if (!isAdmin) return NextResponse.json({ error: '權限不足' }, { status: 403 })
       updateData.department = department || null
     }
 
     if (isManager !== undefined) {
+      if (!isAdmin) return NextResponse.json({ error: '權限不足' }, { status: 403 })
       updateData.isManager = Boolean(isManager)
+    }
+
+    if (skills !== undefined) {
+      updateData.skills = Array.isArray(skills) ? JSON.stringify(skills) : null
     }
 
     if (Object.keys(updateData).length === 0) {

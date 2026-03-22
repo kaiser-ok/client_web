@@ -185,6 +185,7 @@ export default function LineInboxPage() {
   const [quotingMessage, setQuotingMessage] = useState<LineMessage | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
+  const mentionActiveRef = useRef(false)
   const [filterFollowUp, setFilterFollowUp] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string[]>([])
   // Label system
@@ -208,33 +209,43 @@ export default function LineInboxPage() {
   const [staffList, setStaffList] = useState<{ id: string; name: string | null; email: string }[]>([])
   const [createEventForm] = Form.useForm()
   const [suggestedTitles, setSuggestedTitles] = useState<string[]>([])
+  const [assigneeReason, setAssigneeReason] = useState<string | null>(null)
+  const [assigneeSource, setAssigneeSource] = useState<'channel' | 'partner' | 'skill' | 'llm' | null>(null)
+  const [requiredSkills, setRequiredSkills] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
   // Derive unique users from chat messages for @mention
-  const mentionOptions = useMemo(() => {
-    const userMap = new Map<string, { displayName: string; pictureUrl: string | null; identityType: string }>()
+  const { mentionOptions, mentionUserMap } = useMemo(() => {
+    const lineUserMap = new Map<string, { displayName: string; pictureUrl: string | null; identityType: string; lineUserId: string }>()
     for (const msg of chatMessages) {
       if (msg.lineUserId.startsWith('SYSTEM_')) continue
-      if (!userMap.has(msg.lineUserId)) {
-        userMap.set(msg.lineUserId, {
+      if (!lineUserMap.has(msg.lineUserId)) {
+        lineUserMap.set(msg.lineUserId, {
           displayName: msg.displayName,
           pictureUrl: msg.pictureUrl,
           identityType: msg.identityType,
+          lineUserId: msg.lineUserId,
         })
       }
     }
-    return Array.from(userMap.values()).map(u => ({
-      value: u.displayName,
-      label: (
-        <Space>
-          <Avatar src={u.pictureUrl} size="small" icon={<UserOutlined />} />
-          <span>{u.displayName}</span>
-          <Tag color={IDENTITY_TYPES.find(t => t.value === u.identityType)?.color || 'default'} style={{ fontSize: 11 }}>
-            {IDENTITY_TYPES.find(t => t.value === u.identityType)?.label || '未知'}
-          </Tag>
-        </Space>
-      ),
-    }))
+    // displayName → lineUserId for mention parsing
+    const mentionUserMap = new Map<string, string>()
+    const options = Array.from(lineUserMap.values()).map(u => {
+      mentionUserMap.set(u.displayName, u.lineUserId)
+      return {
+        value: u.displayName,
+        label: (
+          <Space>
+            <Avatar src={u.pictureUrl} size="small" icon={<UserOutlined />} />
+            <span>{u.displayName}</span>
+            <Tag color={IDENTITY_TYPES.find(t => t.value === u.identityType)?.color || 'default'} style={{ fontSize: 11 }}>
+              {IDENTITY_TYPES.find(t => t.value === u.identityType)?.label || '未知'}
+            </Tag>
+          </Space>
+        ),
+      }
+    })
+    return { mentionOptions: options, mentionUserMap }
   }, [chatMessages])
 
   // Auto-scroll to bottom when new messages arrive
@@ -419,12 +430,26 @@ export default function LineInboxPage() {
       fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
     }
 
+    // Parse @mentions from text → LINE mentionees format
+    type Mentionee = { index: number; length: number; lineUserId: string }
+    const mentionees: Mentionee[] = []
+    for (const [displayName, lineUserId] of mentionUserMap.entries()) {
+      const tag = `@${displayName}`
+      let pos = 0
+      while (true) {
+        const idx = fullMessage.indexOf(tag, pos)
+        if (idx === -1) break
+        mentionees.push({ index: idx, length: tag.length, lineUserId })
+        pos = idx + tag.length
+      }
+    }
+
     setSending(true)
     try {
       const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: fullMessage }),
+        body: JSON.stringify({ message: fullMessage, mentionees: mentionees.length > 0 ? mentionees : undefined }),
       })
       const data = await res.json()
 
@@ -612,6 +637,9 @@ export default function LineInboxPage() {
       if (res.ok) {
         const data = await res.json()
         setSuggestedTitles(data.titles || [])
+        setAssigneeReason(data.assigneeReason || null)
+        setAssigneeSource(data.assigneeSource || null)
+        setRequiredSkills(data.requiredSkills || [])
         if (data.suggestedAssignee) {
           createEventForm.setFieldsValue({ assigneeId: data.suggestedAssignee.id })
         }
@@ -1495,8 +1523,11 @@ export default function LineInboxPage() {
                 placeholder="輸入訊息... 輸入 @ 提及用戶"
                 value={inputMessage}
                 onChange={setInputMessage}
+                onSearch={() => { mentionActiveRef.current = true }}
+                onSelect={() => { mentionActiveRef.current = false }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
+                    if (mentionActiveRef.current) return
                     e.preventDefault()
                     handleSendMessage()
                   }
@@ -1555,7 +1586,7 @@ export default function LineInboxPage() {
       <Modal
         title={<Space><CheckSquareOutlined />從訊息建立事件</Space>}
         open={createEventOpen}
-        onCancel={() => { setCreateEventOpen(false); createEventForm.resetFields(); setSuggestedTitles([]) }}
+        onCancel={() => { setCreateEventOpen(false); createEventForm.resetFields(); setSuggestedTitles([]); setAssigneeReason(null); setAssigneeSource(null); setRequiredSkills([]) }}
         onOk={() => createEventForm.submit()}
         confirmLoading={creatingEvent}
         okText="建立"
@@ -1602,12 +1633,26 @@ export default function LineInboxPage() {
               { value: 'NORMAL', label: <Tag>一般</Tag> },
             ]} />
           </Form.Item>
+          {!loadingSuggestions && requiredSkills.length > 0 && (
+            <div style={{ marginBottom: 8 }}>
+              <Text type="secondary" style={{ fontSize: 11 }}>偵測到需要技能：</Text>
+              {requiredSkills.map(s => <Tag key={s} color="purple" style={{ fontSize: 11 }}>{s}</Tag>)}
+            </div>
+          )}
           <Form.Item name="assigneeId" label={
             <Space>
               <span>指派給</span>
-              {!loadingSuggestions && suggestedTitles.length > 0 && createEventForm.getFieldValue('assigneeId') && (
-                <Tag color="green" style={{ fontSize: 10 }}>AI 建議</Tag>
-              )}
+              {!loadingSuggestions && assigneeSource && (() => {
+                const sourceMap: Record<string, { label: string; color: string }> = {
+                  channel: { label: '頻道歷史', color: 'blue' },
+                  partner: { label: '客戶歷史', color: 'cyan' },
+                  skill: { label: '技能配對', color: 'green' },
+                  llm: { label: 'AI 建議', color: 'purple' },
+                }
+                const s = sourceMap[assigneeSource]
+                return s ? <Tag color={s.color} style={{ fontSize: 10 }}>{s.label}{assigneeReason ? `：${assigneeReason}` : ''}</Tag> : null
+              })()}
+              {loadingSuggestions && <Spin size="small" />}
             </Space>
           }>
             <Select

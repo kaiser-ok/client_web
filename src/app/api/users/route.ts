@@ -10,8 +10,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    // Only admin can view all users
-    if (session.user?.role !== 'ADMIN') {
+    // ADMIN or managers can view all users
+    if (session.user?.role !== 'ADMIN' && !session.user?.isManager) {
       return NextResponse.json({ error: '權限不足' }, { status: 403 })
     }
 
@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
         role: true,
         department: true,
         isManager: true,
+        skills: true,
         active: true,
         createdAt: true,
         updatedAt: true,
