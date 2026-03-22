@@ -12,6 +12,9 @@ import {
   DEFAULT_LINE_LABEL_CONFIG,
   LINE_LABEL_CONFIG_KEY,
 } from '@/types/line-label'
+import { createLogger } from './logger'
+
+const log = createLogger('llm-label', 'llm-analysis.log')
 
 // ============================================
 // Redis Connection
@@ -116,7 +119,7 @@ export async function enqueueLabelAnalysis(channelId: string): Promise<void> {
     }
   )
 
-  console.log(`[line-label] Enqueued analysis for channel ${channelId} (delay: ${config.llmSettings.debounceSeconds}s)`)
+  log.info(`已排入分析佇列: channelId=${channelId}`, { delay: config.llmSettings.debounceSeconds })
 }
 
 // ============================================
@@ -154,7 +157,7 @@ export async function analyzeChannelLabels(channelId: string): Promise<void> {
   })
 
   if (messages.length < config.llmSettings.minMessages) {
-    console.log(`[line-label] Channel ${channelId}: only ${messages.length} messages, skipping (min: ${config.llmSettings.minMessages})`)
+    log.info(`訊息數不足，跳過分析: channelId=${channelId}`, { count: messages.length, min: config.llmSettings.minMessages })
     return
   }
 
@@ -219,6 +222,12 @@ ${messageText}
 3. confidence 表示你的信心度（0-1）
 4. 只在有明確證據時才建議標籤`
 
+  log.info(`開始 LLM 分析: channelId=${channelId}`, {
+    channelName: channel?.channelName,
+    messageCount: messages.length,
+    enabledLabels: enabledLabels.map(l => l.id),
+  })
+
   // Call LLM（使用系統預設設定）
   try {
     const content = await chatCompletion([
@@ -229,13 +238,26 @@ ${messageText}
       temperature: config.llmSettings.temperature,
     })
 
-    if (!content) return
+    if (!content) {
+      log.warn(`LLM 回應為空: channelId=${channelId}`)
+      return
+    }
+
+    log.debug(`LLM 原始回應: channelId=${channelId}`, { response: content.slice(0, 500) })
 
     const jsonMatch = content.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return
+    if (!jsonMatch) {
+      log.warn(`LLM 回應非 JSON 格式: channelId=${channelId}`, { response: content.slice(0, 200) })
+      return
+    }
 
     const suggestions: LLMLabelSuggestion = JSON.parse(jsonMatch[0])
     const threshold = config.llmSettings.autoApplyThreshold
+
+    log.info(`LLM 建議: channelId=${channelId}`, {
+      add: suggestions.add?.map(i => ({ id: i.labelId, confidence: i.confidence, reason: i.reason })),
+      remove: suggestions.remove?.map(i => ({ id: i.labelId, reason: i.reason })),
+    })
 
     // Process additions
     for (const item of suggestions.add || []) {
@@ -277,9 +299,9 @@ ${messageText}
         // 自動建立事件（P1/P2 標籤觸發）
         autoCreateEventFromLabel(channelId, item.labelId, 'llm', 'system', item.reason).catch(console.error)
 
-        console.log(`[line-label] Auto-applied label '${item.labelId}' to channel ${channelId} (confidence: ${item.confidence})`)
+        log.info(`自動套用標籤: '${item.labelId}' → channelId=${channelId}`, { confidence: item.confidence, reason: item.reason })
       } else {
-        console.log(`[line-label] Suggested label '${item.labelId}' for channel ${channelId} (confidence: ${item.confidence}, threshold: ${threshold})`)
+        log.info(`標籤建議（未自動套用）: '${item.labelId}' → channelId=${channelId}`, { confidence: item.confidence, threshold, reason: item.reason })
       }
     }
 
@@ -301,11 +323,11 @@ ${messageText}
           })
         }
 
-        console.log(`[line-label] Removed LLM label '${item.labelId}' from channel ${channelId}: ${item.reason}`)
+        log.info(`移除 LLM 標籤: '${item.labelId}' ← channelId=${channelId}`, { reason: item.reason })
       }
     }
   } catch (error) {
-    console.error(`[line-label] Analysis error for channel ${channelId}:`, error)
+    log.error(`分析失敗: channelId=${channelId}`, { error: String(error) })
   }
 }
 
@@ -321,7 +343,7 @@ export function startLabelAnalysisWorker(): Worker {
   labelWorker = new Worker(
     LABEL_QUEUE_NAME,
     async (job: Job<{ channelId: string }>) => {
-      console.log(`[line-label] Processing analysis for channel ${job.data.channelId}`)
+      log.info(`執行標籤分析: channelId=${job.data.channelId}`, { jobId: job.id })
       await analyzeChannelLabels(job.data.channelId)
     },
     {
@@ -331,14 +353,14 @@ export function startLabelAnalysisWorker(): Worker {
   )
 
   labelWorker.on('completed', (job) => {
-    console.log(`[line-label] Analysis job ${job.id} completed`)
+    log.info(`分析 Job 完成: ${job.id}`)
   })
 
   labelWorker.on('failed', (job, err) => {
-    console.error(`[line-label] Analysis job ${job?.id} failed:`, err.message)
+    log.error(`分析 Job 失敗: ${job?.id}`, { error: err.message })
   })
 
-  console.log('[line-label] Label analysis worker started')
+  log.info('LLM 標籤分析 Worker 已啟動')
   return labelWorker
 }
 
@@ -346,7 +368,7 @@ export async function stopLabelAnalysisWorker(): Promise<void> {
   if (labelWorker) {
     await labelWorker.close()
     labelWorker = null
-    console.log('[line-label] Label analysis worker stopped')
+    log.info('LLM 標籤分析 Worker 已停止')
   }
   if (labelQueue) {
     await labelQueue.close()

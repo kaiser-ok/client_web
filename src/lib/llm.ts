@@ -276,7 +276,10 @@ export async function chatCompletion(
   }
 
   const data: ChatCompletionResponse = await response.json()
-  return data.choices[0]?.message?.content || ''
+  const msg = data.choices[0]?.message
+  // reasoning model (e.g. DeepSeek-R1) 有時 content 為 null，答案在 reasoning_content
+  const content = msg?.content || (msg as Record<string, unknown>)?.reasoning_content as string || ''
+  return content
 }
 
 /**

@@ -10,6 +10,9 @@ import type { UnifiedMessage, MessagePipelineJobData } from '@/types/unified-mes
 import type { LineWebhookEvent } from './line'
 import { enqueueLabelAnalysis } from './line-label-analyzer'
 import crypto from 'crypto'
+import { createLogger } from './logger'
+
+const log = createLogger('pipeline', 'pipeline.log')
 
 // ============================================
 // Redis Connection Options
@@ -156,11 +159,18 @@ export function normalizeEmail(
 // ============================================
 
 export async function processMessage(message: UnifiedMessage): Promise<void> {
-  console.log(`[message-pipeline] Processing ${message.channel} message: ${message.channelMessageId}`)
+  log.info(`處理訊息 ${message.channel}:${message.channelMessageId}`, {
+    channel: message.channel,
+    channelId: message.channelId,
+    channelName: message.channelName,
+    sender: message.sender.displayName,
+    contentPreview: message.content?.slice(0, 80),
+  })
 
   // Resolve partnerId via centralized entity resolution service
   let partnerId = message.partnerId
   if (!partnerId) {
+    log.debug(`解析 entity: ${message.sender.displayName}`)
     const result = await resolveEntity({
       channel: message.channel as 'LINE' | 'SLACK' | 'EMAIL',
       channelUserId: message.sender.channelUserId,
@@ -171,6 +181,7 @@ export async function processMessage(message: UnifiedMessage): Promise<void> {
       messageSubject: message.subject,
     })
     partnerId = result.partnerId || undefined
+    log.debug(`Entity 解析結果: partnerId=${partnerId ?? '未找到'}`)
   }
 
   await graphitiClient.ingestMessage({
@@ -188,7 +199,7 @@ export async function processMessage(message: UnifiedMessage): Promise<void> {
     metadata: message.metadata,
   })
 
-  console.log(`[message-pipeline] Successfully ingested ${message.channel} message: ${message.channelMessageId}`)
+  log.info(`Graphiti ingestion 完成: ${message.channel}:${message.channelMessageId}`)
 
   // Trigger label analysis for LINE messages
   if (message.channel === 'LINE' && message.channelId) {
@@ -200,9 +211,10 @@ export async function processMessage(message: UnifiedMessage): Promise<void> {
       })
       if (channel) {
         await enqueueLabelAnalysis(channel.id)
+        log.debug(`已排入標籤分析佇列: channelId=${channel.id}`)
       }
     } catch (error) {
-      console.error('[message-pipeline] Failed to enqueue label analysis:', error)
+      log.error('排入標籤分析失敗', { error: String(error) })
     }
   }
 }
@@ -241,14 +253,14 @@ export function startMessagePipelineWorker(): Worker {
   })
 
   messagePipelineWorker.on('completed', (job) => {
-    console.log(`[message-pipeline] Job ${job.id} completed`)
+    log.info(`Job 完成: ${job.id}`)
   })
 
   messagePipelineWorker.on('failed', (job, err) => {
-    console.error(`[message-pipeline] Job ${job?.id} failed:`, err.message)
+    log.error(`Job 失敗: ${job?.id}`, { error: err.message })
   })
 
-  console.log('[message-pipeline] Worker started')
+  log.info('Worker 已啟動')
   return messagePipelineWorker
 }
 

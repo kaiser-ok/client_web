@@ -19,6 +19,9 @@ import {
   Popover,
   Checkbox,
   Divider,
+  Modal,
+  Form,
+  Select,
 } from 'antd'
 import {
   MessageOutlined,
@@ -43,6 +46,7 @@ import {
   CloseOutlined,
   PlusOutlined,
   CalendarOutlined,
+  CheckSquareOutlined,
 } from '@ant-design/icons'
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
@@ -196,6 +200,15 @@ export default function LineInboxPage() {
   const [triageInfo, setTriageInfo] = useState<{ analyzedChannels: number; timeRange: number } | null>(null)
   const [showTriage, setShowTriage] = useState(false)
   const [showEventsPanel, setShowEventsPanel] = useState(false)
+  // Message selection & event creation
+  const [selectionMode, setSelectionMode] = useState(false)
+  const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set())
+  const [createEventOpen, setCreateEventOpen] = useState(false)
+  const [creatingEvent, setCreatingEvent] = useState(false)
+  const [staffList, setStaffList] = useState<{ id: string; name: string | null; email: string }[]>([])
+  const [createEventForm] = Form.useForm()
+  const [suggestedTitles, setSuggestedTitles] = useState<string[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
   // Derive unique users from chat messages for @mention
   const mentionOptions = useMemo(() => {
@@ -556,7 +569,96 @@ export default function LineInboxPage() {
   useEffect(() => {
     loadChannels()
     loadLabelDefs()
+    fetch('/api/users').then(r => r.json()).then(d => setStaffList(d.users ?? d)).catch(() => {})
   }, [loadChannels, loadLabelDefs])
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false)
+    setSelectedMsgIds(new Set())
+  }
+
+  const toggleMsgSelect = (msgId: string) => {
+    setSelectedMsgIds(prev => {
+      const next = new Set(prev)
+      if (next.has(msgId)) next.delete(msgId)
+      else next.add(msgId)
+      return next
+    })
+  }
+
+  const loadAISuggestions = async () => {
+    if (!activeChannel || selectedMsgIds.size === 0) return
+    setLoadingSuggestions(true)
+    setSuggestedTitles([])
+    try {
+      const selectedMsgs = chatMessages
+        .filter(m => selectedMsgIds.has(m.id))
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+      const res = await fetch('/api/line/ai/suggest-event', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: selectedMsgs.map(m => ({
+            displayName: m.displayName,
+            content: m.content,
+            messageType: m.messageType,
+            identityType: m.identityType,
+            lineUserId: m.lineUserId,
+          })),
+          channelId: activeChannel.id,
+        }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setSuggestedTitles(data.titles || [])
+        if (data.suggestedAssignee) {
+          createEventForm.setFieldsValue({ assigneeId: data.suggestedAssignee.id })
+        }
+      }
+    } catch { /* ignore */ }
+    finally { setLoadingSuggestions(false) }
+  }
+
+  const handleCreateEventFromMessages = async (values: { title: string; priority: string; description?: string; assigneeId?: string }) => {
+    if (!activeChannel) return
+    setCreatingEvent(true)
+    try {
+      const selectedMsgs = chatMessages
+        .filter(m => selectedMsgIds.has(m.id))
+        .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+
+      const msgContext = selectedMsgs
+        .map(m => `${m.displayName}: ${m.content || `[${m.messageType}]`}`)
+        .join('\n')
+
+      const description = values.description
+        ? `${values.description}\n\n[訊息記錄]\n${msgContext}`
+        : `[訊息記錄]\n${msgContext}`
+
+      const res = await fetch('/api/line/line-events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: values.title,
+          description,
+          priority: values.priority,
+          assigneeId: values.assigneeId,
+          channelIds: [{ channelId: activeChannel.id, startMessageId: selectedMsgs[0]?.id ?? null }],
+        }),
+      })
+      if (res.ok) {
+        message.success('事件已建立')
+        createEventForm.resetFields()
+        setCreateEventOpen(false)
+        exitSelectionMode()
+      } else {
+        message.error('建立失敗')
+      }
+    } finally {
+      setCreatingEvent(false)
+    }
+  }
 
   // AI Triage
   const runTriage = async (hours = 24) => {
@@ -1107,6 +1209,13 @@ export default function LineInboxPage() {
                   onClick={() => setShowEventsPanel(v => !v)}
                 />
               </Tooltip>
+              <Tooltip title={selectionMode ? '退出選取' : '選取訊息建立事件'}>
+                <Button
+                  type={selectionMode ? 'primary' : 'text'}
+                  icon={<CheckSquareOutlined />}
+                  onClick={() => selectionMode ? exitSelectionMode() : setSelectionMode(true)}
+                />
+              </Tooltip>
               <Button
                 type="text"
                 icon={<ReloadOutlined spin={loadingChat} />}
@@ -1149,8 +1258,22 @@ export default function LineInboxPage() {
                           flexDirection: isStaff ? 'row-reverse' : 'row',
                           marginBottom: 12,
                           gap: 8,
+                          alignItems: 'flex-start',
+                          cursor: selectionMode ? 'pointer' : 'default',
+                          backgroundColor: selectionMode && selectedMsgIds.has(msg.id) ? 'rgba(0,185,0,0.08)' : undefined,
+                          borderRadius: 8,
+                          padding: selectionMode ? '4px 8px' : undefined,
                         }}
+                        onClick={selectionMode ? () => toggleMsgSelect(msg.id) : undefined}
                       >
+                        {selectionMode && (
+                          <Checkbox
+                            checked={selectedMsgIds.has(msg.id)}
+                            style={{ alignSelf: 'center', flexShrink: 0 }}
+                            onClick={e => e.stopPropagation()}
+                            onChange={() => toggleMsgSelect(msg.id)}
+                          />
+                        )}
                         {!isStaff && (
                           <Avatar
                             size={32}
@@ -1260,6 +1383,34 @@ export default function LineInboxPage() {
                 </>
               )}
             </div>
+
+            {/* Selection mode action bar */}
+            {selectionMode && (
+              <div style={{
+                padding: '8px 16px',
+                backgroundColor: selectedMsgIds.size > 0 ? '#e6f7ff' : '#fafafa',
+                borderTop: '1px solid #d9d9d9',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}>
+                <Text style={{ fontSize: 13 }}>
+                  {selectedMsgIds.size > 0 ? `已選取 ${selectedMsgIds.size} 則訊息` : '點選訊息以選取'}
+                </Text>
+                <Space>
+                  <Button size="small" onClick={exitSelectionMode}>取消</Button>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    disabled={selectedMsgIds.size === 0}
+                    onClick={() => { setCreateEventOpen(true); loadAISuggestions() }}
+                  >
+                    建立事件
+                  </Button>
+                </Space>
+              </div>
+            )}
 
             {/* Quote preview */}
             {quotingMessage && (
@@ -1400,6 +1551,90 @@ export default function LineInboxPage() {
           </div>
         )}
       </div>
+      {/* Create event from messages modal */}
+      <Modal
+        title={<Space><CheckSquareOutlined />從訊息建立事件</Space>}
+        open={createEventOpen}
+        onCancel={() => { setCreateEventOpen(false); createEventForm.resetFields(); setSuggestedTitles([]) }}
+        onOk={() => createEventForm.submit()}
+        confirmLoading={creatingEvent}
+        okText="建立"
+        cancelText="取消"
+        width={500}
+        destroyOnClose
+      >
+        <Form form={createEventForm} layout="vertical" onFinish={handleCreateEventFromMessages} style={{ marginTop: 12 }}>
+          {/* AI 建議標題 */}
+          <Form.Item label={
+            <Space>
+              <RobotOutlined style={{ color: '#1890ff' }} />
+              <span>AI 建議標題</span>
+              {loadingSuggestions && <Spin size="small" />}
+            </Space>
+          }>
+            {loadingSuggestions ? (
+              <div style={{ color: '#999', fontSize: 12 }}>AI 分析中...</div>
+            ) : suggestedTitles.length > 0 ? (
+              <Space wrap>
+                {suggestedTitles.map((t, i) => (
+                  <Tag
+                    key={i}
+                    color="blue"
+                    style={{ cursor: 'pointer', padding: '4px 8px', fontSize: 12 }}
+                    onClick={() => createEventForm.setFieldsValue({ title: t })}
+                  >
+                    {t}
+                  </Tag>
+                ))}
+              </Space>
+            ) : (
+              <Button size="small" icon={<RobotOutlined />} onClick={loadAISuggestions}>重新產生</Button>
+            )}
+          </Form.Item>
+
+          <Form.Item name="title" label="事件標題" rules={[{ required: true, message: '請輸入標題' }]}>
+            <Input placeholder="點選上方建議或自行輸入" />
+          </Form.Item>
+          <Form.Item name="priority" label="優先級" initialValue="NORMAL">
+            <Select options={[
+              { value: 'P1', label: <Tag color="red">P1 緊急</Tag> },
+              { value: 'P2', label: <Tag color="orange">P2 重要</Tag> },
+              { value: 'NORMAL', label: <Tag>一般</Tag> },
+            ]} />
+          </Form.Item>
+          <Form.Item name="assigneeId" label={
+            <Space>
+              <span>指派給</span>
+              {!loadingSuggestions && suggestedTitles.length > 0 && createEventForm.getFieldValue('assigneeId') && (
+                <Tag color="green" style={{ fontSize: 10 }}>AI 建議</Tag>
+              )}
+            </Space>
+          }>
+            <Select
+              allowClear placeholder="選擇處理人（選填）"
+              showSearch optionFilterProp="label"
+              options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
+            />
+          </Form.Item>
+          <Form.Item name="description" label="補充說明">
+            <Input.TextArea rows={2} placeholder="（選填）額外說明" />
+          </Form.Item>
+          <div style={{ background: '#f5f5f5', borderRadius: 6, padding: '8px 12px', maxHeight: 140, overflow: 'auto' }}>
+            <Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 4 }}>
+              已選取 {selectedMsgIds.size} 則訊息：
+            </Text>
+            {chatMessages
+              .filter(m => selectedMsgIds.has(m.id))
+              .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime())
+              .map(m => (
+                <div key={m.id} style={{ fontSize: 12, marginTop: 2 }}>
+                  <Text strong style={{ fontSize: 11 }}>{m.displayName}: </Text>
+                  <Text style={{ fontSize: 11 }}>{m.content || `[${m.messageType}]`}</Text>
+                </div>
+              ))}
+          </div>
+        </Form>
+      </Modal>
     </AppLayout>
   )
 }

@@ -157,7 +157,7 @@ export default function BonusReportPage() {
     {
       title: '預估業績獎金', width: 180, align: 'right' as const,
       render: (_: unknown, record: BonusRow) => (
-        <Space direction="vertical" size={0}>
+        <Space orientation="vertical" size={0}>
           <Text strong style={{ color: '#cf1322' }}>${record.bonusAmount.toLocaleString()}</Text>
           {record.confirmedBonusAmount > 0 && record.projectedBonusAmount > 0 && (
             <Text style={{ fontSize: 11, color: '#999' }}>
@@ -449,7 +449,7 @@ export default function BonusReportPage() {
                         <Text strong style={{ color: '#722ed1' }}>{allMembersTotal.toFixed(2)}</Text>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={7} align="right">
-                        <Space direction="vertical" size={0}>
+                        <Space orientation="vertical" size={0}>
                           <Text strong style={{ color: '#cf1322' }}>${totalBonus.toLocaleString()}</Text>
                           {totalConfirmedBonus > 0 && totalProjectedBonus > 0 && (
                             <Text style={{ fontSize: 11, color: '#999' }}>
