@@ -121,6 +121,21 @@ export interface ProjectInput {
   end_date?: string
 }
 
+export interface LineEventInput {
+  crm_id: string
+  title?: string
+  description?: string
+  status?: string
+  priority?: string
+  source?: string
+  organization_crm_id?: string
+  project_crm_id?: string
+  assignee_email?: string
+  created_by?: string
+  closed_at?: string
+  created_at?: string
+}
+
 export interface RelationshipInput {
   from_label: string
   from_crm_id: string
@@ -135,6 +150,7 @@ export interface Organization360Response {
   deals: Record<string, unknown>[]
   issues: Record<string, unknown>[]
   projects: Record<string, unknown>[]
+  line_events: Record<string, unknown>[]
   contacts: Record<string, unknown>[]
   parent: Record<string, unknown> | null
   subsidiaries: Record<string, unknown>[]
@@ -323,6 +339,10 @@ class GraphitiClient {
 
   async upsertProject(input: ProjectInput): Promise<{ success: boolean; crm_id: string }> {
     return this.upsertNode('project', input)
+  }
+
+  async upsertLineEvent(input: LineEventInput): Promise<{ success: boolean; crm_id: string }> {
+    return this.upsertNode('line_event', input)
   }
 
   async createRelationship(input: RelationshipInput): Promise<{ success: boolean; rel_type: string }> {

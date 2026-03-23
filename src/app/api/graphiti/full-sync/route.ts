@@ -159,6 +159,61 @@ export async function POST(request: NextRequest) {
       results.Contact = res
     }
 
+    // 6. Sync LineEvents
+    if (!modelFilter || modelFilter === 'LineEvent') {
+      const res: ModelResult = { synced: 0, failed: 0, errors: [] }
+      const events = await prisma.lineEvent.findMany({
+        include: { assignee: { select: { email: true } } },
+      })
+      for (const event of events) {
+        try {
+          await graphitiClient.upsertLineEvent({
+            crm_id: event.id,
+            title: event.title ?? undefined,
+            description: event.description ?? undefined,
+            status: event.status,
+            priority: event.priority,
+            source: event.source,
+            organization_crm_id: event.partnerId ?? undefined,
+            project_crm_id: event.projectId ?? undefined,
+            assignee_email: event.assignee?.email ?? undefined,
+            created_by: event.createdBy,
+            closed_at: event.closedAt?.toISOString(),
+            created_at: event.createdAt.toISOString(),
+          })
+          res.synced++
+        } catch (err) {
+          res.failed++
+          res.errors.push(`${event.id}: ${(err as Error).message}`)
+        }
+      }
+      results.LineEvent = res
+    }
+
+    // 7. Sync IdentityMappings (uncontacted ones only — contacted ones sync via Contact)
+    if (!modelFilter || modelFilter === 'IdentityMapping') {
+      const res: ModelResult = { synced: 0, failed: 0, errors: [] }
+      const mappings = await prisma.identityMapping.findMany({
+        where: { partnerId: { not: null }, contactId: null },
+      })
+      for (const mapping of mappings) {
+        try {
+          await graphitiClient.upsertPerson({
+            crm_id: `identity:${mapping.id}`,
+            name: mapping.displayName || `${mapping.channel} User`,
+            line_user_id: mapping.channel === 'LINE' ? mapping.channelUserId : undefined,
+            slack_user_id: mapping.channel === 'SLACK' ? mapping.channelUserId : undefined,
+            organization_crm_id: mapping.partnerId!,
+          })
+          res.synced++
+        } catch (err) {
+          res.failed++
+          res.errors.push(`${mapping.id}: ${(err as Error).message}`)
+        }
+      }
+      results.IdentityMapping = res
+    }
+
     return NextResponse.json({
       success: true,
       results,

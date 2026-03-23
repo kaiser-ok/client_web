@@ -1204,7 +1204,7 @@ export default function LineMessagesCard({ customerId }: LineMessagesCardProps) 
             </Button>
           )
         }
-        bodyStyle={{ padding: activeChannel ? 0 : 24 }}
+        styles={{ body: { padding: activeChannel ? 0 : 24 } }}
       >
         {activeChannel ? renderChatView() : renderChannelList()}
       </Card>

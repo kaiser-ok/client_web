@@ -8,6 +8,14 @@ const nextConfig = {
       bodySizeLimit: '10mb',
     },
   },
+  async rewrites() {
+    return [
+      {
+        source: '/proj_slack',
+        destination: '/api/slack/webhook',
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

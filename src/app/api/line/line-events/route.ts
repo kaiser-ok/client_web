@@ -33,11 +33,13 @@ export async function GET(request: NextRequest) {
     const projectId  = searchParams.get('projectId')
     const channelId  = searchParams.get('channelId')    // 篩選含此頻道的事件
     const slaBreached = searchParams.get('slaBreached') // true | false
+    const history    = searchParams.get('history') === 'true' // 歷史區：已結案超過72小時
     const page  = parseInt(searchParams.get('page')  ?? '1')
     const limit = parseInt(searchParams.get('limit') ?? '20')
 
+    const cutoff72h = new Date(Date.now() - 72 * 60 * 60 * 1000)
+
     const where: Record<string, unknown> = {}
-    if (status)     where.status = status
     if (priority)   where.priority = priority
     if (assigneeId) where.assigneeId = assigneeId
     if (projectId)  where.projectId = projectId
@@ -46,16 +48,30 @@ export async function GET(request: NextRequest) {
       where.channels = { some: { channelId } }
     }
 
+    if (history) {
+      // 歷史區：只顯示結案超過 72 小時的事件
+      where.status = 'CLOSED'
+      where.closedAt = { lt: cutoff72h }
+    } else {
+      // 事件管理區：排除結案超過 72 小時的事件
+      if (status === 'CLOSED') {
+        where.status = 'CLOSED'
+        where.closedAt = { gte: cutoff72h }
+      } else if (status) {
+        where.status = status
+      } else {
+        where.NOT = { AND: [{ status: 'CLOSED' }, { closedAt: { lt: cutoff72h } }] }
+      }
+    }
+
     const [total, events] = await Promise.all([
       prisma.lineEvent.count({ where }),
       prisma.lineEvent.findMany({
         where,
         include: EVENT_INCLUDE,
-        orderBy: [
-          { status: 'asc' },
-          { slaResolveDue: 'asc' },
-          { createdAt: 'desc' },
-        ],
+        orderBy: history
+          ? [{ closedAt: 'desc' }]
+          : [{ status: 'asc' }, { slaResolveDue: 'asc' }, { createdAt: 'desc' }],
         skip: (page - 1) * limit,
         take: limit,
       }),

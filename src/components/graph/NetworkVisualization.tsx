@@ -57,14 +57,7 @@ export default function NetworkVisualization({ customerId, depth }: NetworkVisua
     unmountedRef.current = false
     return () => {
       unmountedRef.current = true
-      if (graphRef.current) {
-        try {
-          graphRef.current.destroy()
-        } catch {
-          // graph already destroyed
-        }
-        graphRef.current = null
-      }
+      graphRef.current = null
     }
   }, [])
 

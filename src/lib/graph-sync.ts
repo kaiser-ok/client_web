@@ -6,7 +6,7 @@
 import { Queue, Worker, Job } from 'bullmq'
 import { PrismaClient, Prisma } from '@prisma/client'
 import { graphitiClient } from './graphiti'
-import type { OrganizationInput, DealInput, IssueInput, ProjectInput, PersonInput } from './graphiti'
+import type { OrganizationInput, DealInput, IssueInput, ProjectInput, PersonInput, LineEventInput } from './graphiti'
 
 // ============================================
 // Redis Connection Options
@@ -57,13 +57,13 @@ function getGraphSyncQueue(): Queue {
 // ============================================
 
 interface GraphSyncJobData {
-  entityType: 'Partner' | 'Deal' | 'OpenItem' | 'Project' | 'Contact'
+  entityType: 'Partner' | 'Deal' | 'OpenItem' | 'Project' | 'Contact' | 'LineEvent' | 'IdentityMapping'
   entityId: string
   operation: 'CREATE' | 'UPDATE' | 'DELETE'
 }
 
 // Models to intercept
-const SYNC_MODELS = new Set(['Partner', 'Deal', 'OpenItem', 'Project', 'Contact'])
+const SYNC_MODELS = new Set(['Partner', 'Deal', 'OpenItem', 'Project', 'Contact', 'LineEvent', 'IdentityMapping'])
 
 // Map Prisma actions to operations
 function getOperation(action: string): 'CREATE' | 'UPDATE' | 'DELETE' | null {
@@ -240,6 +240,57 @@ async function syncContactToPerson(entityId: string, prisma: PrismaClient): Prom
   await graphitiClient.upsertPerson(input)
 }
 
+async function syncLineEventToGraph(entityId: string, prisma: PrismaClient): Promise<void> {
+  const event = await prisma.lineEvent.findUnique({
+    where: { id: entityId },
+    include: { assignee: { select: { email: true } } },
+  })
+
+  if (!event) return
+
+  const input: LineEventInput = {
+    crm_id: event.id,
+    title: event.title ?? undefined,
+    description: event.description ?? undefined,
+    status: event.status,
+    priority: event.priority,
+    source: event.source,
+    organization_crm_id: event.partnerId ?? undefined,
+    project_crm_id: event.projectId ?? undefined,
+    assignee_email: (event.assignee as { email: string } | null)?.email ?? undefined,
+    created_by: event.createdBy,
+    closed_at: event.closedAt?.toISOString() ?? undefined,
+    created_at: event.createdAt.toISOString(),
+  }
+
+  await graphitiClient.upsertLineEvent(input)
+}
+
+async function syncIdentityMappingToGraph(entityId: string, prisma: PrismaClient): Promise<void> {
+  const mapping = await prisma.identityMapping.findUnique({
+    where: { id: entityId },
+  })
+
+  if (!mapping || !mapping.partnerId) return
+
+  // If there's a linked contact, re-sync it (it carries lineUserId/slackUserId)
+  if (mapping.contactId) {
+    await syncContactToPerson(mapping.contactId, prisma)
+    return
+  }
+
+  // No contact: represent the external identity as an anonymous Person node
+  const input: PersonInput = {
+    crm_id: `identity:${mapping.id}`,
+    name: mapping.displayName || `${mapping.channel} User`,
+    line_user_id: mapping.channel === 'LINE' ? mapping.channelUserId : undefined,
+    slack_user_id: mapping.channel === 'SLACK' ? mapping.channelUserId : undefined,
+    organization_crm_id: mapping.partnerId,
+  }
+
+  await graphitiClient.upsertPerson(input)
+}
+
 // ============================================
 // Worker
 // ============================================
@@ -292,6 +343,12 @@ export async function processGraphSyncJob(job: Job<GraphSyncJobData>): Promise<v
           break
         case 'Contact':
           await syncContactToPerson(entityId, prisma)
+          break
+        case 'LineEvent':
+          await syncLineEventToGraph(entityId, prisma)
+          break
+        case 'IdentityMapping':
+          await syncIdentityMappingToGraph(entityId, prisma)
           break
       }
     }

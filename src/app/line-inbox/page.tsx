@@ -47,6 +47,8 @@ import {
   PlusOutlined,
   CalendarOutlined,
   CheckSquareOutlined,
+  BellOutlined,
+  BellFilled,
 } from '@ant-design/icons'
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
@@ -142,6 +144,7 @@ interface LineMessage {
   messageType: string
   content: string | null
   mediaUrl: string | null
+  quoteToken: string | null
   timestamp: string
 }
 
@@ -213,6 +216,29 @@ export default function LineInboxPage() {
   const [assigneeSource, setAssigneeSource] = useState<'channel' | 'partner' | 'skill' | 'llm' | null>(null)
   const [requiredSkills, setRequiredSkills] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try { return localStorage.getItem('line_sound_notify') !== 'off' } catch { return true }
+  })
+
+  // Play a two-tone notification chime via Web Audio API (no external file needed)
+  const playNotificationSound = useCallback(() => {
+    try {
+      const ctx = new AudioContext()
+      const gain = ctx.createGain()
+      gain.connect(ctx.destination)
+      gain.gain.setValueAtTime(0.25, ctx.currentTime)
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5)
+      const osc = ctx.createOscillator()
+      osc.connect(gain)
+      osc.type = 'sine'
+      osc.frequency.setValueAtTime(880, ctx.currentTime)
+      osc.frequency.setValueAtTime(1100, ctx.currentTime + 0.15)
+      osc.start(ctx.currentTime)
+      osc.stop(ctx.currentTime + 0.5)
+    } catch {
+      // Browser may block AudioContext without user gesture
+    }
+  }, [])
 
   // Derive unique users from chat messages for @mention
   const { mentionOptions, mentionUserMap } = useMemo(() => {
@@ -343,6 +369,7 @@ export default function LineInboxPage() {
           })
           if (updated.size > 0) {
             setUpdatedChannelIds(prev => new Set([...prev, ...updated]))
+            if (soundEnabled) playNotificationSound()
           }
           return newChannels
         })
@@ -422,12 +449,18 @@ export default function LineInboxPage() {
   const handleSendMessage = async () => {
     if (!activeChannel || !inputMessage.trim()) return
 
-    // Build message with quote prefix
     let fullMessage = inputMessage.trim()
+
+    // 使用 LINE 原生 quoteToken；若無（自己發出的訊息或舊訊息）則 fallback 文字引用
+    let quoteToken: string | null = null
     if (quotingMessage) {
-      const quotedContent = quotingMessage.content || `[${quotingMessage.messageType}]`
-      const quotedLine = quotedContent.split('\n').map(l => `> ${l}`).join('\n')
-      fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
+      if (quotingMessage.quoteToken) {
+        quoteToken = quotingMessage.quoteToken
+      } else {
+        const quotedContent = quotingMessage.content || `[${quotingMessage.messageType}]`
+        const quotedLine = quotedContent.split('\n').map((l: string) => `> ${l}`).join('\n')
+        fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
+      }
     }
 
     // Parse @mentions from text → LINE mentionees format
@@ -449,7 +482,11 @@ export default function LineInboxPage() {
       const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: fullMessage, mentionees: mentionees.length > 0 ? mentionees : undefined }),
+        body: JSON.stringify({
+          message: fullMessage,
+          mentionees: mentionees.length > 0 ? mentionees : undefined,
+          quoteToken: quoteToken || undefined,
+        }),
       })
       const data = await res.json()
 
@@ -812,6 +849,18 @@ export default function LineInboxPage() {
                     style={showTriage ? { backgroundColor: '#00B900', borderColor: '#00B900' } : {}}
                   />
                 </Tooltip>
+                <Tooltip title={soundEnabled ? '關閉聲音通知' : '開啟聲音通知'}>
+                  <Button
+                    type="text"
+                    size="small"
+                    icon={soundEnabled ? <BellFilled style={{ color: '#1890ff' }} /> : <BellOutlined style={{ color: '#bbb' }} />}
+                    onClick={() => setSoundEnabled(v => {
+                      const next = !v
+                      try { localStorage.setItem('line_sound_notify', next ? 'on' : 'off') } catch {}
+                      return next
+                    })}
+                  />
+                </Tooltip>
                 <Button
                   type="text"
                   icon={<ReloadOutlined spin={loading} />}
@@ -1001,18 +1050,20 @@ export default function LineInboxPage() {
                     onClick={() => openChat(channel)}
                     style={{
                       padding: '12px 16px',
+                      paddingLeft: hasUpdate ? 13 : 16,
                       cursor: 'pointer',
-                      backgroundColor: isActive ? '#e6f7e6' : 'transparent',
+                      backgroundColor: isActive ? '#e6f7e6' : hasUpdate ? '#fffbe6' : 'transparent',
                       borderBottom: '1px solid #f5f5f5',
+                      borderLeft: hasUpdate ? '3px solid #faad14' : '3px solid transparent',
                       display: 'flex',
                       alignItems: 'center',
                       gap: 12,
                       transition: 'background-color 0.15s',
                     }}
-                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = '#fafafa' }}
-                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent' }}
+                    onMouseEnter={e => { if (!isActive) e.currentTarget.style.backgroundColor = hasUpdate ? '#fff3cc' : '#fafafa' }}
+                    onMouseLeave={e => { if (!isActive) e.currentTarget.style.backgroundColor = hasUpdate ? '#fffbe6' : 'transparent' }}
                   >
-                    <Badge dot={hasUpdate} offset={[-4, 4]}>
+                    <Badge dot={hasUpdate} color="#faad14" offset={[-4, 4]} styles={{ indicator: { width: 10, height: 10, boxShadow: '0 0 0 2px #fff' } }}>
                       <Avatar
                         size={44}
                         style={{ backgroundColor: '#00B900', flexShrink: 0 }}
@@ -1025,13 +1076,20 @@ export default function LineInboxPage() {
                           {channel.needsFollowUp && (
                             <FlagFilled style={{ color: '#ff4d4f', fontSize: 12, flexShrink: 0 }} />
                           )}
-                          <Text strong ellipsis style={{ maxWidth: channel.needsFollowUp ? 145 : 160 }}>
+                          <Text strong ellipsis style={{ maxWidth: channel.needsFollowUp ? 145 : 160, color: hasUpdate ? '#d46b08' : undefined }}>
                             {channel.channelName || channel.lineChannelId}
                           </Text>
                         </div>
-                        <Text type="secondary" style={{ fontSize: 11, flexShrink: 0 }}>
-                          {getChannelPreview(channel)}
-                        </Text>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+                          {hasUpdate && (
+                            <Tag color="warning" style={{ fontSize: 10, lineHeight: '16px', padding: '0 4px', margin: 0, fontWeight: 600 }}>
+                              新訊息
+                            </Tag>
+                          )}
+                          <Text type="secondary" style={{ fontSize: 11 }}>
+                            {getChannelPreview(channel)}
+                          </Text>
+                        </div>
                       </div>
                       <div style={{ marginTop: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
                         <Text type="secondary" style={{ fontSize: 12 }}>
@@ -1592,7 +1650,7 @@ export default function LineInboxPage() {
         okText="建立"
         cancelText="取消"
         width={500}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={createEventForm} layout="vertical" onFinish={handleCreateEventFromMessages} style={{ marginTop: 12 }}>
           {/* AI 建議標題 */}

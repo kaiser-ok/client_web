@@ -41,6 +41,7 @@ const CATEGORY_OPTIONS = [
 ]
 
 interface TemplateItem {
+  _key?: string
   productId?: string
   sku?: string
   productName: string
@@ -162,7 +163,7 @@ export default function QuotationTemplatesPage() {
         paymentTerms: template.paymentTerms || '',
         sortOrder: template.sortOrder || 0,
       })
-      setEditItems([...(template.items as TemplateItem[])])
+      setEditItems((template.items as TemplateItem[]).map((item, i) => ({ ...item, _key: item._key || `item-${i}-${Date.now()}` })))
     } else {
       setEditingTemplate(null)
       form.resetFields()
@@ -232,7 +233,7 @@ export default function QuotationTemplatesPage() {
   }
 
   const addEditItem = () => {
-    setEditItems(prev => [...prev, { productName: '', quantity: 1, unitPrice: 0 }])
+    setEditItems(prev => [...prev, { productName: '', quantity: 1, unitPrice: 0, _key: `item-new-${Date.now()}` }])
     setEditingProductIndex(editItems.length)
   }
 
@@ -515,7 +516,7 @@ export default function QuotationTemplatesPage() {
           <Table
             dataSource={editItems}
             columns={itemColumns}
-            rowKey={(_, index) => index?.toString() || '0'}
+            rowKey={record => record._key || record.productName}
             pagination={false}
             size="small"
             bordered

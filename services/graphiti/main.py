@@ -178,6 +178,21 @@ class ProjectNode(BaseModel):
     end_date: Optional[str] = None
 
 
+class LineEventNode(BaseModel):
+    crm_id: str
+    title: Optional[str] = None
+    description: Optional[str] = None
+    status: str = "NEW"          # NEW | IN_PROGRESS | RESOLVED | CLOSED
+    priority: str = "NORMAL"     # P1 | P2 | NORMAL
+    source: str = "manual"
+    organization_crm_id: Optional[str] = None
+    project_crm_id: Optional[str] = None
+    assignee_email: Optional[str] = None
+    created_by: Optional[str] = None
+    closed_at: Optional[str] = None
+    created_at: Optional[str] = None
+
+
 class RelationshipInput(BaseModel):
     from_label: str
     from_crm_id: str
@@ -189,7 +204,7 @@ class RelationshipInput(BaseModel):
 
 # Allowed relationship types
 ALLOWED_RELATIONSHIPS = {
-    "PARENT_OF", "HAS_DEAL", "HAS_ISSUE", "HAS_PROJECT",
+    "PARENT_OF", "HAS_DEAL", "HAS_ISSUE", "HAS_PROJECT", "HAS_LINE_EVENT",
     "BELONGS_TO", "USES_PRODUCT", "RELATED_TO", "AFFECTS_PRODUCT",
 }
 
@@ -208,6 +223,7 @@ async def _create_crm_schema(driver):
         "CREATE CONSTRAINT crm_issue_jira_key IF NOT EXISTS FOR (n:Issue) REQUIRE n.jira_key IS UNIQUE",
         "CREATE CONSTRAINT crm_product_id IF NOT EXISTS FOR (n:Product) REQUIRE n.crm_id IS UNIQUE",
         "CREATE CONSTRAINT crm_project_id IF NOT EXISTS FOR (n:Project) REQUIRE n.crm_id IS UNIQUE",
+        "CREATE CONSTRAINT crm_line_event_id IF NOT EXISTS FOR (n:LineEvent) REQUIRE n.crm_id IS UNIQUE",
     ]
     indexes = [
         "CREATE INDEX crm_org_name IF NOT EXISTS FOR (n:Organization) ON (n.name)",
@@ -216,6 +232,8 @@ async def _create_crm_schema(driver):
         "CREATE INDEX crm_issue_status IF NOT EXISTS FOR (n:Issue) ON (n.status)",
         "CREATE INDEX crm_issue_org IF NOT EXISTS FOR (n:Issue) ON (n.organization_crm_id)",
         "CREATE INDEX crm_project_org IF NOT EXISTS FOR (n:Project) ON (n.organization_crm_id)",
+        "CREATE INDEX crm_line_event_status IF NOT EXISTS FOR (n:LineEvent) ON (n.status)",
+        "CREATE INDEX crm_line_event_org IF NOT EXISTS FOR (n:LineEvent) ON (n.organization_crm_id)",
     ]
     async with driver.session() as session:
         for stmt in constraints + indexes:
@@ -859,6 +877,72 @@ async def upsert_project(node: ProjectNode):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/nodes/line_event")
+async def upsert_line_event(node: LineEventNode):
+    """MERGE LineEvent node by crm_id + auto-create HAS_LINE_EVENT from org/project"""
+    _require_crm_driver()
+    try:
+        async with neo4j_driver.session() as session:
+            result = await session.run(
+                """
+                MERGE (e:LineEvent {crm_id: $crm_id})
+                SET e.title = $title,
+                    e.description = $description,
+                    e.status = $status,
+                    e.priority = $priority,
+                    e.source = $source,
+                    e.organization_crm_id = $organization_crm_id,
+                    e.project_crm_id = $project_crm_id,
+                    e.assignee_email = $assignee_email,
+                    e.created_by = $created_by,
+                    e.closed_at = $closed_at,
+                    e.created_at = $created_at,
+                    e.updated_at = datetime()
+                RETURN e.crm_id AS crm_id
+                """,
+                crm_id=node.crm_id,
+                title=node.title,
+                description=node.description,
+                status=node.status,
+                priority=node.priority,
+                source=node.source,
+                organization_crm_id=node.organization_crm_id,
+                project_crm_id=node.project_crm_id,
+                assignee_email=node.assignee_email,
+                created_by=node.created_by,
+                closed_at=node.closed_at,
+                created_at=node.created_at,
+            )
+            record = await result.single()
+
+            if node.organization_crm_id:
+                await session.run(
+                    """
+                    MATCH (o:Organization {crm_id: $org_crm_id})
+                    MATCH (e:LineEvent {crm_id: $event_crm_id})
+                    MERGE (o)-[:HAS_LINE_EVENT]->(e)
+                    """,
+                    org_crm_id=node.organization_crm_id,
+                    event_crm_id=node.crm_id,
+                )
+
+            if node.project_crm_id:
+                await session.run(
+                    """
+                    MATCH (p:Project {crm_id: $proj_crm_id})
+                    MATCH (e:LineEvent {crm_id: $event_crm_id})
+                    MERGE (p)-[:HAS_LINE_EVENT]->(e)
+                    """,
+                    proj_crm_id=node.project_crm_id,
+                    event_crm_id=node.crm_id,
+                )
+
+        return {"success": True, "crm_id": record["crm_id"]}
+    except Exception as e:
+        logger.error(f"Error upserting line_event: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.post("/relationships")
 async def create_relationship(rel: RelationshipInput):
     """Generic relationship creation with allowlist validation"""
@@ -870,7 +954,7 @@ async def create_relationship(rel: RelationshipInput):
             detail=f"Relationship type '{rel.rel_type}' not allowed. Allowed: {sorted(ALLOWED_RELATIONSHIPS)}",
         )
 
-    allowed_labels = {"Organization", "Person", "Deal", "Issue", "Product", "Project"}
+    allowed_labels = {"Organization", "Person", "Deal", "Issue", "Product", "Project", "LineEvent"}
     if rel.from_label not in allowed_labels or rel.to_label not in allowed_labels:
         raise HTTPException(
             status_code=400,
@@ -927,6 +1011,7 @@ async def get_organization_360(crm_id: str):
                 OPTIONAL MATCH (o)-[:HAS_DEAL]->(d:Deal)
                 OPTIONAL MATCH (o)-[:HAS_ISSUE]->(i:Issue)
                 OPTIONAL MATCH (o)-[:HAS_PROJECT]->(p:Project)
+                OPTIONAL MATCH (o)-[:HAS_LINE_EVENT]->(le:LineEvent)
                 OPTIONAL MATCH (person:Person)-[:BELONGS_TO]->(o)
                 OPTIONAL MATCH (parent:Organization)-[:PARENT_OF]->(o)
                 OPTIONAL MATCH (o)-[:PARENT_OF]->(sub:Organization)
@@ -934,6 +1019,7 @@ async def get_organization_360(crm_id: str):
                        collect(DISTINCT d {.*}) AS deals,
                        collect(DISTINCT i {.*}) AS issues,
                        collect(DISTINCT p {.*}) AS projects,
+                       collect(DISTINCT le {.*}) AS line_events,
                        collect(DISTINCT person {.*}) AS contacts,
                        parent {.*} AS parent,
                        collect(DISTINCT sub {.*}) AS subsidiaries
@@ -950,6 +1036,7 @@ async def get_organization_360(crm_id: str):
                 "deals": [dict(d) for d in record["deals"] if d],
                 "issues": [dict(i) for i in record["issues"] if i],
                 "projects": [dict(p) for p in record["projects"] if p],
+                "line_events": [dict(le) for le in record["line_events"] if le],
                 "contacts": [dict(c) for c in record["contacts"] if c],
                 "parent": dict(record["parent"]) if record["parent"] else None,
                 "subsidiaries": [dict(s) for s in record["subsidiaries"] if s],

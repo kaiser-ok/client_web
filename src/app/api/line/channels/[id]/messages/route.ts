@@ -131,9 +131,10 @@ export async function POST(
 
     // 處理文字訊息
     const body = await request.json()
-    const { message, mentionees } = body as {
+    const { message, mentionees, quoteToken } = body as {
       message: string
       mentionees?: Array<{ index: number; length: number; lineUserId: string }>
+      quoteToken?: string | null
     }
 
     if (!message || typeof message !== 'string' || message.trim().length === 0) {
@@ -159,9 +160,9 @@ export async function POST(
         }
       })
 
-      lineTextMessage = { type: 'textV2', text: modifiedText, substitution }
+      lineTextMessage = { type: 'textV2', text: modifiedText, substitution, ...(quoteToken ? { quoteToken } : {}) }
     } else {
-      lineTextMessage = { type: 'text', text: message.trim() }
+      lineTextMessage = { type: 'text', text: message.trim(), ...(quoteToken ? { quoteToken } : {}) }
     }
 
     // 發送文字訊息

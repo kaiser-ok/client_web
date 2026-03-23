@@ -4,12 +4,12 @@ import { useState, useEffect, useCallback, useRef, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import {
   Table, Tag, Space, Button, Select, Input, Avatar, Typography, App,
-  Drawer, Form, Divider, Badge, Tooltip, Timeline, Empty, Spin, Modal,
+  Drawer, Form, Divider, Badge, Tooltip, Timeline, Empty, Spin, Modal, Tabs,
 } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   PlusOutlined, UserOutlined, ClockCircleOutlined, ReloadOutlined,
-  MessageOutlined, LinkOutlined,
+  MessageOutlined, LinkOutlined, HistoryOutlined,
 } from '@ant-design/icons'
 import AppLayout from '@/components/layout/AppLayout'
 import { EVENT_STATUS, EVENT_PRIORITY, LineEventData } from '@/components/line/LineEventPanel'
@@ -68,6 +68,7 @@ function LineEventsPageInner() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
+  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active')
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<string | undefined>()
@@ -103,10 +104,14 @@ function LineEventsPageInner() {
     setLoading(true)
     try {
       const params = new URLSearchParams({ page: String(p), limit: '20' })
-      if (filterStatus)    params.set('status', filterStatus)
-      if (filterPriority)  params.set('priority', filterPriority)
+      if (activeTab === 'history') {
+        params.set('history', 'true')
+      } else {
+        if (filterStatus) params.set('status', filterStatus)
+        if (filterSlaBreached !== undefined) params.set('slaBreached', String(filterSlaBreached))
+      }
+      if (filterPriority)   params.set('priority', filterPriority)
       if (filterAssigneeId) params.set('assigneeId', filterAssigneeId)
-      if (filterSlaBreached !== undefined) params.set('slaBreached', String(filterSlaBreached))
 
       const res = await fetch(`/api/line/line-events?${params}`)
       if (res.ok) {
@@ -117,7 +122,7 @@ function LineEventsPageInner() {
     } finally {
       setLoading(false)
     }
-  }, [page, filterStatus, filterPriority, filterAssigneeId, filterSlaBreached])
+  }, [page, activeTab, filterStatus, filterPriority, filterAssigneeId, filterSlaBreached])
 
   const loadStaff = useCallback(async () => {
     const res = await fetch('/api/users')
@@ -316,10 +321,12 @@ function LineEventsPageInner() {
       ),
     },
     {
-      title: 'SLA',
-      dataIndex: 'slaResolveDue',
+      title: activeTab === 'history' ? '結案時間' : 'SLA',
+      dataIndex: activeTab === 'history' ? 'closedAt' : 'slaResolveDue',
       width: 110,
-      render: (v: string | null, record) => <SLATag due={v} status={record.status} />,
+      render: (v: string | null, record) => activeTab === 'history'
+        ? (v ? <Text style={{ fontSize: 11 }} type="secondary">{dayjs(v).format('MM/DD HH:mm')}</Text> : <Text type="secondary">—</Text>)
+        : <SLATag due={v} status={record.status} />,
     },
     {
       title: '指派人',
@@ -402,28 +409,47 @@ function LineEventsPageInner() {
     <AppLayout>
       <div style={{ padding: '0 24px', height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* Page header */}
-        <div style={{ padding: '16px 0 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ padding: '16px 0 4px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Space>
             <Text strong style={{ fontSize: 18 }}>LINE 事件管理</Text>
-            <Badge count={total} overflowCount={999} color="blue" />
           </Space>
           <Space>
             <Tooltip title="重新整理">
               <Button icon={<ReloadOutlined />} onClick={() => loadEvents()} loading={loading} />
             </Tooltip>
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
-              建立事件
-            </Button>
+            {activeTab === 'active' && (
+              <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
+                建立事件
+              </Button>
+            )}
           </Space>
         </div>
 
+        {/* Tabs */}
+        <Tabs
+          activeKey={activeTab}
+          onChange={key => {
+            setActiveTab(key as 'active' | 'history')
+            setPage(1)
+            setFilterStatus(undefined)
+            setFilterSlaBreached(undefined)
+          }}
+          style={{ marginBottom: 0 }}
+          items={[
+            { key: 'active', label: <Space><Badge count={activeTab === 'active' ? total : undefined} size="small" color="blue" offset={[4, 0]}>事件管理</Badge></Space> },
+            { key: 'history', label: <Space><HistoryOutlined />歷史{activeTab === 'history' ? <Badge count={total} size="small" color="default" /> : null}</Space> },
+          ]}
+        />
+
         {/* Filters */}
         <Space wrap style={{ marginBottom: 12 }}>
-          <Select
-            allowClear placeholder="狀態篩選" style={{ width: 120 }}
-            value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1) }}
-            options={Object.entries(EVENT_STATUS).map(([k, v]) => ({ value: k, label: v.label }))}
-          />
+          {activeTab === 'active' && (
+            <Select
+              allowClear placeholder="狀態篩選" style={{ width: 120 }}
+              value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1) }}
+              options={Object.entries(EVENT_STATUS).map(([k, v]) => ({ value: k, label: v.label }))}
+            />
+          )}
           <Select
             allowClear placeholder="優先級" style={{ width: 100 }}
             value={filterPriority} onChange={v => { setFilterPriority(v); setPage(1) }}
@@ -435,15 +461,17 @@ function LineEventsPageInner() {
             value={filterAssigneeId} onChange={v => { setFilterAssigneeId(v); setPage(1) }}
             options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
           />
-          <Select
-            allowClear placeholder="SLA 狀態" style={{ width: 120 }}
-            value={filterSlaBreached === undefined ? undefined : String(filterSlaBreached)}
-            onChange={v => { setFilterSlaBreached(v === undefined ? undefined : v === 'true'); setPage(1) }}
-            options={[
-              { value: 'true', label: 'SLA 已超時' },
-              { value: 'false', label: 'SLA 正常' },
-            ]}
-          />
+          {activeTab === 'active' && (
+            <Select
+              allowClear placeholder="SLA 狀態" style={{ width: 120 }}
+              value={filterSlaBreached === undefined ? undefined : String(filterSlaBreached)}
+              onChange={v => { setFilterSlaBreached(v === undefined ? undefined : v === 'true'); setPage(1) }}
+              options={[
+                { value: 'true', label: 'SLA 已超時' },
+                { value: 'false', label: 'SLA 正常' },
+              ]}
+            />
+          )}
         </Space>
 
         {/* Table */}
@@ -479,7 +507,6 @@ function LineEventsPageInner() {
           </Space>
         }
         placement="right"
-        width={480}
         open={!!drawerEvent}
         onClose={() => setDrawerEvent(null)}
         extra={
@@ -621,7 +648,7 @@ function LineEventsPageInner() {
                     }
                     return {
                       key: h.id,
-                      dot: <ClockCircleOutlined style={{ fontSize: 11 }} />,
+                      icon: <ClockCircleOutlined style={{ fontSize: 11 }} />,
                       content: (
                         <div style={{ fontSize: 12 }}>
                           <Space size={6}>
@@ -662,7 +689,7 @@ function LineEventsPageInner() {
                   style={{ maxHeight: 300, overflowY: 'auto' }}
                   items={drawerComments.map(c => ({
                     key: c.id,
-                    dot: <ClockCircleOutlined style={{ fontSize: 12 }} />,
+                    icon: <ClockCircleOutlined style={{ fontSize: 12 }} />,
                     content: (
                       <div>
                         <Space style={{ marginBottom: 2 }}>
@@ -736,7 +763,7 @@ function LineEventsPageInner() {
         okText="建立"
         cancelText="取消"
         width={480}
-        destroyOnClose
+        destroyOnHidden
       >
         <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 12 }}>
           <Form.Item name="title" label="事件標題" rules={[{ required: true, message: '請輸入標題' }]}>
