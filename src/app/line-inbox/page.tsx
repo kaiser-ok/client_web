@@ -631,7 +631,7 @@ export default function LineInboxPage() {
   useEffect(() => {
     loadChannels()
     loadLabelDefs()
-    fetch('/api/users').then(r => r.json()).then(d => setStaffList(d.users ?? d)).catch(() => {})
+    fetch('/api/users/list').then(r => r.json()).then(d => setStaffList(Array.isArray(d) ? d : [])).catch(() => {})
   }, [loadChannels, loadLabelDefs])
 
   const exitSelectionMode = () => {
@@ -1694,7 +1694,7 @@ export default function LineInboxPage() {
           {!loadingSuggestions && requiredSkills.length > 0 && (
             <div style={{ marginBottom: 8 }}>
               <Text type="secondary" style={{ fontSize: 11 }}>偵測到需要技能：</Text>
-              {requiredSkills.map(s => <Tag key={s} color="purple" style={{ fontSize: 11 }}>{s}</Tag>)}
+              {[...new Set(requiredSkills)].map(s => <Tag key={s} color="purple" style={{ fontSize: 11 }}>{s}</Tag>)}
             </div>
           )}
           <Form.Item name="assigneeId" label={
