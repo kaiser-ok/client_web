@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Modal, Form, Input, Select, DatePicker, message } from 'antd'
+import { App, Modal, Form, Input, Select, DatePicker } from 'antd'
 import { ACTIVITY_SOURCES } from '@/constants/waiting-on'
 import { createActivity } from '@/hooks/useTimeline'
 
@@ -20,6 +20,7 @@ export default function AddActivityModal({
   onClose,
   onSuccess,
 }: AddActivityModalProps) {
+  const { message } = App.useApp()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
 
