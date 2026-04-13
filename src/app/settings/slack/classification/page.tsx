@@ -450,18 +450,10 @@ export default function SlackClassificationSettingsPage() {
     },
   ]
 
-  // 載入中或非管理員時只顯示 Modal（保持 Form 連接）
+  // 載入中或非管理員時保持 Form 連接（避免 useForm 警告）
   if (isLoading || !canAccessSlack) {
     return (
-      <>
-        <Modal
-          title={editingRule ? '編輯規則' : '新增規則'}
-          open={false}
-          destroyOnHidden={false}
-        >
-          <Form form={form} layout="vertical" preserve={false} />
-        </Modal>
-      </>
+      <Form form={form} layout="vertical" preserve={false} style={{ display: 'none' }} />
     )
   }
 

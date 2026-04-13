@@ -176,6 +176,7 @@ export default function BottomSheet({
       onClose={onClose}
       height="85%"
       destroyOnHidden={false}
+      forceRender
       extra={
         openItem && (
           <Space>

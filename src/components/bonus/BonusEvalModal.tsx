@@ -253,6 +253,25 @@ export default function BonusEvalModal({
     }))
   }, [])
 
+  const handleMemberSearch = useCallback((searchText: string, yearOffset: number, index: number) => {
+    if (!searchText) return
+    const lower = searchText.toLowerCase()
+    const matched = users.filter(u =>
+      (u.name || u.email).toLowerCase().includes(lower)
+    )
+    if (matched.length === 1) {
+      const u = matched[0]
+      setMembersByYear(prev => ({
+        ...prev,
+        [yearOffset]: (prev[yearOffset] || []).map((m, i) =>
+          i === index
+            ? { ...m, userId: u.id, userName: u.name, userEmail: u.email }
+            : m
+        ),
+      }))
+    }
+  }, [users])
+
   // Apply default allocation for a specific year
   const applyDefaultAllocation = useCallback((yearOffset: number) => {
     const yearMembers = membersByYear[yearOffset] || []
@@ -573,6 +592,7 @@ export default function BonusEvalModal({
                   <Select
                     value={val || undefined}
                     onChange={v => updateMember(yearOffset, i, 'userId', v)}
+                    onSearch={text => handleMemberSearch(text, yearOffset, i)}
                     style={{ width: '100%' }}
                     placeholder="選擇成員"
                     showSearch

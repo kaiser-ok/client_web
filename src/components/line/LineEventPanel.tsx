@@ -326,6 +326,7 @@ export default function LineEventPanel({ channelId, onNavigateToEvents }: LineEv
         okText="建立"
         cancelText="取消"
         width={480}
+        forceRender
       >
         <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 12 }}>
           <Form.Item name="title" label="事件標題" rules={[{ required: true, message: '請輸入標題' }]}>
