@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
     const allEvals = await prisma.projectBonusEval.findMany({
       where: {
         year: { lte: year },
+        project: { status: { not: 'CANCELLED' } },
         ...(statusFilter ? { status: statusFilter } : {}),
       },
       include: {
@@ -52,7 +53,7 @@ export async function GET(request: NextRequest) {
         costs: true,
         poolAllocations: true,
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { year: 'asc' },
     })
 
     // Filter evals that actually contribute to the selected year

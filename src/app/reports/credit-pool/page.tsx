@@ -359,6 +359,7 @@ export default function CreditPoolPage() {
       <Modal
         title={`設定 ${year} 年度點數池`}
         open={setupModalOpen}
+        forceRender
         onCancel={() => setSetupModalOpen(false)}
         onOk={handleSetupPool}
         confirmLoading={setupSaving}
@@ -388,6 +389,7 @@ export default function CreditPoolPage() {
       <Modal
         title="新增點數分配"
         open={allocModalOpen}
+        forceRender
         onCancel={() => setAllocModalOpen(false)}
         onOk={handleAllocate}
         confirmLoading={allocSaving}

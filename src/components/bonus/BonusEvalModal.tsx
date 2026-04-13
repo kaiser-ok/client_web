@@ -3,11 +3,12 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import {
   Modal, Form, InputNumber, Input, Select, Button, Table, Space, Collapse,
-  Slider, Card, Statistic, Row, Col, Tag, Divider, message, Popconfirm, Tabs, Alert, Switch, AutoComplete,
+  Slider, Card, Statistic, Row, Col, Tag, Divider, App, Popconfirm, Tabs, Alert, Switch, AutoComplete,
 } from 'antd'
 import {
   PlusOutlined, DeleteOutlined, DollarOutlined, PercentageOutlined,
   TrophyOutlined, CheckCircleOutlined, CloudDownloadOutlined, RollbackOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import {
   COST_CATEGORIES, MEMBER_ROLES, DEFAULT_ALLOCATION, SCORE_ADJUSTMENTS,
@@ -30,6 +31,7 @@ interface Props {
 export default function BonusEvalModal({
   open, onClose, projectId, projectName, projectType, dealAmount: initialDealAmount, dealName,
 }: Props) {
+  const { message } = App.useApp()
   const { role, can } = useUser()
   const canApproveBase = can('APPROVE_BONUS')
   const canEdit = can('EDIT_BONUS')
@@ -56,6 +58,7 @@ export default function BonusEvalModal({
   const [allocPoints, setAllocPoints] = useState<number | null>(null)
   const [allocReason, setAllocReason] = useState('')
   const [allocating, setAllocating] = useState(false)
+  const [partnerId, setPartnerId] = useState<string | null>(null)
 
   // Fetch pool info for a given year (used in direct allocation mode)
   const fetchPoolInfo = useCallback(async (year: number) => {
@@ -77,7 +80,10 @@ export default function BonusEvalModal({
     if (!open) return
     setLoading(true)
     Promise.all([
-      fetch(`/api/projects/${projectId}/bonus-eval`).then(r => r.json()),
+      fetch(`/api/projects/${projectId}/bonus-eval`).then(r => {
+        if (!r.ok) throw new Error(`bonus-eval ${r.status}: ${projectId}`)
+        return r.json()
+      }),
       fetch('/api/users').then(r => r.json()),
     ]).then(([evalRes, usersRes]) => {
       setUsers(Array.isArray(usersRes) ? usersRes : usersRes.users || [])
@@ -85,6 +91,7 @@ export default function BonusEvalModal({
       if (evalRes.eval) {
         const ev = evalRes.eval
         setEvalData(ev)
+        setPartnerId(ev.partnerId || null)
         setDealAmount(Number(ev.dealAmount))
         const loadedCosts = ev.costs.map((c: ProjectCostItem) => ({
           id: c.id,
@@ -127,6 +134,7 @@ export default function BonusEvalModal({
         if (isDirect) fetchPoolInfo(ev.year)
       } else {
         // New eval - set defaults
+        setPartnerId(evalRes.project?.partner?.id || null)
         const effectiveDealAmount = initialDealAmount || (evalRes.project?.deal?.amount ? Number(evalRes.project.deal.amount) : 0)
         // Default to direct allocation when there's no deal amount
         const defaultDirect = !effectiveDealAmount
@@ -183,7 +191,7 @@ export default function BonusEvalModal({
   }, [warrantyYears, scoreSpreadPcts, totalScore, membersByYear])
 
   const addCost = useCallback(() => {
-    setCosts(prev => [{ category: 'HARDWARE', description: '', amount: 0 }, ...prev])
+    setCosts(prev => [{ id: `_new_${Date.now()}`, category: 'HARDWARE', description: '', amount: 0 }, ...prev])
   }, [])
 
   const removeCost = useCallback((index: number) => {
@@ -209,7 +217,8 @@ export default function BonusEvalModal({
         message.info('此訂單無出貨紀錄')
         return
       }
-      const newCosts: ProjectCostItem[] = data.items.map((item: { product_name: string; qty: number; total_cost: number; date_done: string | null }) => ({
+      const newCosts: ProjectCostItem[] = data.items.map((item: { product_name: string; qty: number; total_cost: number; date_done: string | null }, i: number) => ({
+        id: `_odoo_${Date.now()}_${i}`,
         category: 'HARDWARE',
         description: `${item.product_name} x${item.qty}${item.date_done ? ` (${item.date_done})` : ''}`,
         amount: item.total_cost,
@@ -226,7 +235,7 @@ export default function BonusEvalModal({
   const addMember = useCallback((yearOffset: number) => {
     setMembersByYear(prev => ({
       ...prev,
-      [yearOffset]: [...(prev[yearOffset] || []), { userId: '', role: 'ENGINEER', yearOffset, contributionPct: 0 }],
+      [yearOffset]: [...(prev[yearOffset] || []), { id: `_new_${Date.now()}_${Math.random().toString(36).slice(2)}`, userId: '', role: 'ENGINEER', yearOffset, contributionPct: 0 }],
     }))
   }, [])
 
@@ -341,15 +350,6 @@ export default function BonusEvalModal({
   }, [membersByYear, warrantyYears])
 
   const handleSave = async (submitStatus?: string) => {
-    // Validate per-year totals
-    for (let i = 0; i < warrantyYears; i++) {
-      const { totalPct } = yearScores[i] || { totalPct: 0 }
-      const yearMembers = membersByYear[i] || []
-      if (yearMembers.length > 0 && totalPct > 100.01) {
-        message.error(`第 ${i + 1} 年成員貢獻比例合計不可超過 100%，目前為 ${totalPct.toFixed(1)}%`)
-        return
-      }
-    }
 
     setSaving(true)
     try {
@@ -539,7 +539,7 @@ export default function BonusEvalModal({
         {yearMembers.length > 0 ? (
           <Table
             dataSource={yearMembers}
-            rowKey={(_, i) => String(i)}
+            rowKey={record => record.id || `${record.userId}-${record.yearOffset}`}
             pagination={false}
             size="small"
             summary={() => {
@@ -644,7 +644,23 @@ export default function BonusEvalModal({
 
   return (
     <Modal
-      title={`專案獎金評估 - ${projectName}`}
+      title={
+        <Space>
+          <span>專案獎金評估 - {projectName}</span>
+          {partnerId && (
+            <Button
+              type="link"
+              size="small"
+              icon={<TeamOutlined />}
+              href={`/customers/${partnerId}`}
+              target="_blank"
+              style={{ padding: '0 4px' }}
+            >
+              前往客戶頁面
+            </Button>
+          )}
+        </Space>
+      }
       open={open}
       onCancel={onClose}
       width={900}
@@ -658,7 +674,7 @@ export default function BonusEvalModal({
           <Alert
             style={{ marginBottom: 16 }}
             type="info"
-            message={
+            title={
               <Space>
                 <span>分配模式：</span>
                 <Switch
@@ -680,7 +696,7 @@ export default function BonusEvalModal({
           <Alert
             style={{ marginBottom: 16 }}
             type="warning"
-            message="直接分配模式：此專案不計入業績統計，點數由 Credit Pool 直接分配"
+            title="直接分配模式：此專案不計入業績統計，點數由 Credit Pool 直接分配"
             showIcon
           />
         )}
@@ -937,20 +953,22 @@ export default function BonusEvalModal({
           {warrantyYears > 1 && scoreSpreadPcts.map((pct, i) => (
             <Col span={Math.min(4, Math.floor(18 / warrantyYears))} key={i}>
               <Form.Item label={`第 ${i + 1} 年`}>
-                <InputNumber
-                  value={pct}
-                  onChange={(v) => {
-                    const newPcts = [...scoreSpreadPcts]
-                    newPcts[i] = v || 0
-                    setScoreSpreadPcts(newPcts)
-                  }}
-                  min={0}
-                  max={100}
-                  precision={0}
-                  addonAfter="%"
-                  style={{ width: '100%' }}
-                  disabled={isReadOnly}
-                />
+                <Space.Compact style={{ width: '100%' }}>
+                  <InputNumber
+                    value={pct}
+                    onChange={(v) => {
+                      const newPcts = [...scoreSpreadPcts]
+                      newPcts[i] = v || 0
+                      setScoreSpreadPcts(newPcts)
+                    }}
+                    min={0}
+                    max={100}
+                    precision={0}
+                    style={{ width: '100%' }}
+                    disabled={isReadOnly}
+                  />
+                  <Button disabled style={{ pointerEvents: 'none', color: '#595959' }}>%</Button>
+                </Space.Compact>
               </Form.Item>
             </Col>
           ))}
@@ -1050,7 +1068,7 @@ export default function BonusEvalModal({
             children: costs.length > 0 ? (
               <Table
                 dataSource={costs}
-                rowKey={(_, i) => String(i)}
+                rowKey={record => record.id || `${record.category}-${record.description}-${record.amount}`}
                 pagination={false}
                 size="small"
                 columns={[

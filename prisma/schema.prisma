@@ -264,7 +264,9 @@ model ProjectBonusEval {
   isDirectAllocation Boolean @default(false)  // 直接分配點數（不走公式，不計入業績）
   status          String   @default("DRAFT")  // DRAFT, EVALUATED, APPROVED, PAID
   evaluatedBy     String?  // 評估人
+  evaluatedAt     DateTime?                  // 評估時間
   approvedBy      String?  // 核准人（總經理）
+  approvedAt      DateTime?                  // 核准時間
   notes           String?  @db.Text
   createdBy       String
   createdAt       DateTime @default(now())

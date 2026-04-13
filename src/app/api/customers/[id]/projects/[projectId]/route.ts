@@ -206,23 +206,31 @@ export async function DELETE(
       return NextResponse.json({ error: '專案不存在' }, { status: 404 })
     }
 
-    // 如果有關聯的活動，先解除關聯
-    if (existing._count.activities > 0) {
-      await prisma.activity.updateMany({
+    await prisma.$transaction(async (tx) => {
+      // 解除活動關聯
+      if (existing._count.activities > 0) {
+        await tx.activity.updateMany({
+          where: { projectId },
+          data: { projectId: null },
+        })
+      }
+
+      // 解除 LINE 頻道關聯
+      await tx.lineChannel.updateMany({
         where: { projectId },
         data: { projectId: null },
       })
-    }
 
-    // 解除 LINE 頻道關聯
-    await prisma.lineChannel.updateMany({
-      where: { projectId },
-      data: { projectId: null },
-    })
+      // 解除 LINE 事件關聯（預設 Restrict，需手動解除否則 FK 違規）
+      await tx.lineEvent.updateMany({
+        where: { projectId },
+        data: { projectId: null },
+      })
 
-    // 刪除專案
-    await prisma.project.delete({
-      where: { id: projectId },
+      // 刪除專案（自動 cascade 刪除 ProjectBonusEval、成員、成本、池點數分配）
+      await tx.project.delete({
+        where: { id: projectId },
+      })
     })
 
     return NextResponse.json({ success: true })

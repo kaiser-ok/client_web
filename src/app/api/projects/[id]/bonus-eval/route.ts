@@ -50,7 +50,7 @@ export async function GET(
             name: true,
             type: true,
             deal: { select: { name: true, amount: true } },
-            partner: { select: { name: true } },
+            partner: { select: { id: true, name: true } },
           },
         },
       },
@@ -62,7 +62,7 @@ export async function GET(
         where: { id: projectId },
         include: {
           deal: { select: { name: true, amount: true } },
-          partner: { select: { name: true } },
+          partner: { select: { id: true, name: true } },
         },
       })
       if (!project) {
@@ -81,6 +81,7 @@ export async function GET(
         ...eval_,
         projectName: eval_.project.name,
         partnerName: eval_.project.partner.name,
+        partnerId: eval_.project.partner.id,
         dealName: eval_.project.deal?.name,
         poolPoints: Math.round(poolPoints * 100) / 100,
         poolAllocations: eval_.poolAllocations.map(a => ({
@@ -377,16 +378,20 @@ export async function PUT(
       newStatus = 'APPROVED'
     } else if (action === 'reject' || action === 'revert') {
       newStatus = 'DRAFT'
+    } else if (action === 'evaluate') {
+      newStatus = 'EVALUATED'
     } else {
       return NextResponse.json({ error: '無效操作' }, { status: 400 })
     }
 
+    const now = new Date()
     const updated = await prisma.projectBonusEval.update({
       where: { projectId },
       data: {
         status: newStatus,
-        ...(action === 'approve' ? { approvedBy: userEmail } : {}),
-        ...(action === 'reject' || action === 'revert' ? { approvedBy: null } : {}),
+        ...(action === 'approve' ? { approvedBy: userEmail, approvedAt: now } : {}),
+        ...(action === 'evaluate' ? { evaluatedBy: userEmail, evaluatedAt: now } : {}),
+        ...(action === 'reject' || action === 'revert' ? { approvedBy: null, approvedAt: null } : {}),
       },
     })
 

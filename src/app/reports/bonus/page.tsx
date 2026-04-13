@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Card, Table, Select, InputNumber, Button, Row, Col, Statistic, Tag,
   Space, message, Popconfirm, Typography, Collapse,
@@ -77,18 +78,60 @@ interface BonusRow {
 
 export default function BonusReportPage() {
   const { can, role } = useUser()
+  const router = useRouter()
+  const searchParams = useSearchParams()
   const [year, setYear] = useState(currentYear)
   const [pointRate, setPointRate] = useState<number | null>(null)
   const [editingRate, setEditingRate] = useState(false)
 
   const canApprove = can('APPROVE_BONUS')
-  const [evalModal, setEvalModal] = useState<{ projectId: string; projectName: string } | null>(null)
+  const [evalModal, setEvalModal] = useState<{
+    projectId: string
+    projectName: string
+    projectType?: string
+    dealAmount?: number
+    dealName?: string
+  } | null>(null)
+
+  const openEvalModal = (params: NonNullable<typeof evalModal>) => {
+    setEvalModal(params)
+    const sp = new URLSearchParams(searchParams.toString())
+    sp.set('projectId', params.projectId)
+    router.replace(`?${sp.toString()}`, { scroll: false })
+  }
 
   const { data, isLoading, mutate } = useSWR(
     `/api/reports/bonus?year=${year}`,
     fetcher,
     { onSuccess: (d) => { if (pointRate === null) setPointRate(d.pointRate ?? 1000) } }
   )
+
+  const closeEvalModal = () => {
+    setEvalModal(null)
+    mutate()
+    const sp = new URLSearchParams(searchParams.toString())
+    sp.delete('projectId')
+    const qs = sp.toString()
+    router.replace(qs ? `?${qs}` : window.location.pathname, { scroll: false })
+  }
+
+  // Open modal from URL param (e.g., shared link)
+  useEffect(() => {
+    const pid = searchParams.get('projectId')
+    if (!pid || !data?.projectSummary) return
+    if (evalModal?.projectId === pid) return
+    const proj = (data.projectSummary as ProjectSummary[]).find(p => p.projectId === pid)
+    if (proj) {
+      setEvalModal({
+        projectId: proj.projectId,
+        projectName: proj.projectName,
+        projectType: proj.bonusCategory,
+        dealAmount: proj.dealAmount,
+        dealName: proj.dealName,
+      })
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, data])
 
   const handleSaveRate = async () => {
     try {
@@ -171,10 +214,22 @@ export default function BonusReportPage() {
 
   const projectColumns: TableColumnsType<ProjectSummary> = [
     {
-      title: '專案名稱', dataIndex: 'projectName', ellipsis: true,
+      title: '專案名稱', dataIndex: 'projectName', ellipsis: true, fixed: 'left', width: 200,
       render: (v: string, record: ProjectSummary) => (
         <Space size={4}>
-          <span>{v}</span>
+          <a
+            href={`?projectId=${record.projectId}`}
+            onClick={(e) => {
+              e.preventDefault()
+              openEvalModal({
+                projectId: record.projectId,
+                projectName: v,
+                projectType: record.bonusCategory,
+                dealAmount: record.dealAmount,
+                dealName: record.dealName,
+              })
+            }}
+          >{v}</a>
           {record.bonusCategory === 'RESALE' && <Tag color="orange">轉賣</Tag>}
         </Space>
       ),
@@ -225,6 +280,8 @@ export default function BonusReportPage() {
     },
     {
       title: '本年度計分', width: 120, align: 'right' as const,
+      sorter: (a: ProjectSummary, b: ProjectSummary) => a.effectiveScore - b.effectiveScore,
+      defaultSortOrder: 'descend' as const,
       render: (_: unknown, record: ProjectSummary) => {
         if (record.warrantyYears <= 1) {
           return <Text strong style={{ color: '#722ed1' }}>{record.totalScore.toFixed(2)}</Text>
@@ -393,9 +450,13 @@ export default function BonusReportPage() {
                       {
                         title: '專案', dataIndex: 'projectName', ellipsis: true,
                         render: (name: string, r: BonusRow['projects'][0]) => (
-                          <a onClick={() => setEvalModal({ projectId: r.projectId, projectName: name })}>
-                            {name}
-                          </a>
+                          <a
+                            href={`?projectId=${r.projectId}`}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              openEvalModal({ projectId: r.projectId, projectName: name })
+                            }}
+                          >{name}</a>
                         ),
                       },
                       { title: '客戶', dataIndex: 'partnerName', width: 120 },
@@ -478,6 +539,7 @@ export default function BonusReportPage() {
                   size="small"
                   loading={isLoading}
                   pagination={false}
+                  scroll={{ x: 'max-content' }}
                   expandable={{
                     expandedRowRender: (record) => (
                       <div style={{ padding: '8px 0' }}>
@@ -528,9 +590,12 @@ export default function BonusReportPage() {
       {evalModal && (
         <BonusEvalModal
           open={true}
-          onClose={() => { setEvalModal(null); mutate() }}
+          onClose={closeEvalModal}
           projectId={evalModal.projectId}
           projectName={evalModal.projectName}
+          projectType={evalModal.projectType}
+          dealAmount={evalModal.dealAmount}
+          dealName={evalModal.dealName}
         />
       )}
     </AppLayout>

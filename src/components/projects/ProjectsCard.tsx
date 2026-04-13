@@ -147,7 +147,7 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
   )
 
   // 取得作為最終用戶的專案
-  const { data: endUserProjectsData, isLoading: isLoadingEndUser } = useSWR<{ projects: EndUserProject[] }>(
+  const { data: endUserProjectsData, isLoading: isLoadingEndUser, mutate: mutateEndUser } = useSWR<{ projects: EndUserProject[] }>(
     `/api/customers/${customerId}/end-user-projects`,
     fetcher
   )
@@ -552,6 +552,21 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
     },
   ]
 
+  const handleDeleteEndUserProject = async (dealerId: string, projectId: string) => {
+    try {
+      const response = await fetch(
+        `/api/customers/${dealerId}/projects/${projectId}`,
+        { method: 'DELETE' }
+      )
+      const result = await response.json()
+      if (!response.ok) throw new Error(result.error || '刪除失敗')
+      message.success('專案已刪除')
+      mutateEndUser()
+    } catch (error) {
+      message.error(error instanceof Error ? error.message : '刪除失敗')
+    }
+  }
+
   // 作為最終用戶的專案表格欄位
   const endUserColumns: TableColumnsType<EndUserProject> = [
     {
@@ -600,6 +615,22 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
         const end = record.endDate ? dayjs(record.endDate).format('YYYY/MM') : '進行中'
         return `${start} ~ ${end}`
       },
+    },
+    {
+      title: '',
+      key: 'actions',
+      width: 50,
+      render: (_, record) => canDelete ? (
+        <Popconfirm
+          title="確定要刪除此專案？"
+          description="此專案及其所有關聯資料將被移除"
+          onConfirm={() => handleDeleteEndUserProject(record.dealerId, record.id)}
+          okText="確定"
+          cancelText="取消"
+        >
+          <Button type="text" size="small" danger icon={<DeleteOutlined />} />
+        </Popconfirm>
+      ) : null,
     },
   ]
 
