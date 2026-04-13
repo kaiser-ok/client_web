@@ -29,6 +29,118 @@ import AppLayout from '@/components/layout/AppLayout'
 const { Title, Text, Paragraph } = Typography
 const { TextArea } = Input
 
+function MarkdownRenderer({ content }: { content: string }) {
+  const lines = content.split('\n')
+  const elements: React.ReactNode[] = []
+  let i = 0
+
+  const parseInline = (text: string): React.ReactNode => {
+    // Bold + italic, bold, italic, code, then plain text
+    const parts = text.split(/(\*\*\*[^*]+\*\*\*|\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g)
+    return parts.map((part, idx) => {
+      if (part.startsWith('***') && part.endsWith('***')) return <strong key={idx}><em>{part.slice(3, -3)}</em></strong>
+      if (part.startsWith('**') && part.endsWith('**')) return <strong key={idx}>{part.slice(2, -2)}</strong>
+      if (part.startsWith('*') && part.endsWith('*')) return <em key={idx}>{part.slice(1, -1)}</em>
+      if (part.startsWith('`') && part.endsWith('`')) return <code key={idx} className="md-code">{part.slice(1, -1)}</code>
+      return part
+    })
+  }
+
+  while (i < lines.length) {
+    const line = lines[i]
+
+    // Code block
+    if (line.startsWith('```')) {
+      const lang = line.slice(3).trim()
+      const codeLines: string[] = []
+      i++
+      while (i < lines.length && !lines[i].startsWith('```')) {
+        codeLines.push(lines[i])
+        i++
+      }
+      elements.push(<pre key={i} className="md-pre"><code>{codeLines.join('\n')}</code></pre>)
+      i++
+      continue
+    }
+
+    // Table
+    if (line.includes('|') && i + 1 < lines.length && lines[i + 1].match(/^\|?[\s\-|]+\|?$/)) {
+      const headers = line.split('|').map(h => h.trim()).filter(Boolean)
+      i += 2 // skip separator
+      const rows: string[][] = []
+      while (i < lines.length && lines[i].includes('|')) {
+        rows.push(lines[i].split('|').map(c => c.trim()).filter(Boolean))
+        i++
+      }
+      elements.push(
+        <table key={i} className="md-table">
+          <thead><tr>{headers.map((h, hi) => <th key={hi}>{parseInline(h)}</th>)}</tr></thead>
+          <tbody>{rows.map((row, ri) => <tr key={ri}>{row.map((cell, ci) => <td key={ci}>{parseInline(cell)}</td>)}</tr>)}</tbody>
+        </table>
+      )
+      continue
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,6})\s+(.+)/)
+    if (headingMatch) {
+      const level = headingMatch[1].length as 1|2|3|4|5|6
+      const Tag = `h${level}` as keyof JSX.IntrinsicElements
+      elements.push(<Tag key={i} className={`md-h${level}`}>{parseInline(headingMatch[2])}</Tag>)
+      i++
+      continue
+    }
+
+    // Unordered list
+    if (line.match(/^[-*+]\s+/)) {
+      const items: string[] = []
+      while (i < lines.length && lines[i].match(/^[-*+]\s+/)) {
+        items.push(lines[i].replace(/^[-*+]\s+/, ''))
+        i++
+      }
+      elements.push(<ul key={i} className="md-ul">{items.map((item, idx) => <li key={idx}>{parseInline(item)}</li>)}</ul>)
+      continue
+    }
+
+    // Ordered list
+    if (line.match(/^\d+\.\s+/)) {
+      const items: string[] = []
+      while (i < lines.length && lines[i].match(/^\d+\.\s+/)) {
+        items.push(lines[i].replace(/^\d+\.\s+/, ''))
+        i++
+      }
+      elements.push(<ol key={i} className="md-ol">{items.map((item, idx) => <li key={idx}>{parseInline(item)}</li>)}</ol>)
+      continue
+    }
+
+    // Blockquote
+    if (line.startsWith('> ')) {
+      elements.push(<blockquote key={i} className="md-blockquote">{parseInline(line.slice(2))}</blockquote>)
+      i++
+      continue
+    }
+
+    // HR
+    if (line.match(/^[-*_]{3,}$/)) {
+      elements.push(<hr key={i} className="md-hr" />)
+      i++
+      continue
+    }
+
+    // Empty line
+    if (line.trim() === '') {
+      i++
+      continue
+    }
+
+    // Paragraph
+    elements.push(<p key={i} className="md-p">{parseInline(line)}</p>)
+    i++
+  }
+
+  return <div className="chat-markdown">{elements}</div>
+}
+
 interface Source {
   id: string
   sourceType: string
@@ -271,15 +383,19 @@ export default function ChatPage() {
                         })}
                       </Text>
                     </div>
-                    <Paragraph
-                      style={{
-                        margin: 0,
-                        whiteSpace: 'pre-wrap',
-                        color: msg.role === 'user' ? '#fff' : 'inherit',
-                      }}
-                    >
-                      {msg.content}
-                    </Paragraph>
+                    {msg.role === 'user' ? (
+                      <Paragraph
+                        style={{
+                          margin: 0,
+                          whiteSpace: 'pre-wrap',
+                          color: '#fff',
+                        }}
+                      >
+                        {msg.content}
+                      </Paragraph>
+                    ) : (
+                      <MarkdownRenderer content={msg.content} />
+                    )}
 
                     {/* Sources */}
                     {msg.sources && msg.sources.length > 0 && (

@@ -21,6 +21,7 @@ import {
   Empty,
   Segmented,
   Radio,
+  Switch,
 } from 'antd'
 import {
   AudioOutlined,
@@ -42,6 +43,7 @@ import {
   WarningOutlined,
   ArrowRightOutlined,
   EnvironmentOutlined,
+  GoogleOutlined,
 } from '@ant-design/icons'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
@@ -551,6 +553,7 @@ const VISIT_TITLE_PRESETS = [
 
 function MobileVisitView() {
   const { message } = App.useApp()
+  const { data: session } = useSession()
   const [customers, setCustomers] = useState<Customer[]>([])
   const [partnerId, setPartnerId] = useState<string | null>(null)
   const [title, setTitle] = useState('')
@@ -558,7 +561,9 @@ function MobileVisitView() {
   const [content, setContent] = useState('')
   const [eventDate, setEventDate] = useState<dayjs.Dayjs | null>(null)
   const [timeSlot, setTimeSlot] = useState<string>('AM')
+  const [syncCalendar, setSyncCalendar] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [calendarLink, setCalendarLink] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
   useEffect(() => {
@@ -571,8 +576,10 @@ function MobileVisitView() {
   const handleSave = async () => {
     if (!partnerId) { message.error('請選擇客戶'); return }
     if (!title.trim()) { message.error('請輸入拜訪主題'); return }
+    if (syncCalendar && !eventDate) { message.error('同步至 Google 日曆需要填寫拜訪日期'); return }
     setSaving(true)
     try {
+      // 1. 儲存拜訪記錄
       const res = await fetch('/api/activities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -590,14 +597,52 @@ function MobileVisitView() {
           eventDate: eventDate?.toISOString() || null,
         }),
       })
-      if (res.ok) {
-        setSaved(true)
-        message.success('拜訪記錄已儲存')
-      } else {
-        message.error('儲存失敗')
+      if (!res.ok) { message.error('儲存失敗'); return }
+
+      // 2. 同步至 Google 日曆
+      let googleLink: string | null = null
+      if (syncCalendar && eventDate) {
+        const calRes = await fetch('/api/google-calendar/events', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            title: title.trim(),
+            description: content.trim() || undefined,
+            location: location.trim() || undefined,
+            date: eventDate.toISOString(),
+            timeSlot,
+          }),
+        })
+        if (calRes.ok) {
+          const calData = await calRes.json()
+          googleLink = calData.htmlLink
+        } else {
+          const calErr = await calRes.json().catch(() => ({}))
+          if (calErr.error === 'TOKEN_EXPIRED') {
+            message.warning('拜訪已儲存，但 Google 授權已過期，請重新以 Google 帳號登入以同步日曆')
+          } else {
+            message.warning('拜訪已儲存，但 Google 日曆同步失敗')
+          }
+        }
       }
+
+      setCalendarLink(googleLink)
+      setSaved(true)
+      message.success('拜訪記錄已儲存' + (googleLink ? '，已同步至 Google 日曆' : ''))
     } catch { message.error('儲存失敗') }
     finally { setSaving(false) }
+  }
+
+  const handleReset = () => {
+    setSaved(false)
+    setTitle('')
+    setLocation('')
+    setContent('')
+    setEventDate(null)
+    setTimeSlot('AM')
+    setSyncCalendar(false)
+    setCalendarLink(null)
   }
 
   if (saved) {
@@ -605,7 +650,16 @@ function MobileVisitView() {
       <div style={{ textAlign: 'center', paddingTop: 60 }}>
         <CheckCircleOutlined style={{ fontSize: 64, color: '#52c41a', marginBottom: 16 }} />
         <Title level={4}>拜訪記錄已儲存</Title>
-        <Button type="primary" onClick={() => { setSaved(false); setTitle(''); setLocation(''); setContent(''); setEventDate(null); setTimeSlot('AM') }}>
+        {calendarLink && (
+          <div style={{ marginBottom: 16 }}>
+            <a href={calendarLink} target="_blank" rel="noreferrer">
+              <Button icon={<GoogleOutlined />} style={{ color: '#4285F4', borderColor: '#4285F4' }}>
+                在 Google 日曆中查看
+              </Button>
+            </a>
+          </div>
+        )}
+        <Button type="primary" onClick={handleReset}>
           新增另一筆
         </Button>
       </div>
@@ -613,7 +667,7 @@ function MobileVisitView() {
   }
 
   return (
-    <Space orientation="vertical" style={{ width: '100%' }} size="middle">
+    <Space direction="vertical" style={{ width: '100%' }} size="middle">
       <Select
         showSearch
         placeholder="選擇客戶 *"
@@ -660,6 +714,32 @@ function MobileVisitView() {
           { label: '全天', value: 'ALL_DAY' },
         ]}
       />
+      {/* Google 日曆同步 */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '10px 14px',
+        background: syncCalendar ? '#e6f4ff' : '#fafafa',
+        borderRadius: 8,
+        border: `1px solid ${syncCalendar ? '#91caff' : '#d9d9d9'}`,
+        transition: 'all 0.2s',
+      }}>
+        <Space>
+          <GoogleOutlined style={{ color: '#4285F4', fontSize: 18 }} />
+          <span style={{ fontWeight: 500 }}>同步至 Google 日曆</span>
+        </Space>
+        <Switch
+          checked={syncCalendar}
+          onChange={setSyncCalendar}
+          checkedChildren={<CalendarOutlined />}
+        />
+      </div>
+      {syncCalendar && !eventDate && (
+        <div style={{ color: '#ff4d4f', fontSize: 13 }}>
+          請填寫拜訪日期以建立 Google 日曆行程
+        </div>
+      )}
       <Button
         type="primary"
         block
@@ -669,7 +749,7 @@ function MobileVisitView() {
         onClick={handleSave}
         disabled={!partnerId || !title.trim()}
       >
-        儲存拜訪記錄
+        儲存拜訪記錄{syncCalendar ? ' + 同步日曆' : ''}
       </Button>
     </Space>
   )

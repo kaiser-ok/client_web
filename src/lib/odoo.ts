@@ -512,6 +512,65 @@ export const odooClient = {
       total_cost: Number(r.total_cost),
     }))
   },
+
+  /**
+   * Get serial number info from Odoo stock lot
+   * Returns sale order name, delivery date, product name, and partner name
+   */
+  async getSerialInfo(serialNo: string): Promise<{
+    serialNo: string
+    productName: string
+    saleOrderName: string | null
+    projectName: string | null
+    clientOrderRef: string | null
+    deliveryDate: string | null
+    partnerName: string | null
+  } | null> {
+    const query = `
+      SELECT
+        sl.name AS serial_no,
+        pt.name AS product_name,
+        so.name AS sale_order_name,
+        so.project_name,
+        so.client_order_ref,
+        sp.date_done AS delivery_date,
+        rp.name AS partner_name
+      FROM stock_lot sl
+      JOIN stock_move_line sml ON sml.lot_id = sl.id
+      JOIN stock_picking sp ON sml.picking_id = sp.id
+      JOIN stock_picking_type spt ON sp.picking_type_id = spt.id
+      JOIN stock_move sm ON sml.move_id = sm.id
+      LEFT JOIN sale_order_line sol ON sm.sale_line_id = sol.id
+      LEFT JOIN sale_order so ON sol.order_id = so.id
+      LEFT JOIN res_partner rp ON so.partner_id = rp.id
+      JOIN product_product pp ON sl.product_id = pp.id
+      JOIN product_template pt ON pp.product_tmpl_id = pt.id
+      WHERE sl.name = $1 AND spt.code = 'outgoing'
+      ORDER BY sp.date_done DESC
+      LIMIT 1
+    `
+    const result = await odooPool.query(query, [serialNo])
+    if (result.rows.length === 0) return null
+
+    const row = result.rows[0]
+    const parseName = (v: unknown): string => {
+      if (!v) return ''
+      if (typeof v === 'object') {
+        const o = v as Record<string, string>
+        return o.zh_TW || o.en_US || Object.values(o)[0] || ''
+      }
+      return String(v)
+    }
+    return {
+      serialNo: row.serial_no,
+      productName: parseName(row.product_name),
+      saleOrderName: row.sale_order_name || null,
+      projectName: row.project_name || null,
+      clientOrderRef: row.client_order_ref || null,
+      deliveryDate: row.delivery_date ? new Date(row.delivery_date).toISOString().slice(0, 10) : null,
+      partnerName: row.partner_name || null,
+    }
+  },
 }
 
 export default odooClient

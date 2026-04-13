@@ -189,6 +189,7 @@ export default function LineInboxPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
   const mentionActiveRef = useRef(false)
+  const isChannelSwitchRef = useRef(false)  // 切換 channel 時用 instant scroll，避免動畫
   const [filterFollowUp, setFilterFollowUp] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string[]>([])
   // Label system
@@ -277,7 +278,9 @@ export default function LineInboxPage() {
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
     if (chatMessages.length > 0 && !loadingMore) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+      const behavior = isChannelSwitchRef.current ? 'instant' : 'smooth'
+      isChannelSwitchRef.current = false
+      messagesEndRef.current?.scrollIntoView({ behavior })
     }
   }, [chatMessages, loadingMore])
 
@@ -433,6 +436,7 @@ export default function LineInboxPage() {
   }
 
   const openChat = (channel: LineChannel) => {
+    isChannelSwitchRef.current = true
     setActiveChannel(channel)
     setChatMessages([])
     setInputMessage('')
@@ -1650,7 +1654,7 @@ export default function LineInboxPage() {
         okText="建立"
         cancelText="取消"
         width={500}
-        destroyOnHidden
+        forceRender
       >
         <Form form={createEventForm} layout="vertical" onFinish={handleCreateEventFromMessages} style={{ marginTop: 12 }}>
           {/* AI 建議標題 */}

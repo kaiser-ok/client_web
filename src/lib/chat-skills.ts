@@ -5,6 +5,7 @@
 
 import { prisma } from './prisma'
 import { chatCompletion } from './llm'
+import { odooClient } from './odoo'
 
 export interface SkillResult {
   skill: string
@@ -344,6 +345,36 @@ async function overdueItems(params: { customerName?: string; partnerId?: string;
 }
 
 // ============================================================
+// Skill: serial_lookup - 設備序號查詢
+// ============================================================
+async function serialLookup(params: { serialNo: string }): Promise<SkillResult> {
+  const { serialNo } = params
+  if (!serialNo) {
+    return { skill: 'serial_lookup', data: null, summary: '請提供設備序號。' }
+  }
+
+  const info = await odooClient.getSerialInfo(serialNo.trim().toUpperCase())
+  if (!info) {
+    return {
+      skill: 'serial_lookup',
+      data: null,
+      summary: `找不到序號「${serialNo}」的出貨記錄，請確認序號是否正確。`,
+    }
+  }
+
+  const lines = [
+    `序號：${info.serialNo}`,
+    `產品：${info.productName}`,
+    `案子名稱：${info.saleOrderName || '—'}${info.projectName ? `（${info.projectName}）` : ''}`,
+    info.clientOrderRef ? `客戶參照：${info.clientOrderRef}` : '',
+    `客戶：${info.partnerName || '—'}`,
+    `出貨日期：${info.deliveryDate || '尚未出貨'}`,
+  ].filter(Boolean).join('\n')
+
+  return { skill: 'serial_lookup', data: info, summary: lines }
+}
+
+// ============================================================
 // Intent Classification - 意圖分類
 // ============================================================
 
@@ -361,7 +392,8 @@ const INTENT_SYSTEM_PROMPT = `你是一個意圖分類器。根據用戶的問�
 3. deal_summary - 訂單/營收統計。參數：year（年份）
 4. customer_activities - 查詢特定客戶的最近動態/活動記錄。參數：customerName（客戶名稱），limit（筆數）
 5. overdue_items - 查詢逾期或待處理的事項/issue。參數：customerName（客戶名稱，可選）
-6. rag - 其他問題，使用向量搜尋。
+6. serial_lookup - 查詢設備序號的出貨資訊（案子名稱、出貨日期、客戶、產品）。參數：serialNo（序號）
+7. rag - 其他問題，使用向量搜尋。
 
 回覆格式必須是純 JSON，不要有其他文字：
 {"skill": "技能名稱", "params": {參數物件}, "reasoning": "判斷原因"}
@@ -378,6 +410,12 @@ const INTENT_SYSTEM_PROMPT = `你是一個意圖分類器。根據用戶的問�
 
 用戶：有什麼逾期的案件
 回覆：{"skill": "overdue_items", "params": {}, "reasoning": "用戶詢問逾期待處理事項"}
+
+用戶：HHE0A35RZ8D 是哪個案子的
+回覆：{"skill": "serial_lookup", "params": {"serialNo": "HHE0A35RZ8D"}, "reasoning": "用戶查詢設備序號"}
+
+用戶：序號 HHE0ACAG0Q5 什麼時候出貨
+回覆：{"skill": "serial_lookup", "params": {"serialNo": "HHE0ACAG0Q5"}, "reasoning": "用戶查詢出貨時間"}
 
 用戶：VoIP 系統的技術架構是什麼
 回覆：{"skill": "rag", "params": {}, "reasoning": "技術問題需要搜尋文件"}
@@ -436,6 +474,8 @@ const SKILL_MAP: Record<string, (params: Record<string, unknown>) => Promise<Ski
   customer_activities: (p: any) => customerActivities(p),
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   overdue_items: (p: any) => overdueItems(p),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  serial_lookup: (p: any) => serialLookup(p as { serialNo: string }),
 }
 
 export async function executeSkill(skillName: string, params: Record<string, unknown>): Promise<SkillResult | null> {
