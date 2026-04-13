@@ -164,6 +164,7 @@ model User {
   updatedAt DateTime @updatedAt
 
   bonusAllocations ProjectBonusMember[]
+  bonusScoreLogs   BonusMemberScoreLog[]
   assignedEvents   LineEvent[]          @relation("EventAssignee")
 
   @@map("users")
@@ -275,6 +276,7 @@ model ProjectBonusEval {
   costs           ProjectCost[]
   members         ProjectBonusMember[]
   poolAllocations CreditPoolAllocation[]
+  scoreLogs       BonusMemberScoreLog[]
 
   @@index([year])
   @@index([status])
@@ -309,6 +311,25 @@ model ProjectBonusMember {
   @@unique([evalId, userId, yearOffset])
   @@index([userId])
   @@map("project_bonus_members")
+}
+
+model BonusMemberScoreLog {
+  id                 String           @id @default(cuid())
+  evalId             String
+  eval               ProjectBonusEval @relation(fields: [evalId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User             @relation(fields: [userId], references: [id])
+  yearOffset         Int              @default(0)
+  oldScore           Decimal          @db.Decimal(8, 2)
+  newScore           Decimal          @db.Decimal(8, 2)
+  oldContributionPct Decimal          @db.Decimal(5, 2)
+  newContributionPct Decimal          @db.Decimal(5, 2)
+  changedBy          String           // email of the editor
+  changedAt          DateTime         @default(now())
+
+  @@index([userId, changedAt])
+  @@index([evalId])
+  @@map("bonus_member_score_logs")
 }
 
 // ============================================

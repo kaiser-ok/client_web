@@ -1,7 +1,7 @@
 /**
  * GET /api/reports/bonus/monthly
- * Returns a user's credit events for a given year/month.
- * Query params: ?year=YYYY&month=M[M]&userId=xxx (userId optional; admin only)
+ * Returns credit events for a given year/month.
+ * Query params: ?year=YYYY&month=M[M]&userId=xxx|__all__ (userId optional; admin/finance/manager only)
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -21,11 +21,13 @@ export async function GET(request: NextRequest) {
   const userRole = (session.user as { role?: string })?.role
   const sessionEmail = session.user?.email
 
-  // Only ADMIN/FINANCE/MANAGER can query other users
   const canViewOthers = ['ADMIN', 'FINANCE', 'MANAGER'].includes(userRole || '')
+  const isAllMode = requestedUserId === '__all__' && userRole === 'ADMIN'
 
-  let targetUserId: string
-  if (requestedUserId && canViewOthers) {
+  let targetUserId: string | null = null
+  if (isAllMode) {
+    targetUserId = null // no filter
+  } else if (requestedUserId && canViewOthers) {
     targetUserId = requestedUserId
   } else {
     const me = await prisma.user.findUnique({ where: { email: sessionEmail! }, select: { id: true } })
@@ -36,13 +38,16 @@ export async function GET(request: NextRequest) {
   const start = new Date(year, month - 1, 1)
   const end = new Date(year, month, 1)
 
+  const userFilter = targetUserId ? { userId: targetUserId } : {}
+
   // 1. New member assignments this month
   const newAssignments = await prisma.projectBonusMember.findMany({
     where: {
-      userId: targetUserId,
+      ...userFilter,
       createdAt: { gte: start, lt: end },
     },
     include: {
+      user: { select: { id: true, name: true, email: true } },
       eval: {
         include: { project: { select: { name: true, partner: { select: { name: true } } } } },
       },
@@ -50,16 +55,17 @@ export async function GET(request: NextRequest) {
     orderBy: { createdAt: 'desc' },
   })
 
-  // 2. Evals approved this month that this user is a member of
+  // 2. Evals approved this month
   const approvedThisMonth = await prisma.projectBonusMember.findMany({
     where: {
-      userId: targetUserId,
+      ...userFilter,
       eval: {
         status: 'APPROVED',
         approvedAt: { gte: start, lt: end },
       },
     },
     include: {
+      user: { select: { id: true, name: true, email: true } },
       eval: {
         include: { project: { select: { name: true, partner: { select: { name: true } } } } },
       },
@@ -70,13 +76,14 @@ export async function GET(request: NextRequest) {
   // 3. Evals evaluated (submitted) this month
   const evaluatedThisMonth = await prisma.projectBonusMember.findMany({
     where: {
-      userId: targetUserId,
+      ...userFilter,
       eval: {
         status: 'EVALUATED',
         evaluatedAt: { gte: start, lt: end },
       },
     },
     include: {
+      user: { select: { id: true, name: true, email: true } },
       eval: {
         include: { project: { select: { name: true, partner: { select: { name: true } } } } },
       },
@@ -84,10 +91,30 @@ export async function GET(request: NextRequest) {
     orderBy: { eval: { evaluatedAt: 'desc' } },
   })
 
-  // 4. YTD summary: all confirmed + projected points for this user this year
+  // 4. Score change audit logs this month
+  const scoreChangesThisMonth = await prisma.bonusMemberScoreLog.findMany({
+    where: {
+      ...userFilter,
+      changedAt: { gte: start, lt: end },
+    },
+    include: {
+      user: { select: { id: true, name: true, email: true } },
+      eval: {
+        select: {
+          projectId: true,
+          year: true,
+          status: true,
+          project: { select: { name: true, partner: { select: { name: true } } } },
+        },
+      },
+    },
+    orderBy: { changedAt: 'desc' },
+  })
+
+  // 5. YTD summary
   const ytdMembers = await prisma.projectBonusMember.findMany({
     where: {
-      userId: targetUserId,
+      ...userFilter,
       eval: { year },
     },
     include: {
@@ -106,14 +133,14 @@ export async function GET(request: NextRequest) {
     },
   })
 
-  // Compute YTD
+  // Compute YTD (DRAFT excluded from projected)
   let ytdConfirmed = 0
   let ytdProjected = 0
   for (const m of ytdMembers) {
     const score = Number(m.score ?? 0)
     if (m.eval.status === 'APPROVED' || m.eval.status === 'PAID') {
       ytdConfirmed += score
-    } else {
+    } else if (m.eval.status !== 'DRAFT') {
       ytdProjected += score
     }
   }
@@ -121,6 +148,8 @@ export async function GET(request: NextRequest) {
   const formatMember = (m: typeof newAssignments[0], eventType: string) => ({
     eventType,
     evalId: m.evalId,
+    userId: m.userId,
+    userName: m.user.name || m.user.email,
     projectId: m.eval.projectId,
     projectName: m.eval.project.name,
     partnerName: m.eval.project.partner.name,
@@ -141,24 +170,43 @@ export async function GET(request: NextRequest) {
     ...approvedThisMonth.map(m => formatMember(m, 'APPROVED')),
     ...evaluatedThisMonth.map(m => formatMember(m, 'EVALUATED')),
     ...newAssignments.map(m => formatMember(m, 'ASSIGNED')),
+    ...scoreChangesThisMonth.map(log => ({
+      eventType: 'SCORE_CHANGED',
+      evalId: log.evalId,
+      userId: log.userId,
+      userName: log.user.name || log.user.email,
+      projectId: log.eval.projectId,
+      projectName: log.eval.project.name,
+      partnerName: log.eval.project.partner.name,
+      role: '',
+      yearOffset: log.yearOffset,
+      contributionPct: Number(log.newContributionPct),
+      score: Number(log.newScore),
+      oldScore: Number(log.oldScore),
+      oldContributionPct: Number(log.oldContributionPct),
+      evalStatus: log.eval.status,
+      evalYear: log.eval.year,
+      eventDate: log.changedAt,
+      changedBy: log.changedBy,
+    })),
   ]
 
-  // Deduplicate by evalId+eventType (a record may appear in multiple queries if assigned+approved same month)
+  // Deduplicate by userId+evalId+eventType
   const seen = new Set<string>()
   const uniqueEvents = events.filter(e => {
-    const key = `${e.evalId}:${e.eventType}`
+    const key = `${e.userId}:${e.evalId}:${e.eventType}`
     if (seen.has(key)) return false
     seen.add(key)
     return true
   })
 
-  // Sort by eventDate desc
   uniqueEvents.sort((a, b) => new Date(b.eventDate!).getTime() - new Date(a.eventDate!).getTime())
 
   return NextResponse.json({
     year,
     month,
-    userId: targetUserId,
+    userId: targetUserId ?? '__all__',
+    isAllMode,
     events: uniqueEvents,
     ytd: {
       confirmed: ytdConfirmed,

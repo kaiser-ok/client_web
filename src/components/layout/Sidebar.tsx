@@ -26,6 +26,7 @@ import {
   AudioOutlined,
   BankOutlined,
   AlertOutlined,
+  BarChartOutlined,
 } from '@ant-design/icons'
 import { usePathname, useRouter } from 'next/navigation'
 import { useUser } from '@/hooks/useUser'
@@ -195,6 +196,11 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
                   key: '/reports/bonus',
                   icon: <TrophyOutlined />,
                   label: '專案點數',
+                },
+                {
+                  key: '/reports/bonus/monthly',
+                  icon: <BarChartOutlined />,
+                  label: '月度點數',
                 },
               ]
             : []),

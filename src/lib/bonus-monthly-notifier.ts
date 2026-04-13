@@ -302,6 +302,28 @@ export function generateMonthlyReportHTML(report: UserMonthlyReport, baseUrl: st
 </html>`
 }
 
+// ── PDF generation ───────────────────────────────────────
+
+export async function generateReportPDF(html: string): Promise<Buffer> {
+  const puppeteer = await import('puppeteer')
+  const browser = await puppeteer.default.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
+  try {
+    const page = await browser.newPage()
+    await page.setContent(html, { waitUntil: 'networkidle0' })
+    const pdf = await page.pdf({
+      format: 'A4',
+      margin: { top: '16mm', bottom: '16mm', left: '16mm', right: '16mm' },
+      printBackground: true,
+    })
+    return Buffer.from(pdf)
+  } finally {
+    await browser.close()
+  }
+}
+
 // ── Send logic ───────────────────────────────────────────
 
 export async function sendMonthlyReports(year: number, month: number): Promise<{ sent: number; skipped: number; errors: number }> {
@@ -335,10 +357,16 @@ export async function sendMonthlyReports(year: number, month: number): Promise<{
       }
 
       const html = generateMonthlyReportHTML(report, baseUrl)
+      const pdfBuffer = await generateReportPDF(html)
       const result = await sendEmail({
         to: [report.userEmail],
         subject: `[點數報表] ${year}年${month}月 專案點數變動摘要`,
         html,
+        attachments: [{
+          filename: `點數報表_${year}年${month}月.pdf`,
+          content: pdfBuffer,
+          contentType: 'application/pdf',
+        }],
       }, gmailConfig)
 
       if (result.success) {

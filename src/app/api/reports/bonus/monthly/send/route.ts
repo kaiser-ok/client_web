@@ -14,6 +14,7 @@ import {
   sendMonthlyReports,
   buildUserReport,
   generateMonthlyReportHTML,
+  generateReportPDF,
 } from '@/lib/bonus-monthly-notifier'
 import { sendEmail } from '@/lib/email-sender'
 import type { GmailConfig } from '@/types/gmail'
@@ -46,10 +47,16 @@ export async function POST(request: NextRequest) {
     const report = await buildUserReport(userId, year, month)
     if (!report) return NextResponse.json({ error: '找不到使用者' }, { status: 404 })
     const html = generateMonthlyReportHTML(report, baseUrl)
+    const pdfBuffer = await generateReportPDF(html)
     const result = await sendEmail({
       to: [report.userEmail],
       subject: `[點數報表] ${year}年${month}月 專案點數變動摘要`,
       html,
+      attachments: [{
+        filename: `點數報表_${year}年${month}月.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      }],
     }, gmailConfig)
     return NextResponse.json(result)
   }

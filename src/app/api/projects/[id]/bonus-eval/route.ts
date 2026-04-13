@@ -202,6 +202,8 @@ export async function POST(
       where: { projectId },
     })
 
+    const now = new Date()
+    const newStatus = status || 'DRAFT'
     const evalData = {
       year: year || new Date().getFullYear(),
       bonusCategory,
@@ -217,7 +219,15 @@ export async function POST(
       warrantyYears,
       scoreSpreadPcts: scoreSpreadPcts || (warrantyYears === 1 ? [100] : null),
       notes: notes || null,
-      status: status || 'DRAFT',
+      status: newStatus,
+      // Set evaluatedAt when transitioning to EVALUATED
+      ...(newStatus === 'EVALUATED' && existing?.status !== 'EVALUATED'
+        ? { evaluatedAt: now, evaluatedBy: userEmail }
+        : {}),
+      // Clear evaluatedAt when reverting to DRAFT
+      ...(newStatus === 'DRAFT' && existing?.status === 'EVALUATED'
+        ? { evaluatedAt: null, evaluatedBy: null }
+        : {}),
     }
 
     let eval_
@@ -248,10 +258,17 @@ export async function POST(
           })
         }
 
+        // Snapshot existing members before replace (for audit log)
+        const oldMembers = await tx.projectBonusMember.findMany({
+          where: { evalId: updated.id },
+          select: { userId: true, yearOffset: true, score: true, contributionPct: true },
+        })
+        const oldMap = new Map(oldMembers.map(m => [`${m.userId}:${m.yearOffset}`, m]))
+
         // Replace members
         await tx.projectBonusMember.deleteMany({ where: { evalId: updated.id } })
+        const spreadPcts = scoreSpreadPcts || [100]
         if (members.length > 0) {
-          const spreadPcts = scoreSpreadPcts || [100]
           await tx.projectBonusMember.createMany({
             data: members.map((m: { userId: string; role: string; contributionPct: number; yearOffset?: number }) => {
               const yo = m.yearOffset ?? 0
@@ -266,6 +283,40 @@ export async function POST(
               }
             }),
           })
+        }
+
+        // Write audit logs for score changes
+        const scoreLogs: {
+          evalId: string; userId: string; yearOffset: number
+          oldScore: Decimal; newScore: Decimal
+          oldContributionPct: Decimal; newContributionPct: Decimal
+          changedBy: string
+        }[] = []
+        for (const m of members as { userId: string; contributionPct: number; yearOffset?: number }[]) {
+          const yo = m.yearOffset ?? 0
+          const yearRatio = (spreadPcts[yo] ?? 100) / 100
+          const newScore = new Decimal((totalScore * yearRatio * m.contributionPct / 100).toFixed(2))
+          const newPct = new Decimal(m.contributionPct)
+          const old = oldMap.get(`${m.userId}:${yo}`)
+          if (old) {
+            const oldScore = old.score ?? new Decimal(0)
+            const oldPct = old.contributionPct
+            if (!oldScore.equals(newScore) || !oldPct.equals(newPct)) {
+              scoreLogs.push({
+                evalId: updated.id,
+                userId: m.userId,
+                yearOffset: yo,
+                oldScore,
+                newScore,
+                oldContributionPct: oldPct,
+                newContributionPct: newPct,
+                changedBy: userEmail,
+              })
+            }
+          }
+        }
+        if (scoreLogs.length > 0) {
+          await tx.bonusMemberScoreLog.createMany({ data: scoreLogs })
         }
 
         return updated

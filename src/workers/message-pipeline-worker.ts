@@ -11,6 +11,11 @@ import {
   startBonusMonthlyNotifierCron,
   stopBonusMonthlyNotifierWorker,
 } from '../lib/bonus-monthly-notifier'
+import {
+  startBonusDailyNotifierWorker,
+  startBonusDailyNotifierCron,
+  stopBonusDailyNotifierWorker,
+} from '../lib/bonus-daily-notifier'
 
 console.log('[message-pipeline-worker] Starting...')
 
@@ -18,8 +23,10 @@ const worker = startMessagePipelineWorker()
 const labelWorker = startLabelAnalysisWorker()
 const slaWorker = startSLAWorker()
 const bonusMonthlyWorker = startBonusMonthlyNotifierWorker()
+const bonusDailyWorker = startBonusDailyNotifierWorker()
 startSLACronJob().catch(err => console.error('[message-pipeline-worker] SLA cron error:', err))
 startBonusMonthlyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus monthly cron error:', err))
+startBonusDailyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus daily cron error:', err))
 
 // Graceful shutdown
 async function shutdown(signal: string) {
@@ -29,6 +36,7 @@ async function shutdown(signal: string) {
     await stopLabelAnalysisWorker()
     await stopSLAWorker(slaWorker)
     await stopBonusMonthlyNotifierWorker(bonusMonthlyWorker)
+    await stopBonusDailyNotifierWorker(bonusDailyWorker)
     console.log('[message-pipeline-worker] Shutdown complete')
     process.exit(0)
   } catch (err) {
@@ -55,6 +63,10 @@ slaWorker.on('error', (err) => {
 
 bonusMonthlyWorker.on('error', (err) => {
   console.error('[message-pipeline-worker] Bonus monthly worker error:', err)
+})
+
+bonusDailyWorker.on('error', (err) => {
+  console.error('[message-pipeline-worker] Bonus daily worker error:', err)
 })
 
 console.log('[message-pipeline-worker] Ready and listening for jobs')

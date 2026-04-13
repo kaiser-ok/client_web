@@ -4,13 +4,13 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Card, Table, Select, InputNumber, Button, Row, Col, Statistic, Tag,
-  Space, message, Popconfirm, Typography, Collapse,
+  Space, message, Popconfirm, Typography, Collapse, Badge,
 } from 'antd'
 import type { TableColumnsType } from 'antd'
 import {
   TrophyOutlined, DollarOutlined, SaveOutlined, TeamOutlined,
   ProjectOutlined, CheckCircleOutlined, ClockCircleOutlined,
-  BankOutlined, SettingOutlined,
+  BankOutlined, SettingOutlined, FilterOutlined,
 } from '@ant-design/icons'
 import useSWR from 'swr'
 import AppLayout from '@/components/layout/AppLayout'
@@ -85,6 +85,7 @@ export default function BonusReportPage() {
   const [editingRate, setEditingRate] = useState(false)
 
   const canApprove = can('APPROVE_BONUS')
+  const [pendingOnly, setPendingOnly] = useState(false)
   const [evalModal, setEvalModal] = useState<{
     projectId: string
     projectName: string
@@ -158,6 +159,8 @@ export default function BonusReportPage() {
 
   const rows: BonusRow[] = data?.rows || []
   const projectSummary: ProjectSummary[] = data?.projectSummary || []
+  const pendingProjects = projectSummary.filter(p => p.status === 'EVALUATED')
+  const visibleProjects = pendingOnly ? pendingProjects : projectSummary
   const allMembersTotal: number = data?.allMembersTotal || 0
   const confirmedTotal: number = data?.confirmedTotal || 0
   const projectedTotal: number = data?.projectedTotal || 0
@@ -426,114 +429,33 @@ export default function BonusReportPage() {
             </Row>
           )}
 
-          {/* Member Bonus Table */}
-          <Card
-            size="small"
-            title={<Space><TeamOutlined /> 個人預估業績獎金</Space>}
-            style={{ marginBottom: 16 }}
-          >
-            <Table
-              dataSource={rows}
-              columns={memberColumns}
-              rowKey="userId"
-              size="small"
-              loading={isLoading}
-              pagination={false}
-              expandable={{
-                expandedRowRender: (record) => (
-                  <Table
-                    dataSource={record.projects}
-                    rowKey="evalId"
-                    size="small"
-                    pagination={false}
-                    columns={[
-                      {
-                        title: '專案', dataIndex: 'projectName', ellipsis: true,
-                        render: (name: string, r: BonusRow['projects'][0]) => (
-                          <a
-                            href={`?projectId=${r.projectId}`}
-                            onClick={(e) => {
-                              e.preventDefault()
-                              openEvalModal({ projectId: r.projectId, projectName: name })
-                            }}
-                          >{name}</a>
-                        ),
-                      },
-                      { title: '客戶', dataIndex: 'partnerName', width: 120 },
-                      {
-                        title: '角色', dataIndex: 'role', width: 100,
-                        render: (v: string) => getRoleLabel(v),
-                      },
-                      {
-                        title: '貢獻比例', dataIndex: 'contributionPct', width: 90, align: 'right' as const,
-                        render: (v: number) => `${v}%`,
-                      },
-                      {
-                        title: '個人專案分', dataIndex: 'score', width: 130, align: 'right' as const,
-                        render: (v: number, r: BonusRow['projects'][0]) => (
-                          <Space orientation="vertical" size={0}>
-                            <Text strong style={{ color: '#722ed1' }}>{v.toFixed(2)}</Text>
-                            {r.warrantyYears && r.warrantyYears > 1 && (
-                              <Text type="secondary" style={{ fontSize: 11 }}>
-                                (保固第 {(r.yearOffset ?? 0) + 1} 年)
-                              </Text>
-                            )}
-                          </Space>
-                        ),
-                      },
-                      {
-                        title: '狀態', dataIndex: 'status', width: 90,
-                        render: (v: string) => getStatusTag(v),
-                      },
-                    ]}
-                  />
-                ),
-              }}
-              summary={() => {
-                if (rows.length === 0) return null
-                const totalBonus = rows.reduce((s, r) => s + r.bonusAmount, 0)
-                const totalConfirmedBonus = rows.reduce((s, r) => s + r.confirmedBonusAmount, 0)
-                const totalProjectedBonus = rows.reduce((s, r) => s + r.projectedBonusAmount, 0)
-                return (
-                  <Table.Summary fixed>
-                    <Table.Summary.Row>
-                      <Table.Summary.Cell index={0} colSpan={4} align="right">
-                        <Text strong>合計</Text>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={4} align="right">
-                        <Text strong style={{ color: '#389e0d' }}>{confirmedTotal.toFixed(2)}</Text>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={5} align="right">
-                        <Text strong style={{ color: '#d48806' }}>{projectedTotal.toFixed(2)}</Text>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={6} align="right">
-                        <Text strong style={{ color: '#722ed1' }}>{allMembersTotal.toFixed(2)}</Text>
-                      </Table.Summary.Cell>
-                      <Table.Summary.Cell index={7} align="right">
-                        <Space orientation="vertical" size={0}>
-                          <Text strong style={{ color: '#cf1322' }}>${totalBonus.toLocaleString()}</Text>
-                          {totalConfirmedBonus > 0 && totalProjectedBonus > 0 && (
-                            <Text style={{ fontSize: 11, color: '#999' }}>
-                              確認 ${totalConfirmedBonus.toLocaleString()} + 預計 ${totalProjectedBonus.toLocaleString()}
-                            </Text>
-                          )}
-                        </Space>
-                      </Table.Summary.Cell>
-                    </Table.Summary.Row>
-                  </Table.Summary>
-                )
-              }}
-            />
-          </Card>
-
           {/* Project Summary */}
           <Collapse
+            style={{ marginBottom: 16 }}
             items={[{
               key: 'projects',
-              label: <Space><ProjectOutlined /> 專案評估明細 ({projectSummary.length})</Space>,
+              label: (
+                <Space>
+                  <ProjectOutlined /> 專案評估明細 ({projectSummary.length})
+                  {pendingProjects.length > 0 && canApprove && (
+                    <Badge count={pendingProjects.length} color="orange" title={`${pendingProjects.length} 件待核准`} />
+                  )}
+                </Space>
+              ),
+              extra: canApprove && pendingProjects.length > 0 ? (
+                <Button
+                  size="small"
+                  type={pendingOnly ? 'primary' : 'default'}
+                  icon={<FilterOutlined />}
+                  onClick={e => { e.stopPropagation(); setPendingOnly(v => !v) }}
+                  danger={!pendingOnly}
+                >
+                  {pendingOnly ? `待核准 (${pendingProjects.length})` : `待核准 ${pendingProjects.length} 件`}
+                </Button>
+              ) : null,
               children: (
                 <Table
-                  dataSource={projectSummary}
+                  dataSource={visibleProjects}
                   columns={projectColumns}
                   rowKey="evalId"
                   size="small"
@@ -568,6 +490,109 @@ export default function BonusReportPage() {
                         )}
                       </div>
                     ),
+                  }}
+                />
+              ),
+            }]}
+          />
+
+          {/* Member Bonus Table - collapsed by default */}
+          <Collapse
+            style={{ marginBottom: 16 }}
+            items={[{
+              key: 'members',
+              label: <Space><TeamOutlined /> 個人預估業績獎金</Space>,
+              children: (
+                <Table
+                  dataSource={rows}
+                  columns={memberColumns}
+                  rowKey="userId"
+                  size="small"
+                  loading={isLoading}
+                  pagination={false}
+                  expandable={{
+                    expandedRowRender: (record) => (
+                      <Table
+                        dataSource={record.projects}
+                        rowKey="evalId"
+                        size="small"
+                        pagination={false}
+                        columns={[
+                          {
+                            title: '專案', dataIndex: 'projectName', ellipsis: true,
+                            render: (name: string, r: BonusRow['projects'][0]) => (
+                              <a
+                                href={`?projectId=${r.projectId}`}
+                                onClick={(e) => {
+                                  e.preventDefault()
+                                  openEvalModal({ projectId: r.projectId, projectName: name })
+                                }}
+                              >{name}</a>
+                            ),
+                          },
+                          { title: '客戶', dataIndex: 'partnerName', width: 120 },
+                          {
+                            title: '角色', dataIndex: 'role', width: 100,
+                            render: (v: string) => getRoleLabel(v),
+                          },
+                          {
+                            title: '貢獻比例', dataIndex: 'contributionPct', width: 90, align: 'right' as const,
+                            render: (v: number) => `${v}%`,
+                          },
+                          {
+                            title: '個人專案分', dataIndex: 'score', width: 130, align: 'right' as const,
+                            render: (v: number, r: BonusRow['projects'][0]) => (
+                              <Space orientation="vertical" size={0}>
+                                <Text strong style={{ color: '#722ed1' }}>{v.toFixed(2)}</Text>
+                                {r.warrantyYears && r.warrantyYears > 1 && (
+                                  <Text type="secondary" style={{ fontSize: 11 }}>
+                                    (保固第 {(r.yearOffset ?? 0) + 1} 年)
+                                  </Text>
+                                )}
+                              </Space>
+                            ),
+                          },
+                          {
+                            title: '狀態', dataIndex: 'status', width: 90,
+                            render: (v: string) => getStatusTag(v),
+                          },
+                        ]}
+                      />
+                    ),
+                  }}
+                  summary={() => {
+                    if (rows.length === 0) return null
+                    const totalBonus = rows.reduce((s, r) => s + r.bonusAmount, 0)
+                    const totalConfirmedBonus = rows.reduce((s, r) => s + r.confirmedBonusAmount, 0)
+                    const totalProjectedBonus = rows.reduce((s, r) => s + r.projectedBonusAmount, 0)
+                    return (
+                      <Table.Summary fixed>
+                        <Table.Summary.Row>
+                          <Table.Summary.Cell index={0} colSpan={4} align="right">
+                            <Text strong>合計</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={4} align="right">
+                            <Text strong style={{ color: '#389e0d' }}>{confirmedTotal.toFixed(2)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={5} align="right">
+                            <Text strong style={{ color: '#d48806' }}>{projectedTotal.toFixed(2)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={6} align="right">
+                            <Text strong style={{ color: '#722ed1' }}>{allMembersTotal.toFixed(2)}</Text>
+                          </Table.Summary.Cell>
+                          <Table.Summary.Cell index={7} align="right">
+                            <Space orientation="vertical" size={0}>
+                              <Text strong style={{ color: '#cf1322' }}>${totalBonus.toLocaleString()}</Text>
+                              {totalConfirmedBonus > 0 && totalProjectedBonus > 0 && (
+                                <Text style={{ fontSize: 11, color: '#999' }}>
+                                  確認 ${totalConfirmedBonus.toLocaleString()} + 預計 ${totalProjectedBonus.toLocaleString()}
+                                </Text>
+                              )}
+                            </Space>
+                          </Table.Summary.Cell>
+                        </Table.Summary.Row>
+                      </Table.Summary>
+                    )
                   }}
                 />
               ),
