@@ -588,7 +588,9 @@ export default function BonusEvalModal({
             columns={[
               {
                 title: '成員', dataIndex: 'userId', width: 200,
-                render: (val: string, _: BonusMember, i: number) => (
+                render: (val: string, record: BonusMember, i: number) => isReadOnly ? (
+                  <span>{record.userName || record.userEmail || val}</span>
+                ) : (
                   <Select
                     value={val || undefined}
                     onChange={v => updateMember(yearOffset, i, 'userId', v)}
@@ -597,7 +599,6 @@ export default function BonusEvalModal({
                     placeholder="選擇成員"
                     showSearch
                     optionFilterProp="label"
-                    disabled={isReadOnly}
                     options={users.map(u => ({
                       value: u.id,
                       label: u.name || u.email,

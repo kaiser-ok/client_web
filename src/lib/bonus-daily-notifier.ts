@@ -8,7 +8,7 @@ import prisma from '@/lib/prisma'
 
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
 const QUEUE_NAME = 'bonus-daily-notify'
-const SLACK_TOKEN = process.env.SLACK_USER_TOKEN
+const SLACK_TOKEN = process.env.SLACK_BOT_TOKEN || process.env.SLACK_USER_TOKEN
 
 function parseRedisUrl(url: string) {
   const parsed = new URL(url)
@@ -269,7 +269,7 @@ function buildManagerBlocks(
   const blocks: unknown[] = [
     {
       type: 'header',
-      text: { type: 'plain_text', text: `📋 昨日全員專案績效點數異動 | ${dateLabel}`, emoji: true },
+      text: { type: 'plain_text', text: `📋 績效點數異動 | ${dateLabel}`, emoji: true },
     },
     {
       type: 'context',
@@ -324,7 +324,7 @@ export async function sendDailyManagerSummary(date: Date, toEmail: string): Prom
     byUser.get(e.userId)!.push(e)
   }
   const mgBlocks = buildManagerBlocks(allEntries, dateLabel, baseUrl)
-  const mgText = `📋 ${dateLabel} 全員專案績效點數異動：${byUser.size} 人、${allEntries.length} 筆`
+  const mgText = `📋 績效點數異動 ${dateLabel}：${byUser.size} 人、${allEntries.length} 筆`
   const ok = await sendDM(toEmail, mgText, mgBlocks)
   console.log(`[bonus-daily-notifier] Manager summary to ${toEmail}: ${ok ? 'sent' : 'failed/skipped'}`)
   return ok
@@ -332,9 +332,11 @@ export async function sendDailyManagerSummary(date: Date, toEmail: string): Prom
 
 // ── Main send logic ──────────────────────────────────────
 
-export async function sendDailyBonusNotifications(date: Date, filterUserId?: string): Promise<{
-  personal: number; managers: number; skipped: number; errors: number
-}> {
+export async function sendDailyBonusNotifications(
+  date: Date,
+  filterUserId?: string,
+  managerTestEmail?: string,  // 測試用：主管彙整只送給此 email，不發給所有主管
+): Promise<{ personal: number; managers: number; skipped: number; errors: number }> {
   const allEntries = await getYesterdayActivity(date)
 
   if (allEntries.length === 0) {
@@ -355,7 +357,6 @@ export async function sendDailyBonusNotifications(date: Date, filterUserId?: str
   }
 
   for (const [uid, entries] of byUser) {
-    // If testing with a specific user, only send to that user
     if (filterUserId && uid !== filterUserId) continue
     const { userEmail, userName } = entries[0]
     try {
@@ -369,16 +370,26 @@ export async function sendDailyBonusNotifications(date: Date, filterUserId?: str
     }
   }
 
-  // 2. Manager / Admin DMs (one consolidated message each) — skip in single-user test mode
-  if (!filterUserId) {
+  // 2. Manager / Admin DMs
+  const mgBlocks = buildManagerBlocks(allEntries, dateLabel, baseUrl)
+  const mgText = `📋 績效點數異動 ${dateLabel}：${byUser.size} 人、${allEntries.length} 筆`
+
+  if (managerTestEmail) {
+    // 測試模式：只送給指定 email
+    try {
+      const ok = await sendDM(managerTestEmail, mgText, mgBlocks)
+      if (ok) managers++
+      else skipped++
+    } catch (err) {
+      errors++
+      console.error(`[bonus-daily-notifier] Manager DM error for ${managerTestEmail}:`, err)
+    }
+  } else {
+    // 正常模式：送給所有主管 / Admin
     const supervisors = await prisma.user.findMany({
       where: { OR: [{ isManager: true }, { role: 'ADMIN' }], active: true },
       select: { email: true, name: true },
     })
-
-    const mgBlocks = buildManagerBlocks(allEntries, dateLabel, baseUrl)
-    const mgText = `📋 ${dateLabel} 全員專案績效點數異動：${byUser.size} 人、${allEntries.length} 筆`
-
     for (const sup of supervisors) {
       try {
         const ok = await sendDM(sup.email, mgText, mgBlocks)
