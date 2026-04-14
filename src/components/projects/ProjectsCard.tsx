@@ -20,6 +20,8 @@ import {
   Popconfirm,
   InputNumber,
   Tabs,
+  Divider,
+  Checkbox,
 } from 'antd'
 import type { TableColumnsType } from 'antd'
 import {
@@ -140,6 +142,9 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
   const canViewBonus = can('VIEW_BONUS')
   const [bonusProject, setBonusProject] = useState<Project | null>(null)
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
+  const [newEndUserName, setNewEndUserName] = useState('')
+  const [isCreatingEndUser, setIsCreatingEndUser] = useState(false)
+  const [isAdHocUser, setIsAdHocUser] = useState(false)
 
   const { data, isLoading, mutate } = useSWR<{ projects: Project[] }>(
     `/api/customers/${customerId}/projects`,
@@ -154,7 +159,7 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
   const endUserProjects = endUserProjectsData?.projects || []
 
   // 取得最終用戶列表（role = END_USER）
-  const { data: endUsersData } = useSWR<{ customers: EndUser[] }>(
+  const { data: endUsersData, mutate: mutateEndUsers } = useSWR<{ customers: EndUser[] }>(
     '/api/customers?role=END_USER&pageSize=500',
     fetcher
   )
@@ -232,6 +237,45 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
 
     message.info('找不到匹配的最終用戶')
   }, [form, endUsersData, message])
+
+  const handleCreateEndUser = useCallback(async () => {
+    const trimmed = newEndUserName.trim()
+    if (!trimmed) return
+
+    setIsCreatingEndUser(true)
+    try {
+      let parentId: string | undefined = undefined
+
+      if (isAdHocUser) {
+        const groupRes = await fetch('/api/partners/adhoc-group')
+        if (!groupRes.ok) throw new Error('無法取得臨時客戶群組')
+        const group = await groupRes.json()
+        parentId = group.id
+      }
+
+      const res = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: trimmed,
+          role: 'END_USER',
+          ...(parentId ? { parentId } : {}),
+        }),
+      })
+      const result = await res.json()
+      if (!res.ok) throw new Error(result.error || '建立失敗')
+
+      await mutateEndUsers()
+      form.setFieldValue('endUserId', result.id)
+      setNewEndUserName('')
+      setIsAdHocUser(false)
+      message.success(`已建立${isAdHocUser ? '臨時' : ''}最終用戶：${trimmed}`)
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : '建立最終用戶失敗')
+    } finally {
+      setIsCreatingEndUser(false)
+    }
+  }, [newEndUserName, isAdHocUser, mutateEndUsers, form, message])
 
   const projects = data?.projects || []
   const filteredProjects = statusFilter ? projects.filter(p => p.status === statusFilter) : projects
@@ -767,6 +811,42 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
                     (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
                   }
                   style={{ width: '100%' }}
+                  popupRender={menu => (
+                    <>
+                      <div style={{ padding: '8px 8px 4px' }}>
+                        <Space.Compact style={{ width: '100%', marginBottom: 6 }}>
+                          <Input
+                            placeholder="新最終用戶名稱"
+                            value={newEndUserName}
+                            onChange={e => setNewEndUserName(e.target.value)}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter') {
+                                e.stopPropagation()
+                                handleCreateEndUser()
+                              }
+                            }}
+                          />
+                          <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            loading={isCreatingEndUser}
+                            disabled={!newEndUserName.trim()}
+                            onClick={handleCreateEndUser}
+                          >
+                            新增
+                          </Button>
+                        </Space.Compact>
+                        <Checkbox
+                          checked={isAdHocUser}
+                          onChange={e => setIsAdHocUser(e.target.checked)}
+                        >
+                          臨時用戶（加入臨時客戶群組）
+                        </Checkbox>
+                      </div>
+                      <Divider style={{ margin: '4px 0' }} />
+                      {menu}
+                    </>
+                  )}
                 />
               </Form.Item>
               <Tooltip title="從專案名稱自動匹配">
