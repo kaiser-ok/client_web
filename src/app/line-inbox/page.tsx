@@ -49,6 +49,7 @@ import {
   CheckSquareOutlined,
   BellOutlined,
   BellFilled,
+  PaperClipOutlined,
 } from '@ant-design/icons'
 import Picker from '@emoji-mart/react'
 import emojiData from '@emoji-mart/data'
@@ -184,11 +185,14 @@ export default function LineInboxPage() {
   const [inputMessage, setInputMessage] = useState('')
   const [sending, setSending] = useState(false)
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
   const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
   const [quotingMessage, setQuotingMessage] = useState<LineMessage | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
   const mentionActiveRef = useRef(false)
+  const isComposingRef = useRef(false)  // 追蹤 IME 組字狀態（注音、嘸蝦米等）
   const isChannelSwitchRef = useRef(false)  // 切換 channel 時用 instant scroll，避免動畫
   const [filterFollowUp, setFilterFollowUp] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string[]>([])
@@ -283,6 +287,29 @@ export default function LineInboxPage() {
       messagesEndRef.current?.scrollIntoView({ behavior })
     }
   }, [chatMessages, loadingMore])
+
+  // 當輸入框高度增加（autoSize 展開）導致訊息區縮小時，精準補償 scrollTop
+  // 原理：容器縮小 delta px → scrollTop 加 delta，視覺上內容位置不動
+  // 依賴 activeChannel：頻道切換後容器才存在，需重新掛載 observer
+  useEffect(() => {
+    if (!activeChannel) return
+    const container = messagesContainerRef.current
+    if (!container) return
+
+    let prevClientHeight = container.clientHeight
+
+    const observer = new ResizeObserver(() => {
+      const newClientHeight = container.clientHeight
+      const delta = prevClientHeight - newClientHeight
+      if (delta > 0) {
+        container.scrollTop += delta
+      }
+      prevClientHeight = newClientHeight
+    })
+
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [activeChannel])
 
   // Track last message timestamp for SSE incremental updates
   useEffect(() => {
@@ -577,6 +604,34 @@ export default function LineInboxPage() {
       message.error('發送失敗')
     } finally {
       setUploadingImage(false)
+    }
+    return false
+  }
+
+  const handleUploadFile = async (file: File) => {
+    if (!activeChannel) return false
+
+    setUploadingFile(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+
+      if (res.ok) {
+        message.success('檔案已發送')
+        loadChatMessages(activeChannel.id)
+      } else {
+        message.error(data.error || '發送失敗')
+      }
+    } catch {
+      message.error('發送失敗')
+    } finally {
+      setUploadingFile(false)
     }
     return false
   }
@@ -1314,7 +1369,7 @@ export default function LineInboxPage() {
             </div>
 
             {/* Messages area */}
-            <div style={{
+            <div ref={messagesContainerRef} style={{
               flex: 1,
               overflow: 'auto',
               padding: 16,
@@ -1337,6 +1392,7 @@ export default function LineInboxPage() {
                     const isStaff = msg.identityType === 'STAFF'
                     const isSticker = msg.messageType === 'sticker'
                     const isImage = msg.messageType === 'image'
+                    const isFile = msg.messageType === 'file'
                     const normalizedUrl = normalizeMediaUrl(msg.mediaUrl)
                     const hasMedia = (isSticker || isImage) && normalizedUrl
 
@@ -1422,6 +1478,24 @@ export default function LineInboxPage() {
                                 圖片（無法顯示）
                               </Text>
                             </div>
+                          ) : isFile && normalizedUrl ? (
+                            <a href={normalizedUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+                              <div style={{
+                                padding: '8px 12px',
+                                borderRadius: isStaff ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                                backgroundColor: isStaff ? '#00B900' : '#fff',
+                                color: isStaff ? '#fff' : '#000',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 6,
+                              }}>
+                                <PaperClipOutlined style={{ color: isStaff ? '#fff' : '#666', flexShrink: 0 }} />
+                                <Text style={{ color: isStaff ? '#fff' : '#000', wordBreak: 'break-all' }}>
+                                  {msg.content || '附件'}
+                                </Text>
+                              </div>
+                            </a>
                           ) : (
                             <div style={{
                               padding: '8px 12px',
@@ -1556,6 +1630,19 @@ export default function LineInboxPage() {
                   style={{ color: '#666' }}
                 />
               </Upload>
+              <Upload
+                showUploadList={false}
+                beforeUpload={handleUploadFile}
+                disabled={uploadingFile}
+              >
+                <Button
+                  type="text"
+                  icon={<PaperClipOutlined />}
+                  loading={uploadingFile}
+                  style={{ color: '#666' }}
+                  title="傳送檔案"
+                />
+              </Upload>
               <Popover
                 content={
                   <Picker
@@ -1587,8 +1674,12 @@ export default function LineInboxPage() {
                 onChange={setInputMessage}
                 onSearch={() => { mentionActiveRef.current = true }}
                 onSelect={() => { mentionActiveRef.current = false }}
+                onCompositionStart={() => { isComposingRef.current = true }}
+                onCompositionEnd={() => { isComposingRef.current = false }}
                 onKeyDown={e => {
                   if (e.key === 'Enter' && !e.shiftKey) {
+                    // 忽略 IME 組字中的 Enter（注音、嘸蝦米等輸入法選字確認）
+                    if (isComposingRef.current || e.nativeEvent.isComposing) return
                     if (mentionActiveRef.current) return
                     e.preventDefault()
                     handleSendMessage()

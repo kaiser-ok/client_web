@@ -47,17 +47,16 @@ export async function POST(
         return NextResponse.json({ error: '請選擇圖片' }, { status: 400 })
       }
 
-      // 驗證檔案類型
-      if (!file.type.startsWith('image/')) {
-        return NextResponse.json({ error: '只支援圖片檔案' }, { status: 400 })
-      }
+      // 驗證檔案類型（支援圖片與各種檔案）
+      const isImage = file.type.startsWith('image/')
+      // 非圖片一律以檔案方式處理（Flex Message + 下載連結）
 
-      // 儲存圖片到 public 目錄
+      // 儲存檔案到 public 目錄
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
 
       const timestamp = Date.now()
-      const ext = file.name.split('.').pop() || 'jpg'
+      const ext = file.name.split('.').pop()?.toLowerCase() || 'bin'
       const filename = `line-${timestamp}.${ext}`
       const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'line')
       const filePath = path.join(uploadDir, filename)
@@ -66,30 +65,87 @@ export async function POST(
       await mkdir(uploadDir, { recursive: true })
       await writeFile(filePath, buffer)
 
-      // 建立圖片 URL
-      // LINE API 需要完整的公開 URL，瀏覽器顯示則用相對路徑
-      const host = request.headers.get('host') || 'localhost:3000'
-      const protocol = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'http')
-      const absoluteImageUrl = `${protocol}://${host}/api/uploads/line/${filename}`
+      // 建立公開 URL（LINE API 需要完整的公開 HTTPS URL）
+      const lineBaseUrl = process.env.LINE_BASE_URL?.replace(/\/$/, '') ||
+        (() => {
+          const host = request.headers.get('host') || 'localhost:3000'
+          const proto = request.headers.get('x-forwarded-proto') || (host.includes('localhost') ? 'http' : 'https')
+          return `${proto}://${host}`
+        })()
+      const absoluteFileUrl = `${lineBaseUrl}/api/uploads/line/${filename}`
 
-      // 發送圖片訊息（LINE API 需要絕對 URL）
-      await lineClient.pushMessage(channel.lineChannelId, [
-        {
-          type: 'image',
-          originalContentUrl: absoluteImageUrl,
-          previewImageUrl: absoluteImageUrl,
-        },
-      ])
-
-      // 儲存發送的圖片訊息到資料庫
+      // 取得發送者資訊
       const user = await prisma.user.findUnique({
         where: { email: session.user.email },
         select: { name: true, email: true },
       })
-
-      // 確保有對應的 LineUser 記錄（代表系統發送）
       const systemUserId = `SYSTEM_${session.user.email}`
       const staffDisplayName = user?.name || session.user.email || 'System'
+
+      if (isImage) {
+        // 發送圖片訊息
+        await lineClient.pushMessage(channel.lineChannelId, [
+          {
+            type: 'image',
+            originalContentUrl: absoluteFileUrl,
+            previewImageUrl: absoluteFileUrl,
+          },
+        ])
+        console.log(`LINE image sent to ${channel.lineChannelId}: ${absoluteFileUrl}`)
+      } else {
+        // 發送檔案：使用 Flex Message 帶下載連結
+        const originalName = file.name || filename
+        await lineClient.pushMessage(channel.lineChannelId, [
+          {
+            type: 'flex',
+            altText: `📎 ${originalName}`,
+            contents: {
+              type: 'bubble',
+              size: 'kilo',
+              body: {
+                type: 'box',
+                layout: 'horizontal',
+                spacing: 'md',
+                contents: [
+                  {
+                    type: 'text',
+                    text: '📎',
+                    size: 'xl',
+                    flex: 0,
+                  },
+                  {
+                    type: 'text',
+                    text: originalName,
+                    wrap: true,
+                    weight: 'bold',
+                    size: 'sm',
+                    flex: 1,
+                  },
+                ],
+              },
+              footer: {
+                type: 'box',
+                layout: 'vertical',
+                contents: [
+                  {
+                    type: 'button',
+                    action: {
+                      type: 'uri',
+                      label: '下載檔案',
+                      uri: absoluteFileUrl,
+                    },
+                    style: 'primary',
+                    height: 'sm',
+                  },
+                ],
+              },
+            },
+          } as unknown as { type: string; [key: string]: unknown },
+        ])
+        console.log(`LINE file sent to ${channel.lineChannelId}: ${absoluteFileUrl}`)
+      }
+
+      // 確保有對應的 LineUser 記錄（代表系統發送）
       await prisma.lineUser.upsert({
         where: { lineUserId: systemUserId },
         update: { displayName: staffDisplayName },
@@ -107,8 +163,8 @@ export async function POST(
           lineMessageId: `outgoing-${timestamp}`,
           channelId: channel.id,
           lineUserId: systemUserId,
-          messageType: 'image',
-          content: null,
+          messageType: isImage ? 'image' : 'file',
+          content: isImage ? null : file.name,
           mediaUrl: `/api/uploads/line/${filename}`,
           timestamp: new Date(),
           processed: true,
@@ -121,11 +177,9 @@ export async function POST(
         data: { lastMessageAt: new Date() },
       })
 
-      console.log(`LINE image sent to ${channel.lineChannelId}: ${absoluteImageUrl}`)
-
       return NextResponse.json({
         success: true,
-        message: '圖片已發送',
+        message: isImage ? '圖片已發送' : '檔案已發送',
       })
     }
 
