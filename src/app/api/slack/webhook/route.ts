@@ -73,7 +73,8 @@ export async function POST(request: NextRequest) {
 
     // 驗證簽章
     if (!verifySlackSignature(body, timestamp, signature)) {
-      console.error('Slack webhook signature verification failed')
+      const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || 'unknown'
+      console.warn(`Slack webhook signature verification failed (ip: ${ip}, ts: ${timestamp})`)
       return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
     }
 
