@@ -184,23 +184,6 @@ export async function processMessage(message: UnifiedMessage): Promise<void> {
     log.debug(`Entity 解析結果: partnerId=${partnerId ?? '未找到'}`)
   }
 
-  await graphitiClient.ingestMessage({
-    platform: message.channel,
-    external_id: message.channelMessageId,
-    content: message.content,
-    timestamp: new Date(message.timestamp),
-    sender_id: message.sender.channelUserId,
-    sender_name: message.sender.displayName,
-    channel_id: message.channelId,
-    channel_name: message.channelName,
-    thread_id: message.threadId,
-    subject: message.subject,
-    partner_id: partnerId,
-    metadata: message.metadata,
-  })
-
-  log.info(`Graphiti ingestion 完成: ${message.channel}:${message.channelMessageId}`)
-
   // Trigger label analysis for LINE messages
   if (message.channel === 'LINE' && message.channelId) {
     try {

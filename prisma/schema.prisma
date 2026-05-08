@@ -188,6 +188,7 @@ model Deal {
   productsJson   Json?     // 產品明細 JSON [{name, quantity, unitPrice, subtotal}]
   salesRep       String?   // 負責業務
   closedAt       DateTime  // 成交日期
+  deliveryDate   DateTime? // 交貨日期（Odoo commitment_date）
   startDate      DateTime? // 服務/保固開始日
   endDate        DateTime? // 服務/保固結束日
   autoRenew      Boolean   @default(false) // 是否自動續約
@@ -549,7 +550,8 @@ model LineChannel {
   associations    LineChannelAssociation[]
   summaries       LineSummary[]
   labels          LineChannelLabel[]
-  eventChannels   LineEventChannel[]
+  eventChannels      LineEventChannel[]
+  eventCandidates    LineEventCandidate[]
 
   @@index([partnerId])
   @@index([projectId])
@@ -759,6 +761,28 @@ model LineEventNotification {
 
   @@index([eventId, type])
   @@map("line_event_notifications")
+}
+
+// AI 分析產生的事件候選（待 admin/IT 審核）
+model LineEventCandidate {
+  id                  String    @id @default(cuid())
+  title               String
+  summary             String    @db.Text
+  suggestedPriority   String    @default("NORMAL")  // P1 | P2 | NORMAL
+  aiReason            String    @db.Text
+  channelId           String
+  channel             LineChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  messageWindowStart  DateTime
+  messageWindowEnd    DateTime
+  status              String    @default("PENDING")  // PENDING | APPROVED | DISMISSED
+  reviewedBy          String?
+  reviewedAt          DateTime?
+  lineEventId         String?   // 審核通過後建立的 LineEvent id
+  createdAt           DateTime  @default(now())
+
+  @@index([status])
+  @@index([channelId])
+  @@map("line_event_candidates")
 }
 
 // ============================================

@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: false,
   transpilePackages: ['antd', '@ant-design/icons', '@ant-design/cssinjs'],
   allowedDevOrigins: ['proj.gentrice.net', '192.168.30.202'],
   serverExternalPackages: ['imapflow', 'pino', 'thread-stream', 'mailparser', 'puppeteer', 'ioredis', 'bullmq'],

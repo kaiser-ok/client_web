@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
         include: {
           partner: {
             select: {
+              id: true,
               name: true,
             },
           },

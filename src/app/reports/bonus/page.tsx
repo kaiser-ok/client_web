@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Card, Table, Select, InputNumber, Button, Row, Col, Statistic, Tag,
-  Space, message, Popconfirm, Typography, Collapse, Badge,
+  Space, message, Popconfirm, Typography, Collapse, Badge, Tooltip,
 } from 'antd'
 import type { TableColumnsType } from 'antd'
 import {
@@ -32,6 +32,7 @@ interface ProjectSummary {
   partnerName: string
   dealName?: string
   bonusCategory?: string
+  isDirectAllocation: boolean
   dealAmount: number
   totalCost: number
   projectAmount: number
@@ -76,7 +77,7 @@ interface BonusRow {
   }>
 }
 
-export default function BonusReportPage() {
+function BonusReportContent() {
   const { can, role } = useUser()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -217,31 +218,46 @@ export default function BonusReportPage() {
 
   const projectColumns: TableColumnsType<ProjectSummary> = [
     {
-      title: '專案名稱', dataIndex: 'projectName', ellipsis: true, fixed: 'left', width: 200,
+      title: '專案名稱', dataIndex: 'projectName', ellipsis: { showTitle: false }, fixed: 'left', width: 200,
       render: (v: string, record: ProjectSummary) => (
-        <Space size={4}>
-          <a
-            href={`?projectId=${record.projectId}`}
-            onClick={(e) => {
-              e.preventDefault()
-              openEvalModal({
-                projectId: record.projectId,
-                projectName: v,
-                projectType: record.bonusCategory,
-                dealAmount: record.dealAmount,
-                dealName: record.dealName,
-              })
-            }}
-          >{v}</a>
-          {record.bonusCategory === 'RESALE' && <Tag color="orange">轉賣</Tag>}
+        <Space size={4} style={{ flexWrap: 'nowrap', minWidth: 0 }}>
+          <Tooltip title={v} placement="topLeft">
+            <a
+              href={`?projectId=${record.projectId}`}
+              style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: record.bonusCategory === 'RESALE' ? 140 : 180 }}
+              onClick={(e) => {
+                e.preventDefault()
+                openEvalModal({
+                  projectId: record.projectId,
+                  projectName: v,
+                  projectType: record.bonusCategory,
+                  dealAmount: record.dealAmount,
+                  dealName: record.dealName,
+                })
+              }}
+            >{v}</a>
+          </Tooltip>
+          {record.bonusCategory === 'RESALE' && <Tag color="orange" style={{ flexShrink: 0 }}>轉賣</Tag>}
         </Space>
       ),
     },
     { title: '客戶', dataIndex: 'partnerName', width: 120, ellipsis: true },
     { title: '訂單', dataIndex: 'dealName', width: 100 },
     {
-      title: '成案金額', dataIndex: 'dealAmount', width: 110, align: 'right' as const,
-      render: (v: number) => `$${v.toLocaleString()}`,
+      title: '成案金額', dataIndex: 'dealAmount', width: 120, align: 'right' as const,
+      render: (v: number, record: ProjectSummary) => {
+        if (record.isDirectAllocation) {
+          return (
+            <Space size={4} direction="vertical" style={{ textAlign: 'right' }}>
+              <Tag color="purple" style={{ margin: 0 }}>點數池直接分配</Tag>
+              {record.poolPoints > 0 && (
+                <Text style={{ color: '#722ed1', fontSize: 12 }}>+{record.poolPoints.toFixed(2)} 點</Text>
+              )}
+            </Space>
+          )
+        }
+        return `$${v.toLocaleString()}`
+      },
     },
     {
       title: '外部成本', dataIndex: 'totalCost', width: 100, align: 'right' as const,
@@ -519,15 +535,18 @@ export default function BonusReportPage() {
                         pagination={false}
                         columns={[
                           {
-                            title: '專案', dataIndex: 'projectName', ellipsis: true,
+                            title: '專案', dataIndex: 'projectName', ellipsis: { showTitle: false },
                             render: (name: string, r: BonusRow['projects'][0]) => (
-                              <a
-                                href={`?projectId=${r.projectId}`}
-                                onClick={(e) => {
-                                  e.preventDefault()
-                                  openEvalModal({ projectId: r.projectId, projectName: name })
-                                }}
-                              >{name}</a>
+                              <Tooltip title={name} placement="topLeft">
+                                <a
+                                  href={`?projectId=${r.projectId}`}
+                                  style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    openEvalModal({ projectId: r.projectId, projectName: name })
+                                  }}
+                                >{name}</a>
+                              </Tooltip>
                             ),
                           },
                           { title: '客戶', dataIndex: 'partnerName', width: 120 },
@@ -624,5 +643,13 @@ export default function BonusReportPage() {
         />
       )}
     </AppLayout>
+  )
+}
+
+export default function BonusReportPage() {
+  return (
+    <Suspense>
+      <BonusReportContent />
+    </Suspense>
   )
 }

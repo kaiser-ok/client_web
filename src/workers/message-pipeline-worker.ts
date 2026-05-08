@@ -3,6 +3,11 @@
  * Run via: npx tsx src/workers/message-pipeline-worker.ts
  */
 
+import dotenv from 'dotenv'
+import path from 'path'
+// Next.js 優先載入 .env.local，standalone worker 需手動載入
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') })
+dotenv.config() // fallback to .env
 import { startMessagePipelineWorker, stopMessagePipelineWorker } from '../lib/message-pipeline'
 import { startLabelAnalysisWorker, stopLabelAnalysisWorker } from '../lib/line-label-analyzer'
 import { startSLAWorker, startSLACronJob, stopSLAWorker } from '../lib/line-event-sla-scheduler'
@@ -16,6 +21,11 @@ import {
   startBonusDailyNotifierCron,
   stopBonusDailyNotifierWorker,
 } from '../lib/bonus-daily-notifier'
+import {
+  startLineBatchWorker,
+  startLineBatchCron,
+  stopLineBatchWorker,
+} from '../lib/line-batch-analyzer'
 
 console.log('[message-pipeline-worker] Starting...')
 
@@ -24,9 +34,11 @@ const labelWorker = startLabelAnalysisWorker()
 const slaWorker = startSLAWorker()
 const bonusMonthlyWorker = startBonusMonthlyNotifierWorker()
 const bonusDailyWorker = startBonusDailyNotifierWorker()
+const batchWorker = startLineBatchWorker()
 startSLACronJob().catch(err => console.error('[message-pipeline-worker] SLA cron error:', err))
 startBonusMonthlyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus monthly cron error:', err))
 startBonusDailyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus daily cron error:', err))
+startLineBatchCron().catch(err => console.error('[message-pipeline-worker] Batch analysis cron error:', err))
 
 // Graceful shutdown
 async function shutdown(signal: string) {
@@ -37,6 +49,7 @@ async function shutdown(signal: string) {
     await stopSLAWorker(slaWorker)
     await stopBonusMonthlyNotifierWorker(bonusMonthlyWorker)
     await stopBonusDailyNotifierWorker(bonusDailyWorker)
+    await stopLineBatchWorker()
     console.log('[message-pipeline-worker] Shutdown complete')
     process.exit(0)
   } catch (err) {
@@ -67,6 +80,10 @@ bonusMonthlyWorker.on('error', (err) => {
 
 bonusDailyWorker.on('error', (err) => {
   console.error('[message-pipeline-worker] Bonus daily worker error:', err)
+})
+
+batchWorker.on('error', (err) => {
+  console.error('[message-pipeline-worker] Batch analysis worker error:', err)
 })
 
 console.log('[message-pipeline-worker] Ready and listening for jobs')

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     const pdfBuffer = await generateReportPDF(html)
     const asciiFilename = `bonus-report-${year}-${String(month).padStart(2, '0')}.pdf`
     const encodedFilename = encodeURIComponent(`點數報表_${year}年${month}月_${report.userName}.pdf`)
-    return new NextResponse(pdfBuffer, {
+    return new NextResponse(new Uint8Array(pdfBuffer), {
       headers: {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${asciiFilename}"; filename*=UTF-8''${encodedFilename}`,

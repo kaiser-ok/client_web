@@ -55,6 +55,9 @@ export const PERMISSIONS = {
   VIEW_BONUS: ['ADMIN', 'SALES', 'FINANCE', 'SUPPORT', 'RD'],
   EDIT_BONUS: ['ADMIN', 'FINANCE'],
   APPROVE_BONUS: ['ADMIN'],
+
+  // ERP 同步 - 管理員、財務
+  ERP_SYNC: ['ADMIN', 'FINANCE'],
 } as const
 
 // 部門主管額外可獲得的權限（在原角色之上疊加）

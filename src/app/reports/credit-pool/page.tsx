@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import {
   Card, Table, Select, InputNumber, Button, Row, Col, Statistic, Tag,
-  Space, message, Popconfirm, Typography, Modal, Form, Input,
+  Space, App, Popconfirm, Typography, Modal, Form, Input,
 } from 'antd'
 import type { TableColumnsType } from 'antd'
 import {
@@ -31,6 +31,7 @@ interface EvalOption {
 }
 
 export default function CreditPoolPage() {
+  const { message } = App.useApp()
   const { can } = useUser()
   const [year, setYear] = useState(currentYear)
   const canApprove = can('APPROVE_BONUS')

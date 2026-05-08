@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, Button, Typography, Empty, Spin, Tag, Popconfirm, App } from 'antd'
 import { PlusOutlined, DeleteOutlined, PaperClipOutlined, SyncOutlined, LinkOutlined, ProjectOutlined } from '@ant-design/icons'
 import { useDeals, deleteDeal } from '@/hooks/useDeals'
@@ -34,6 +35,7 @@ export default function DealsCard({ customerId, limit }: DealsCardProps) {
   const { mutate: globalMutate } = useSWRConfig()
   const { can } = useUser()
   const { message } = App.useApp()
+  const router = useRouter()
   const [addModalOpen, setAddModalOpen] = useState(false)
 
   const canViewAmount = can('VIEW_DEAL_AMOUNT')
@@ -60,7 +62,7 @@ export default function DealsCard({ customerId, limit }: DealsCardProps) {
 
       if (!response.ok) {
         if (result.projectId) {
-          message.info('此成交記錄已有對應專案')
+          router.push(`/customers/${customerId}`)
         } else {
           throw new Error(result.error || '建立失敗')
         }
@@ -71,6 +73,7 @@ export default function DealsCard({ customerId, limit }: DealsCardProps) {
       mutate()
       // 刷新專案列表
       globalMutate(`/api/customers/${customerId}/projects`)
+      router.push(`/customers/${customerId}`)
     } catch (error) {
       message.error(error instanceof Error ? error.message : '建立專案失敗')
     }

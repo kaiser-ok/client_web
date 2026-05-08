@@ -138,6 +138,7 @@ interface LineChannel {
 
 interface LineMessage {
   id: string
+  lineMessageId: string
   lineUserId: string
   displayName: string
   pictureUrl: string | null
@@ -409,10 +410,10 @@ export default function LineInboxPage() {
     }
   }
 
-  const loadChatMessages = async (channelId: string, beforeTimestamp?: string) => {
+  const loadChatMessages = async (channelId: string, beforeTimestamp?: string, silent?: boolean) => {
     if (beforeTimestamp) {
       setLoadingMore(true)
-    } else {
+    } else if (!silent) {
       setLoadingChat(true)
     }
     try {
@@ -426,6 +427,17 @@ export default function LineInboxPage() {
         const newMessages = [...data.messages].reverse()
         if (beforeTimestamp) {
           setChatMessages(prev => [...newMessages, ...prev])
+        } else if (silent) {
+          // 靜默刷新：只 append 尾端新增的訊息，避免畫面閃爍重捲
+          setChatMessages(prev => {
+            const lastId = prev[prev.length - 1]?.lineMessageId
+            const lastIdx = lastId ? newMessages.findIndex(m => m.lineMessageId === lastId) : -1
+            if (lastIdx === -1 || lastIdx === newMessages.length - 1) {
+              // 找不到 or 沒有新訊息，直接完整取代（不觸發 loading）
+              return newMessages
+            }
+            return [...prev, ...newMessages.slice(lastIdx + 1)]
+          })
         } else {
           setChatMessages(newMessages)
         }
@@ -433,9 +445,9 @@ export default function LineInboxPage() {
         setTotalMessages(data.pagination?.total || 0)
       }
     } catch {
-      message.error('載入訊息失敗')
+      if (!silent) message.error('載入訊息失敗')
     } finally {
-      setLoadingChat(false)
+      if (!silent) setLoadingChat(false)
       setLoadingMore(false)
     }
   }
@@ -522,10 +534,9 @@ export default function LineInboxPage() {
       const data = await res.json()
 
       if (res.ok) {
-        message.success('訊息已發送')
         setInputMessage('')
         setQuotingMessage(null)
-        loadChatMessages(activeChannel.id)
+        loadChatMessages(activeChannel.id, undefined, true)
       } else {
         message.error(data.error || '發送失敗')
       }
@@ -596,7 +607,7 @@ export default function LineInboxPage() {
 
       if (res.ok) {
         message.success('圖片已發送')
-        loadChatMessages(activeChannel.id)
+        loadChatMessages(activeChannel.id, undefined, true)
       } else {
         message.error(data.error || '發送失敗')
       }
@@ -624,7 +635,7 @@ export default function LineInboxPage() {
 
       if (res.ok) {
         message.success('檔案已發送')
-        loadChatMessages(activeChannel.id)
+        loadChatMessages(activeChannel.id, undefined, true)
       } else {
         message.error(data.error || '發送失敗')
       }

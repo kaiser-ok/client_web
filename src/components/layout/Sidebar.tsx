@@ -62,13 +62,17 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
       })
     }
 
-    // Add admin-only settings
-    if (role === 'ADMIN') {
+    // ERP 同步 - 管理員與財務皆可使用
+    if (role === 'ADMIN' || role === 'FINANCE') {
       settingsChildren.push({
         key: '/settings/odoo',
         icon: <CloudSyncOutlined />,
         label: 'ERP 同步',
       })
+    }
+
+    // Add admin-only settings
+    if (role === 'ADMIN') {
       settingsChildren.push({
         key: '/settings/file-storage',
         icon: <FolderOutlined />,

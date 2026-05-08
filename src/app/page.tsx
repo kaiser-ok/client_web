@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useState, useCallback, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Row, Col, Card, Statistic, Typography, Button, Spin, Empty, Modal, Tag } from 'antd'
+import ReactMarkdown from 'react-markdown'
 import {
   TeamOutlined,
   FileTextOutlined,
@@ -22,6 +24,11 @@ dayjs.locale('zh-tw')
 
 const { Title, Text } = Typography
 
+const markdownStyles: React.CSSProperties = {
+  fontSize: 13,
+  lineHeight: 1.6,
+}
+
 interface DashboardStats {
   customerCount: number
   pendingIssues: number
@@ -38,6 +45,7 @@ interface Activity {
   source: string
   createdAt: string
   customer?: {
+    id: string
     name: string
   }
 }
@@ -78,6 +86,7 @@ interface ExpiringContract {
 }
 
 export default function DashboardPage() {
+  const router = useRouter()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [activities, setActivities] = useState<Activity[]>([])
   const [loading, setLoading] = useState(true)
@@ -91,6 +100,7 @@ export default function DashboardPage() {
   const [contractsModalOpen, setContractsModalOpen] = useState(false)
   const [expiringContracts, setExpiringContracts] = useState<ExpiringContract[]>([])
   const [loadingContracts, setLoadingContracts] = useState(false)
+  const [contentActivity, setContentActivity] = useState<Activity | null>(null)
 
   const fetchStats = async () => {
     try {
@@ -109,7 +119,11 @@ export default function DashboardPage() {
       const res = await fetch('/api/activities?limit=10', { credentials: 'include' })
       if (res.ok) {
         const data = await res.json()
-        setActivities(data.activities || [])
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setActivities((data.activities || []).map((a: any) => ({
+          ...a,
+          customer: a.partner ?? a.customer,
+        })))
       }
     } catch (error) {
       console.error('Error fetching activities:', error)
@@ -373,9 +387,17 @@ export default function DashboardPage() {
                 {activities.map((activity) => (
                   <div
                     key={activity.id}
+                    onClick={() => activity.customer?.id && router.push(`/customers/${activity.customer.id}`)}
                     style={{
                       padding: '12px 0',
                       borderBottom: '1px solid #f0f0f0',
+                      cursor: activity.customer?.id ? 'pointer' : 'default',
+                    }}
+                    onMouseEnter={e => {
+                      if (activity.customer?.id) (e.currentTarget as HTMLDivElement).style.background = '#fafafa'
+                    }}
+                    onMouseLeave={e => {
+                      (e.currentTarget as HTMLDivElement).style.background = 'transparent'
                     }}
                   >
                     <div>
@@ -386,6 +408,26 @@ export default function DashboardPage() {
                         </Text>
                       )}
                     </div>
+                    {activity.content && (
+                      <div
+                        onClick={e => { e.stopPropagation(); setContentActivity(activity) }}
+                        style={{ cursor: 'pointer', marginTop: 2, marginBottom: 2 }}
+                      >
+                        <Text
+                          type="secondary"
+                          style={{
+                            fontSize: 12,
+                            display: '-webkit-box',
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: 'vertical',
+                            overflow: 'hidden',
+                            textDecoration: 'underline dotted',
+                          }}
+                        >
+                          {activity.content}
+                        </Text>
+                      </div>
+                    )}
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {getSourceLabel(activity.source)} · {dayjs(activity.createdAt).fromNow()}
                     </Text>
@@ -471,6 +513,36 @@ export default function DashboardPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </Modal>
+
+      {/* Activity content modal */}
+      <Modal
+        title={contentActivity?.title}
+        open={!!contentActivity}
+        onCancel={() => setContentActivity(null)}
+        footer={null}
+        width={600}
+        destroyOnHidden
+      >
+        {contentActivity && (
+          <div
+            style={{
+              maxHeight: '60vh',
+              overflowY: 'auto',
+              padding: '4px 0',
+            }}
+          >
+            <div className="markdown-body" style={markdownStyles}>
+              <ReactMarkdown>{contentActivity.content || ''}</ReactMarkdown>
+            </div>
+            <div style={{ marginTop: 12, paddingTop: 8, borderTop: '1px solid #f0f0f0' }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {getSourceLabel(contentActivity.source)} · {dayjs(contentActivity.createdAt).fromNow()}
+                {contentActivity.customer && ` · ${contentActivity.customer.name}`}
+              </Text>
+            </div>
           </div>
         )}
       </Modal>

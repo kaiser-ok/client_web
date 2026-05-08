@@ -40,17 +40,17 @@ export default function OdooSettingsPage() {
   const [employeeResult, setEmployeeResult] = useState<SyncResult | null>(null)
   const [supplierResult, setSupplierResult] = useState<SyncResult | null>(null)
 
-  const isAdmin = role === 'ADMIN'
+  const canSync = role === 'ADMIN' || role === 'FINANCE'
 
-  // Redirect non-admin users to home page
+  // Redirect unauthorized users to home page
   useEffect(() => {
-    if (!isLoading && !isAdmin) {
+    if (!isLoading && !canSync) {
       router.replace('/')
     }
-  }, [isLoading, isAdmin, router])
+  }, [isLoading, canSync, router])
 
   // Show nothing while checking permissions
-  if (isLoading || !isAdmin) {
+  if (isLoading || !canSync) {
     return null
   }
 

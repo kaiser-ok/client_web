@@ -368,6 +368,7 @@ async function serialLookup(params: { serialNo: string }): Promise<SkillResult> 
     `案子名稱：${info.saleOrderName || '—'}${info.projectName ? `（${info.projectName}）` : ''}`,
     info.clientOrderRef ? `客戶參照：${info.clientOrderRef}` : '',
     `客戶：${info.partnerName || '—'}`,
+    info.orderDeliveryDate ? `訂單交貨日期：${info.orderDeliveryDate}` : '',
     `出貨日期：${info.deliveryDate || '尚未出貨'}`,
   ].filter(Boolean).join('\n')
 

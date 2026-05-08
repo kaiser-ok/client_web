@@ -26,8 +26,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    // Only admin can sync
-    if (session.user?.role !== 'ADMIN') {
+    // Only admin and finance can sync
+    if (!['ADMIN', 'FINANCE'].includes(session.user?.role ?? '')) {
       return NextResponse.json({ error: '權限不足' }, { status: 403 })
     }
 
@@ -185,6 +185,7 @@ export async function POST(request: NextRequest) {
         productsJson: productsJson.length > 0 ? productsJson : undefined,
         salesRep: order.user_name || null,
         closedAt: new Date(order.date_order),
+        deliveryDate: order.commitment_date ? new Date(order.commitment_date) : null,  // 交貨日期
         startDate: serviceStartDate,
         endDate: serviceEndDate,
         source: 'ODOO',
@@ -209,6 +210,7 @@ export async function POST(request: NextRequest) {
             productsJson: productsJson.length > 0 ? productsJson : (existingDeal.productsJson ?? undefined),
             salesRep: order.user_name || existingDeal.salesRep,
             closedAt: new Date(order.date_order),
+            deliveryDate: order.commitment_date ? new Date(order.commitment_date) : existingDeal.deliveryDate,
             startDate: serviceStartDate || existingDeal.startDate,
             endDate: serviceEndDate || existingDeal.endDate,
             notes: combinedNotes || existingDeal.notes,

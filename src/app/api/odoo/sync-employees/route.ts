@@ -11,8 +11,8 @@ export async function POST() {
       return NextResponse.json({ error: '未授權' }, { status: 401 })
     }
 
-    // Only admin can sync
-    if (session.user?.role !== 'ADMIN') {
+    // Only admin and finance can sync
+    if (!['ADMIN', 'FINANCE'].includes(session.user?.role ?? '')) {
       return NextResponse.json({ error: '權限不足' }, { status: 403 })
     }
 

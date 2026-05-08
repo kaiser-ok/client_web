@@ -30,6 +30,7 @@ export interface OdooSaleOrder {
   amount_total: number
   state: string
   date_order: Date
+  commitment_date: Date | null     // 交貨日期
   user_id: number | null
   user_name: string | null
   dealer_id: number | null
@@ -130,6 +131,7 @@ export const odooClient = {
         so.amount_total,
         so.state,
         so.date_order,
+        so.commitment_date,
         so.user_id,
         u.name as user_name,
         so.dealer_id,
@@ -173,6 +175,7 @@ export const odooClient = {
         so.amount_total,
         so.state,
         so.date_order,
+        so.commitment_date,
         so.user_id,
         u.name as user_name,
         so.dealer_id,
@@ -523,7 +526,8 @@ export const odooClient = {
     saleOrderName: string | null
     projectName: string | null
     clientOrderRef: string | null
-    deliveryDate: string | null
+    deliveryDate: string | null       // 實際出貨日期（stock_picking.date_done）
+    orderDeliveryDate: string | null  // 訂單交貨日期（sale_order.commitment_date）
     partnerName: string | null
   } | null> {
     const query = `
@@ -534,6 +538,7 @@ export const odooClient = {
         so.project_name,
         so.client_order_ref,
         sp.date_done AS delivery_date,
+        so.commitment_date AS order_delivery_date,
         rp.name AS partner_name
       FROM stock_lot sl
       JOIN stock_move_line sml ON sml.lot_id = sl.id
@@ -568,6 +573,7 @@ export const odooClient = {
       projectName: row.project_name || null,
       clientOrderRef: row.client_order_ref || null,
       deliveryDate: row.delivery_date ? new Date(row.delivery_date).toISOString().slice(0, 10) : null,
+      orderDeliveryDate: row.order_delivery_date ? new Date(row.order_delivery_date).toISOString().slice(0, 10) : null,
       partnerName: row.partner_name || null,
     }
   },

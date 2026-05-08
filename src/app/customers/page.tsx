@@ -10,7 +10,7 @@ import {
   Card,
   Modal,
   Form,
-  message,
+  App,
   Popconfirm,
   Tag,
   Select,
@@ -53,6 +53,7 @@ const TIER_OPTIONS = [
 export default function CustomersPage() {
   const router = useRouter()
   const { can } = useUser()
+  const { message } = App.useApp()
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string | undefined>()
   const [page, setPage] = useState(1)
