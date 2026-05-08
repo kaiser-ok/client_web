@@ -267,6 +267,19 @@ function LineEventsPageInner() {
     }
   }
 
+  useEffect(() => {
+    if (approveCandidate) {
+      approveForm.setFieldsValue({
+        title: approveCandidate.title,
+        description: approveCandidate.summary,
+        priority: approveCandidate.suggestedPriority,
+        partnerId: approveCandidate.channel?.partner?.id,
+      })
+    } else {
+      approveForm.resetFields()
+    }
+  }, [approveCandidate, approveForm])
+
   useEffect(() => { loadEvents() }, [loadEvents])
   useEffect(() => { loadStaff() }, [loadStaff])
   useEffect(() => { loadProjects() }, [loadProjects])
@@ -981,7 +994,7 @@ function LineEventsPageInner() {
         okText="建立事件"
         cancelText="取消"
         width={520}
-        destroyOnHidden
+        forceRender
       >
         {approveCandidate && (
           <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, fontSize: 12 }}>
@@ -992,12 +1005,6 @@ function LineEventsPageInner() {
           form={approveForm}
           layout="vertical"
           onFinish={handleApproveSubmit}
-          initialValues={{
-            title: approveCandidate?.title,
-            description: approveCandidate?.summary,
-            priority: approveCandidate?.suggestedPriority,
-            partnerId: approveCandidate?.channel?.partner?.id,
-          }}
         >
           <Form.Item name="title" label="事件標題" rules={[{ required: true, message: '請輸入標題' }]}>
             <Input />
