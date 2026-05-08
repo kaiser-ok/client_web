@@ -9,7 +9,7 @@ import {
 import type { ColumnsType } from 'antd/es/table'
 import {
   PlusOutlined, UserOutlined, ClockCircleOutlined, ReloadOutlined,
-  MessageOutlined, LinkOutlined, HistoryOutlined,
+  MessageOutlined, LinkOutlined, HistoryOutlined, BulbOutlined, CheckOutlined, StopOutlined,
 } from '@ant-design/icons'
 import AppLayout from '@/components/layout/AppLayout'
 import { EVENT_STATUS, EVENT_PRIORITY, LineEventData } from '@/components/line/LineEventPanel'
@@ -30,6 +30,23 @@ interface Comment {
   content: string
   authorEmail: string
   createdAt: string
+}
+
+interface Candidate {
+  id: string
+  title: string
+  summary: string
+  suggestedPriority: string
+  aiReason: string
+  messageWindowStart: string
+  messageWindowEnd: string
+  status: string
+  createdAt: string
+  channel: {
+    id: string
+    channelName: string
+    partner: { id: string; name: string } | null
+  }
 }
 
 interface StaffUser {
@@ -68,7 +85,17 @@ function LineEventsPageInner() {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [page, setPage] = useState(1)
-  const [activeTab, setActiveTab] = useState<'active' | 'history'>('active')
+  const [activeTab, setActiveTab] = useState<'active' | 'history' | 'suggestions'>('active')
+
+  // Suggestions (待審查建議)
+  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [candidatesTotal, setCandidatesTotal] = useState(0)
+  const [pendingCount, setPendingCount] = useState(0)
+  const [loadingCandidates, setLoadingCandidates] = useState(false)
+  const [candidatePage, setCandidatePage] = useState(1)
+  const [actioningId, setActioningId] = useState<string | null>(null)
+  const [approveCandidate, setApproveCandidate] = useState<Candidate | null>(null)
+  const [approveForm] = Form.useForm()
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<string | undefined>()
@@ -96,7 +123,12 @@ function LineEventsPageInner() {
   // Staff list
   const [staffList, setStaffList] = useState<StaffUser[]>([])
   const [partnerList, setPartnerList] = useState<{ id: string; name: string }[]>([])
+  const [partnerSearchLoading, setPartnerSearchLoading] = useState(false)
+  const [partnerSearchText, setPartnerSearchText] = useState('')
+  const partnerSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [projectList, setProjectList] = useState<{ id: string; name: string; partnerId: string | null }[]>([])
   const [labelDefs, setLabelDefs] = useState<{ id: string; label: string; color: string }[]>([])
+  const [selectedPartnerId, setSelectedPartnerId] = useState<string | undefined>()
 
   // ── 載入資料 ────────────────────────────────────────
 
@@ -132,11 +164,32 @@ function LineEventsPageInner() {
     }
   }, [])
 
-  const loadPartners = useCallback(async () => {
-    const res = await fetch('/api/partners?limit=200')
+  const searchPartners = useCallback(async (text: string) => {
+    setPartnerSearchLoading(true)
+    try {
+      const params = new URLSearchParams({ pageSize: '30' })
+      if (text) params.set('search', text)
+      const res = await fetch(`/api/partners?${params}`)
+      if (res.ok) {
+        const data = await res.json()
+        setPartnerList((data.partners ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
+      }
+    } finally {
+      setPartnerSearchLoading(false)
+    }
+  }, [])
+
+  const handlePartnerSearch = (text: string) => {
+    setPartnerSearchText(text)
+    if (partnerSearchTimer.current) clearTimeout(partnerSearchTimer.current)
+    partnerSearchTimer.current = setTimeout(() => searchPartners(text), 300)
+  }
+
+  const loadProjects = useCallback(async () => {
+    const res = await fetch('/api/projects?limit=200')
     if (res.ok) {
       const data = await res.json()
-      setPartnerList((data.partners ?? data).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
+      setProjectList((data.projects ?? []).map((p: { id: string; name: string; partnerId: string | null }) => ({ id: p.id, name: p.name, partnerId: p.partnerId })))
     }
   }, [])
 
@@ -150,15 +203,84 @@ function LineEventsPageInner() {
     }
   }, [])
 
+  const loadCandidates = useCallback(async (p = candidatePage) => {
+    setLoadingCandidates(true)
+    try {
+      const res = await fetch(`/api/line/line-events/candidates?status=PENDING&page=${p}&limit=20`)
+      if (res.ok) {
+        const data = await res.json()
+        setCandidates(data.candidates)
+        setCandidatesTotal(data.total)
+      }
+    } finally {
+      setLoadingCandidates(false)
+    }
+  }, [candidatePage])
+
+  const loadPendingCount = useCallback(async () => {
+    const res = await fetch('/api/line/line-events/candidates?status=PENDING&limit=1')
+    if (res.ok) {
+      const data = await res.json()
+      setPendingCount(data.total)
+    }
+  }, [])
+
+  const handleDismiss = async (id: string) => {
+    setActioningId(id)
+    try {
+      const res = await fetch(`/api/line/line-events/candidates/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'dismiss' }),
+      })
+      if (res.ok) {
+        message.success('已略過')
+        loadCandidates(candidatePage)
+        loadPendingCount()
+      } else {
+        message.error('操作失敗')
+      }
+    } finally {
+      setActioningId(null)
+    }
+  }
+
+  const handleApproveSubmit = async (values: { title: string; description?: string; priority: string; partnerId?: string; projectId?: string; assigneeId?: string }) => {
+    if (!approveCandidate) return
+    setActioningId(approveCandidate.id)
+    try {
+      const res = await fetch(`/api/line/line-events/candidates/${approveCandidate.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'approve', ...values }),
+      })
+      if (res.ok) {
+        message.success('事件已建立')
+        setApproveCandidate(null)
+        loadCandidates(candidatePage)
+        loadPendingCount()
+      } else {
+        message.error('建立失敗')
+      }
+    } finally {
+      setActioningId(null)
+    }
+  }
+
   useEffect(() => { loadEvents() }, [loadEvents])
   useEffect(() => { loadStaff() }, [loadStaff])
-  useEffect(() => { loadPartners() }, [loadPartners])
+  useEffect(() => { loadProjects() }, [loadProjects])
+  useEffect(() => { if (createOpen) { setPartnerSearchText(''); searchPartners('') } }, [createOpen]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetch('/api/settings/line-labels')
       .then(r => r.ok ? r.json() : null)
       .then(d => d?.labels && setLabelDefs(d.labels))
       .catch(() => {})
   }, [])
+  useEffect(() => { loadPendingCount() }, [loadPendingCount])
+  useEffect(() => {
+    if (activeTab === 'suggestions') loadCandidates(1)
+  }, [activeTab]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // 若 URL 有 eventId 參數，自動開啟該事件 Drawer
   useEffect(() => {
@@ -173,18 +295,32 @@ function LineEventsPageInner() {
 
   // ── 操作函式 ────────────────────────────────────────
 
-  const handleCreate = async (values: { title: string; description?: string; priority: string; assigneeId?: string; channelIds?: string[] }) => {
+  const handleCreate = async (values: { title: string; description?: string; priority: string; partnerId?: string; projectId?: string; assigneeId?: string; labelIds?: string[] }) => {
     setCreating(true)
     try {
+      let partnerId = values.partnerId
+      if (partnerId?.startsWith('__new__:')) {
+        const name = partnerId.slice('__new__:'.length)
+        const pRes = await fetch('/api/partners', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, roles: [{ role: 'DEALER', isPrimary: true }] }),
+        })
+        if (!pRes.ok) { message.error('建立客戶失敗'); setCreating(false); return }
+        const newPartner = await pRes.json()
+        partnerId = newPartner.id
+      }
       const res = await fetch('/api/line/line-events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...values, channelIds: [] }),
+        body: JSON.stringify({ ...values, partnerId, channelIds: [] }),
       })
       if (res.ok) {
         message.success('事件已建立')
         setCreateOpen(false)
         form.resetFields()
+        setSelectedPartnerId(undefined)
+        setPartnerSearchText('')
         loadEvents(1)
         setPage(1)
       } else {
@@ -415,7 +551,7 @@ function LineEventsPageInner() {
           </Space>
           <Space>
             <Tooltip title="重新整理">
-              <Button icon={<ReloadOutlined />} onClick={() => loadEvents()} loading={loading} />
+              <Button icon={<ReloadOutlined />} onClick={() => activeTab === 'suggestions' ? loadCandidates(candidatePage) : loadEvents()} loading={activeTab === 'suggestions' ? loadingCandidates : loading} />
             </Tooltip>
             {activeTab === 'active' && (
               <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreateOpen(true)}>
@@ -429,8 +565,9 @@ function LineEventsPageInner() {
         <Tabs
           activeKey={activeTab}
           onChange={key => {
-            setActiveTab(key as 'active' | 'history')
+            setActiveTab(key as 'active' | 'history' | 'suggestions')
             setPage(1)
+            setCandidatePage(1)
             setFilterStatus(undefined)
             setFilterSlaBreached(undefined)
           }}
@@ -438,60 +575,141 @@ function LineEventsPageInner() {
           items={[
             { key: 'active', label: <Space><Badge count={activeTab === 'active' ? total : undefined} size="small" color="blue" offset={[4, 0]}>事件管理</Badge></Space> },
             { key: 'history', label: <Space><HistoryOutlined />歷史{activeTab === 'history' ? <Badge count={total} size="small" color="default" /> : null}</Space> },
+            { key: 'suggestions', label: <Space><BulbOutlined />待審查建議<Badge count={pendingCount} size="small" color="red" /></Space> },
           ]}
         />
 
-        {/* Filters */}
-        <Space wrap style={{ marginBottom: 12 }}>
-          {activeTab === 'active' && (
+        {/* Filters（suggestions tab 不顯示篩選） */}
+        {activeTab !== 'suggestions' && (
+          <Space wrap style={{ marginBottom: 12 }}>
+            {activeTab === 'active' && (
+              <Select
+                allowClear placeholder="狀態篩選" style={{ width: 120 }}
+                value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1) }}
+                options={Object.entries(EVENT_STATUS).map(([k, v]) => ({ value: k, label: v.label }))}
+              />
+            )}
             <Select
-              allowClear placeholder="狀態篩選" style={{ width: 120 }}
-              value={filterStatus} onChange={v => { setFilterStatus(v); setPage(1) }}
-              options={Object.entries(EVENT_STATUS).map(([k, v]) => ({ value: k, label: v.label }))}
+              allowClear placeholder="優先級" style={{ width: 100 }}
+              value={filterPriority} onChange={v => { setFilterPriority(v); setPage(1) }}
+              options={Object.entries(EVENT_PRIORITY).map(([k, v]) => ({ value: k, label: v.label }))}
             />
-          )}
-          <Select
-            allowClear placeholder="優先級" style={{ width: 100 }}
-            value={filterPriority} onChange={v => { setFilterPriority(v); setPage(1) }}
-            options={Object.entries(EVENT_PRIORITY).map(([k, v]) => ({ value: k, label: v.label }))}
-          />
-          <Select
-            allowClear placeholder="指派人" style={{ width: 140 }}
-            showSearch optionFilterProp="label"
-            value={filterAssigneeId} onChange={v => { setFilterAssigneeId(v); setPage(1) }}
-            options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
-          />
-          {activeTab === 'active' && (
             <Select
-              allowClear placeholder="SLA 狀態" style={{ width: 120 }}
-              value={filterSlaBreached === undefined ? undefined : String(filterSlaBreached)}
-              onChange={v => { setFilterSlaBreached(v === undefined ? undefined : v === 'true'); setPage(1) }}
-              options={[
-                { value: 'true', label: 'SLA 已超時' },
-                { value: 'false', label: 'SLA 正常' },
-              ]}
+              allowClear placeholder="指派人" style={{ width: 140 }}
+              showSearch optionFilterProp="label"
+              value={filterAssigneeId} onChange={v => { setFilterAssigneeId(v); setPage(1) }}
+              options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
             />
-          )}
-        </Space>
+            {activeTab === 'active' && (
+              <Select
+                allowClear placeholder="SLA 狀態" style={{ width: 120 }}
+                value={filterSlaBreached === undefined ? undefined : String(filterSlaBreached)}
+                onChange={v => { setFilterSlaBreached(v === undefined ? undefined : v === 'true'); setPage(1) }}
+                options={[
+                  { value: 'true', label: 'SLA 已超時' },
+                  { value: 'false', label: 'SLA 正常' },
+                ]}
+              />
+            )}
+          </Space>
+        )}
 
         {/* Table */}
         <div style={{ flex: 1, overflow: 'auto' }}>
-          <Table
-            rowKey="id"
-            dataSource={events}
-            columns={columns}
-            loading={loading}
-            size="small"
-            pagination={{
-              current: page,
-              pageSize: 20,
-              total,
-              showSizeChanger: false,
-              showTotal: t => `共 ${t} 筆`,
-              onChange: p => { setPage(p); loadEvents(p) },
-            }}
-            onRow={record => ({ onDoubleClick: () => openDrawer(record) })}
-          />
+          {activeTab === 'suggestions' ? (
+            <Table<Candidate>
+              rowKey="id"
+              dataSource={candidates}
+              loading={loadingCandidates}
+              size="small"
+              pagination={{
+                current: candidatePage,
+                pageSize: 20,
+                total: candidatesTotal,
+                showSizeChanger: false,
+                showTotal: t => `共 ${t} 筆`,
+                onChange: p => { setCandidatePage(p); loadCandidates(p) },
+              }}
+              columns={[
+                {
+                  title: '建議優先級',
+                  dataIndex: 'suggestedPriority',
+                  width: 90,
+                  render: (v: string) => <Tag color={EVENT_PRIORITY[v]?.color ?? 'default'}>{EVENT_PRIORITY[v]?.label ?? v}</Tag>,
+                },
+                {
+                  title: '頻道',
+                  dataIndex: 'channel',
+                  width: 160,
+                  render: (c: Candidate['channel']) => (
+                    <div>
+                      <Text style={{ fontSize: 12 }}>{c.channelName}</Text>
+                      {c.partner && <div><Tag color="blue" style={{ fontSize: 10 }}>{c.partner.name}</Tag></div>}
+                    </div>
+                  ),
+                },
+                {
+                  title: '建議標題',
+                  dataIndex: 'title',
+                  render: (v: string, r) => (
+                    <div>
+                      <Text strong style={{ fontSize: 13 }}>{v}</Text>
+                      <div style={{ fontSize: 12, color: '#666', marginTop: 2 }}>{r.summary}</div>
+                    </div>
+                  ),
+                },
+                {
+                  title: 'AI 判斷原因',
+                  dataIndex: 'aiReason',
+                  width: 180,
+                  render: (v: string) => <Text style={{ fontSize: 12 }} type="secondary">{v}</Text>,
+                },
+                {
+                  title: '分析時間',
+                  dataIndex: 'createdAt',
+                  width: 90,
+                  render: (v: string) => <Text style={{ fontSize: 11 }} type="secondary">{dayjs(v).fromNow()}</Text>,
+                },
+                {
+                  title: '操作',
+                  width: 140,
+                  render: (_: unknown, r: Candidate) => (
+                    <Space size={4}>
+                      <Button
+                        size="small" type="primary" icon={<CheckOutlined />}
+                        style={{ fontSize: 11, height: 24 }}
+                        loading={actioningId === r.id}
+                        onClick={() => setApproveCandidate(r)}
+                      >建立事件</Button>
+                      <Button
+                        size="small" danger icon={<StopOutlined />}
+                        style={{ fontSize: 11, height: 24 }}
+                        loading={actioningId === r.id}
+                        onClick={() => handleDismiss(r.id)}
+                      >略過</Button>
+                    </Space>
+                  ),
+                },
+              ]}
+            />
+          ) : (
+            <Table
+              rowKey="id"
+              dataSource={events}
+              columns={columns}
+              loading={loading}
+              size="small"
+              pagination={{
+                current: page,
+                pageSize: 20,
+                total,
+                showSizeChanger: false,
+                showTotal: t => `共 ${t} 筆`,
+                onChange: p => { setPage(p); loadEvents(p) },
+              }}
+              onRow={record => ({ onDoubleClick: () => openDrawer(record) })}
+            />
+          )}
         </div>
       </div>
 
@@ -753,16 +971,67 @@ function LineEventsPageInner() {
         />
       </Modal>
 
+      {/* Approve candidate modal */}
+      <Modal
+        title={<Space><BulbOutlined />建立 Incident 事件</Space>}
+        open={!!approveCandidate}
+        onCancel={() => setApproveCandidate(null)}
+        onOk={() => approveForm.submit()}
+        confirmLoading={!!actioningId}
+        okText="建立事件"
+        cancelText="取消"
+        width={520}
+        destroyOnHidden
+      >
+        {approveCandidate && (
+          <div style={{ marginBottom: 12, padding: '8px 12px', background: '#f5f5f5', borderRadius: 6, fontSize: 12 }}>
+            <Text type="secondary">AI 判斷原因：{approveCandidate.aiReason}</Text>
+          </div>
+        )}
+        <Form
+          form={approveForm}
+          layout="vertical"
+          onFinish={handleApproveSubmit}
+          initialValues={{
+            title: approveCandidate?.title,
+            description: approveCandidate?.summary,
+            priority: approveCandidate?.suggestedPriority,
+            partnerId: approveCandidate?.channel?.partner?.id,
+          }}
+        >
+          <Form.Item name="title" label="事件標題" rules={[{ required: true, message: '請輸入標題' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="問題說明">
+            <TextArea rows={3} />
+          </Form.Item>
+          <Form.Item name="priority" label="優先級">
+            <Select options={[
+              { value: 'P1', label: <Tag color="red">P1 緊急</Tag> },
+              { value: 'P2', label: <Tag color="orange">P2 重要</Tag> },
+              { value: 'NORMAL', label: <Tag>一般</Tag> },
+            ]} />
+          </Form.Item>
+          <Form.Item name="assigneeId" label="指派給">
+            <Select
+              allowClear placeholder="選擇處理人（選填）"
+              showSearch optionFilterProp="label"
+              options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
+            />
+          </Form.Item>
+        </Form>
+      </Modal>
+
       {/* Create modal */}
       <Modal
-        title="建立事件"
+        title="新增事件"
         open={createOpen}
-        onCancel={() => { setCreateOpen(false); form.resetFields() }}
+        onCancel={() => { setCreateOpen(false); form.resetFields(); setSelectedPartnerId(undefined) }}
         onOk={() => form.submit()}
         confirmLoading={creating}
         okText="建立"
         cancelText="取消"
-        width={480}
+        width={520}
         forceRender
       >
         <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 12 }}>
@@ -781,9 +1050,32 @@ function LineEventsPageInner() {
           </Form.Item>
           <Form.Item name="partnerId" label="客戶">
             <Select
-              allowClear placeholder="選擇客戶（選填）"
+              allowClear
+              showSearch
+              filterOption={false}
+              placeholder="搜尋或輸入客戶名稱（選填）"
+              loading={partnerSearchLoading}
+              onSearch={handlePartnerSearch}
+              notFoundContent={partnerSearchLoading ? <Spin size="small" /> : '查無結果'}
+              options={[
+                ...partnerList.map(p => ({ value: p.id, label: p.name })),
+                ...(partnerSearchText.trim() && !partnerList.some(p => p.name === partnerSearchText.trim())
+                  ? [{ value: `__new__:${partnerSearchText.trim()}`, label: `建立新客戶「${partnerSearchText.trim()}」` }]
+                  : []),
+              ]}
+              onChange={(val) => {
+                setSelectedPartnerId(val?.startsWith?.('__new__:') ? undefined : val)
+                form.setFieldValue('projectId', undefined)
+              }}
+            />
+          </Form.Item>
+          <Form.Item name="projectId" label="專案">
+            <Select
+              allowClear placeholder="選擇專案（選填）"
               showSearch optionFilterProp="label"
-              options={partnerList.map(p => ({ value: p.id, label: p.name }))}
+              options={projectList
+                .filter(p => !selectedPartnerId || p.partnerId === selectedPartnerId)
+                .map(p => ({ value: p.id, label: p.name }))}
             />
           </Form.Item>
           <Form.Item name="assigneeId" label="指派給">
@@ -793,6 +1085,15 @@ function LineEventsPageInner() {
               options={staffList.map(u => ({ value: u.id, label: u.name || u.email }))}
             />
           </Form.Item>
+          {labelDefs.length > 0 && (
+            <Form.Item name="labelIds" label="標籤">
+              <Select
+                mode="multiple"
+                allowClear placeholder="選擇標籤（選填）"
+                options={labelDefs.map(l => ({ value: l.id, label: <Tag color={l.color}>{l.label}</Tag> }))}
+              />
+            </Form.Item>
+          )}
         </Form>
       </Modal>
     </AppLayout>
