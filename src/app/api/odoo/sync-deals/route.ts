@@ -241,15 +241,33 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Detect orders that have been cancelled in Odoo and mark them locally
+    const cancelledOdooIds = await odooClient.getCancelledOrderIds(
+      fromDate ? new Date(fromDate) : undefined
+    )
+    let cancelled = 0
+    if (cancelledOdooIds.length > 0) {
+      const result = await prisma.deal.updateMany({
+        where: {
+          odooId: { in: cancelledOdooIds },
+          status: { not: 'CANCELLED' },
+        },
+        data: { status: 'CANCELLED' },
+      })
+      cancelled = result.count
+    }
+
     const projectMsg = projectsUpdated > 0 ? `，專案更新 ${projectsUpdated} 筆` : ''
+    const cancelMsg = cancelled > 0 ? `，取消 ${cancelled} 筆` : ''
     return NextResponse.json({
       success: true,
-      message: `訂單同步完成${projectMsg}`,
+      message: `訂單同步完成${projectMsg}${cancelMsg}`,
       stats: {
         total: odooOrders.length,
         created,
         updated,
         skipped,
+        cancelled,
         projectsUpdated,
       },
     })

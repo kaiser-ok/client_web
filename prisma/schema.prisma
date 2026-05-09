@@ -194,6 +194,7 @@ model Deal {
   autoRenew      Boolean   @default(false) // 是否自動續約
   remindDays     Int?      // 到期前提醒天數
   source         String    @default("MANUAL") // MANUAL, ODOO
+  status         String    @default("ACTIVE") // ACTIVE | CANCELLED
   odooId         Int?      @unique // Odoo sale_order.id
   notes          String?   @db.Text // 備註
   attachments    String[]  // 附件 URLs

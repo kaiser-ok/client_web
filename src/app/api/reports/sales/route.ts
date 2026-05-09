@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
     const baseWhere: Prisma.DealWhereInput = {
       closedAt: { gte: startDate, lte: endDate },
       amount: { not: null },
+      status: 'ACTIVE',
       ...(salesRepFilter && { salesRep: salesRepFilter }),
       ...(projectTypeFilter && { projectType: projectTypeFilter }),
     }
@@ -51,6 +52,7 @@ export async function GET(request: NextRequest) {
     const prevYearWhere: Prisma.DealWhereInput = {
       closedAt: { gte: prevYearStart, lte: prevYearEnd },
       amount: { not: null },
+      status: 'ACTIVE',
       ...(salesRepFilter && { salesRep: salesRepFilter }),
       ...(projectTypeFilter && { projectType: projectTypeFilter }),
     }
@@ -91,6 +93,7 @@ export async function GET(request: NextRequest) {
         WHERE "closedAt" >= ${startDate}
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
+          AND status = 'ACTIVE'
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY-MM')
@@ -107,6 +110,7 @@ export async function GET(request: NextRequest) {
           WHERE "closedAt" >= ${prevYearStart}
             AND "closedAt" <= ${prevYearEnd}
             AND amount IS NOT NULL
+            AND status = 'ACTIVE'
             ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
             ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
           GROUP BY TO_CHAR("closedAt", 'YYYY-MM')
@@ -138,6 +142,7 @@ export async function GET(request: NextRequest) {
         WHERE "closedAt" >= ${startDate}
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
+          AND status = 'ACTIVE'
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY') || '-Q' || CEIL(EXTRACT(MONTH FROM "closedAt") / 3.0)::int
@@ -154,6 +159,7 @@ export async function GET(request: NextRequest) {
           WHERE "closedAt" >= ${prevYearStart}
             AND "closedAt" <= ${prevYearEnd}
             AND amount IS NOT NULL
+            AND status = 'ACTIVE'
             ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
             ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
           GROUP BY CEIL(EXTRACT(MONTH FROM "closedAt") / 3.0)::int
@@ -184,6 +190,7 @@ export async function GET(request: NextRequest) {
         WHERE "closedAt" >= ${startDate}
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
+          AND status = 'ACTIVE'
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY')
@@ -266,6 +273,7 @@ export async function GET(request: NextRequest) {
         WHERE "closedAt" >= ${startDate}
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
+          AND status = 'ACTIVE'
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'MM')
@@ -280,6 +288,7 @@ export async function GET(request: NextRequest) {
         WHERE "closedAt" >= ${prevYearStart}
           AND "closedAt" <= ${prevYearEnd}
           AND amount IS NOT NULL
+          AND status = 'ACTIVE'
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'MM')

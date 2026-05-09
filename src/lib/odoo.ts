@@ -198,6 +198,20 @@ export const odooClient = {
   },
 
   /**
+   * Get IDs of cancelled sale orders from Odoo
+   */
+  async getCancelledOrderIds(fromDate?: Date): Promise<number[]> {
+    let query = `SELECT id FROM sale_order WHERE state = 'cancel'`
+    const params: Date[] = []
+    if (fromDate) {
+      query += ` AND write_date >= $1`
+      params.push(fromDate)
+    }
+    const result = await odooPool.query(query, params)
+    return result.rows.map((r: { id: number }) => r.id)
+  },
+
+  /**
    * Get a single partner by ID
    */
   async getPartnerById(id: number): Promise<OdooPartner | null> {
