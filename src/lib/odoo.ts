@@ -198,6 +198,18 @@ export const odooClient = {
   },
 
   /**
+   * Given a list of local odooIds, return which ones still exist in Odoo (any state)
+   */
+  async getExistingOrderIds(ids: number[]): Promise<number[]> {
+    if (ids.length === 0) return []
+    const result = await odooPool.query(
+      `SELECT id FROM sale_order WHERE id = ANY($1)`,
+      [ids]
+    )
+    return result.rows.map((r: { id: number }) => r.id)
+  },
+
+  /**
    * Get IDs of cancelled sale orders from Odoo
    */
   async getCancelledOrderIds(fromDate?: Date): Promise<number[]> {

@@ -257,17 +257,37 @@ export async function POST(request: NextRequest) {
       cancelled = result.count
     }
 
+    // Orphan check: find local deals whose odooId no longer exists in Odoo at all
+    const localActiveDeals = await prisma.deal.findMany({
+      where: { odooId: { not: null }, status: 'ACTIVE' },
+      select: { odooId: true },
+    })
+    const localOdooIds = localActiveDeals.map(d => d.odooId as number)
+    const existingInOdoo = await odooClient.getExistingOrderIds(localOdooIds)
+    const existingSet = new Set(existingInOdoo)
+    const orphanIds = localOdooIds.filter(id => !existingSet.has(id))
+    let orphaned = 0
+    if (orphanIds.length > 0) {
+      const result = await prisma.deal.updateMany({
+        where: { odooId: { in: orphanIds }, status: 'ACTIVE' },
+        data: { status: 'CANCELLED' },
+      })
+      orphaned = result.count
+    }
+
     const projectMsg = projectsUpdated > 0 ? `，專案更新 ${projectsUpdated} 筆` : ''
     const cancelMsg = cancelled > 0 ? `，取消 ${cancelled} 筆` : ''
+    const orphanMsg = orphaned > 0 ? `，孤兒清理 ${orphaned} 筆` : ''
     return NextResponse.json({
       success: true,
-      message: `訂單同步完成${projectMsg}${cancelMsg}`,
+      message: `訂單同步完成${projectMsg}${cancelMsg}${orphanMsg}`,
       stats: {
         total: odooOrders.length,
         created,
         updated,
         skipped,
         cancelled,
+        orphaned,
         projectsUpdated,
       },
     })
