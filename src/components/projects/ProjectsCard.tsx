@@ -183,60 +183,85 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
     return i
   }
 
-  // 自動匹配最終用戶：多種匹配策略
-  const findBestEndUserMatch = useCallback(() => {
-    const projectName = form.getFieldValue('name')
-    if (!projectName || !endUsersData?.customers?.length) {
-      message.info('請先輸入專案名稱')
-      return
-    }
+  const [isMatchingEndUser, setIsMatchingEndUser] = useState(false)
 
-    const customers = endUsersData.customers
-
+  // 規則式快速匹配，回傳匹配結果或 null
+  const ruleBasedMatch = useCallback((projectName: string, customers: EndUser[]) => {
     // 策略1：完全包含匹配（用戶名稱出現在專案名稱中）
     const exactMatches = customers
       .filter(c => projectName.includes(c.name))
       .sort((a, b) => b.name.length - a.name.length)
+    if (exactMatches.length > 0) return { customer: exactMatches[0], method: '完全匹配' }
 
-    if (exactMatches.length > 0) {
-      form.setFieldValue('endUserId', exactMatches[0].id)
-      message.success(`完全匹配: ${exactMatches[0].name}`)
-      return
-    }
-
-    // 策略2：前綴匹配（專案名稱與用戶名稱有共同前綴，至少2個字）
+    // 策略2：前綴匹配（共同前綴至少2字）
     const prefixMatches = customers
       .map(c => ({ customer: c, prefixLen: commonPrefixLength(projectName, c.name) }))
-      .filter(m => m.prefixLen >= 2) // 至少2個字的共同前綴
+      .filter(m => m.prefixLen >= 2)
       .sort((a, b) => b.prefixLen - a.prefixLen)
-
     if (prefixMatches.length > 0) {
       const best = prefixMatches[0]
-      form.setFieldValue('endUserId', best.customer.id)
-      message.success(`前綴匹配: ${best.customer.name}（共同前綴: ${projectName.substring(0, best.prefixLen)}）`)
-      return
+      return { customer: best.customer, method: `前綴匹配（${projectName.substring(0, best.prefixLen)}）` }
     }
 
-    // 策略3：關鍵字匹配（縣市名稱）
+    // 策略3：縣市關鍵字匹配
     const locationKeywords = ['臺北', '台北', '新北', '桃園', '臺中', '台中', '臺南', '台南', '高雄',
       '基隆', '新竹', '嘉義', '宜蘭', '苗栗', '彰化', '南投', '雲林', '屏東', '花蓮', '臺東', '台東',
       '澎湖', '金門', '連江', '馬祖']
-
     for (const keyword of locationKeywords) {
       if (projectName.includes(keyword)) {
-        const keywordMatches = customers.filter(c => c.name.includes(keyword))
-        if (keywordMatches.length > 0) {
-          // 優先選擇名稱較短的（通常是主要單位）
-          keywordMatches.sort((a, b) => a.name.length - b.name.length)
-          form.setFieldValue('endUserId', keywordMatches[0].id)
-          message.success(`關鍵字匹配（${keyword}）: ${keywordMatches[0].name}`)
-          return
-        }
+        const keywordMatches = customers
+          .filter(c => c.name.includes(keyword))
+          .sort((a, b) => a.name.length - b.name.length)
+        if (keywordMatches.length > 0) return { customer: keywordMatches[0], method: `關鍵字匹配（${keyword}）` }
       }
     }
 
-    message.info('找不到匹配的最終用戶')
-  }, [form, endUsersData, message])
+    return null
+  }, [])
+
+  // 自動匹配最終用戶：規則優先，失敗再呼叫 LLM
+  const findBestEndUserMatch = useCallback(async () => {
+    const projectName = form.getFieldValue('name')
+    if (!projectName) {
+      message.info('請先輸入專案名稱')
+      return
+    }
+
+    const customers = endUsersData?.customers || []
+
+    // 先試規則式匹配
+    if (customers.length > 0) {
+      const ruleResult = ruleBasedMatch(projectName, customers)
+      if (ruleResult) {
+        form.setFieldValue('endUserId', ruleResult.customer.id)
+        message.success(`${ruleResult.method}: ${ruleResult.customer.name}`)
+        return
+      }
+    }
+
+    // 規則失敗，呼叫 LLM
+    setIsMatchingEndUser(true)
+    try {
+      const res = await fetch('/api/projects/suggest-end-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectName }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || '推薦失敗')
+
+      if (data.match) {
+        form.setFieldValue('endUserId', data.match.id)
+        message.success(`AI 推薦: ${data.match.name}${data.reason ? `（${data.reason}）` : ''}`)
+      } else {
+        message.info(data.reason || '找不到匹配的最終用戶')
+      }
+    } catch (err) {
+      message.error(err instanceof Error ? err.message : 'AI 推薦失敗')
+    } finally {
+      setIsMatchingEndUser(false)
+    }
+  }, [form, endUsersData, message, ruleBasedMatch])
 
   const handleCreateEndUser = useCallback(async () => {
     const trimmed = newEndUserName.trim()
@@ -849,8 +874,8 @@ export default function ProjectsCard({ customerId }: ProjectsCardProps) {
                   )}
                 />
               </Form.Item>
-              <Tooltip title="從專案名稱自動匹配">
-                <Button icon={<SearchOutlined />} onClick={findBestEndUserMatch} />
+              <Tooltip title="從專案名稱自動匹配（規則→AI）">
+                <Button icon={<SearchOutlined />} onClick={findBestEndUserMatch} loading={isMatchingEndUser} />
               </Tooltip>
             </Space.Compact>
           </Form.Item>
