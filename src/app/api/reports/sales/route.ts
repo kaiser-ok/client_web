@@ -40,11 +40,12 @@ export async function GET(request: NextRequest) {
     const prevYearEnd = new Date(endDate)
     prevYearEnd.setFullYear(prevYearEnd.getFullYear() - 1)
 
-    // 基本篩選條件
+    // 基本篩選條件（排除草稿訂單）
     const baseWhere: Prisma.DealWhereInput = {
       closedAt: { gte: startDate, lte: endDate },
       amount: { not: null },
       status: 'ACTIVE',
+      OR: [{ odooState: null }, { NOT: { odooState: 'draft' } }],
       ...(salesRepFilter && { salesRep: salesRepFilter }),
       ...(projectTypeFilter && { projectType: projectTypeFilter }),
     }
@@ -53,12 +54,13 @@ export async function GET(request: NextRequest) {
       closedAt: { gte: prevYearStart, lte: prevYearEnd },
       amount: { not: null },
       status: 'ACTIVE',
+      OR: [{ odooState: null }, { NOT: { odooState: 'draft' } }],
       ...(salesRepFilter && { salesRep: salesRepFilter }),
       ...(projectTypeFilter && { projectType: projectTypeFilter }),
     }
 
-    // 1. 總計
-    const [currentTotal, prevYearTotal] = await Promise.all([
+    // 1. 總計（含本地發票金額）
+    const [currentTotal, prevYearTotal, invoicedData] = await Promise.all([
       prisma.deal.aggregate({
         where: baseWhere,
         _sum: { amount: true },
@@ -72,6 +74,14 @@ export async function GET(request: NextRequest) {
             _count: { id: true },
           })
         : null,
+      prisma.invoice.aggregate({
+        where: {
+          invoiceDate: { gte: startDate, lte: endDate },
+          state: 'posted',
+        },
+        _sum: { amount: true, amountResidual: true },
+        _count: { id: true },
+      }),
     ])
 
     const totalRevenue = Number(currentTotal._sum.amount || 0)
@@ -79,6 +89,9 @@ export async function GET(request: NextRequest) {
     const avgDealSize = Number(currentTotal._avg.amount || 0)
     const prevYearRevenue = prevYearTotal ? Number(prevYearTotal._sum.amount || 0) : 0
     const yoyGrowth = prevYearRevenue > 0 ? ((totalRevenue - prevYearRevenue) / prevYearRevenue) * 100 : null
+    const invoicedRevenue = Number(invoicedData._sum.amount || 0)
+    const invoiceCount = invoicedData._count.id
+    const unpaidRevenue = Number(invoicedData._sum.amountResidual || 0)
 
     // 2. 時間序列 (使用 raw query 來做日期分組)
     let timeSeries: { period: string; revenue: number; dealCount: number; prevYearRevenue?: number }[] = []
@@ -94,6 +107,7 @@ export async function GET(request: NextRequest) {
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
           AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY-MM')
@@ -111,6 +125,7 @@ export async function GET(request: NextRequest) {
             AND "closedAt" <= ${prevYearEnd}
             AND amount IS NOT NULL
             AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
             ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
             ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
           GROUP BY TO_CHAR("closedAt", 'YYYY-MM')
@@ -143,6 +158,7 @@ export async function GET(request: NextRequest) {
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
           AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY') || '-Q' || CEIL(EXTRACT(MONTH FROM "closedAt") / 3.0)::int
@@ -160,6 +176,7 @@ export async function GET(request: NextRequest) {
             AND "closedAt" <= ${prevYearEnd}
             AND amount IS NOT NULL
             AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
             ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
             ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
           GROUP BY CEIL(EXTRACT(MONTH FROM "closedAt") / 3.0)::int
@@ -191,6 +208,7 @@ export async function GET(request: NextRequest) {
           AND "closedAt" <= ${endDate}
           AND amount IS NOT NULL
           AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'YYYY')
@@ -261,19 +279,27 @@ export async function GET(request: NextRequest) {
       dealCount: d._count.id,
     }))
 
-    // 6. 月度同期比較 (今年 vs 去年)
+    // 6. 月度同期比較 — 固定用 endDate 所在年 vs 前一年，避免跨年區間造成月份錯亂
     let monthlyComparison: { month: string; currentYear: number; previousYear: number; growth: number }[] | undefined
 
     if (includeYoY) {
+      const endYear = endDate.getFullYear()
+      const endMonth = endDate.getMonth() + 1 // 今年截至幾月
+      const thisYearStart = new Date(endYear, 0, 1)
+      const thisYearEnd = new Date(endYear, endMonth - 1, 31, 23, 59, 59, 999)
+      const lastYearStart = new Date(endYear - 1, 0, 1)
+      const lastYearEnd = new Date(endYear - 1, 11, 31, 23, 59, 59, 999) // 去年全年
+
       const currentYearMonths = await prisma.$queryRaw<{ month: string; revenue: Prisma.Decimal }[]>`
         SELECT
           TO_CHAR("closedAt", 'MM') as month,
           SUM(amount) as revenue
         FROM deals
-        WHERE "closedAt" >= ${startDate}
-          AND "closedAt" <= ${endDate}
+        WHERE "closedAt" >= ${thisYearStart}
+          AND "closedAt" <= ${thisYearEnd}
           AND amount IS NOT NULL
           AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'MM')
@@ -285,10 +311,11 @@ export async function GET(request: NextRequest) {
           TO_CHAR("closedAt", 'MM') as month,
           SUM(amount) as revenue
         FROM deals
-        WHERE "closedAt" >= ${prevYearStart}
-          AND "closedAt" <= ${prevYearEnd}
+        WHERE "closedAt" >= ${lastYearStart}
+          AND "closedAt" <= ${lastYearEnd}
           AND amount IS NOT NULL
           AND status = 'ACTIVE'
+          AND ("odooState" IS NULL OR "odooState" != 'draft')
           ${salesRepFilter ? Prisma.sql`AND "salesRep" = ${salesRepFilter}` : Prisma.empty}
           ${projectTypeFilter ? Prisma.sql`AND "projectType" = ${projectTypeFilter}` : Prisma.empty}
         GROUP BY TO_CHAR("closedAt", 'MM')
@@ -298,12 +325,14 @@ export async function GET(request: NextRequest) {
       const currentMap = new Map(currentYearMonths.map(d => [d.month, Number(d.revenue)]))
       const prevMap = new Map(prevYearMonths.map(d => [d.month, Number(d.revenue)]))
 
-      // 合併所有月份
-      const allMonths = new Set([...currentMap.keys(), ...prevMap.keys()])
-      monthlyComparison = Array.from(allMonths)
-        .sort()
+      // 顯示 1-12 月，今年未來月份值為 0（不顯示），去年顯示完整全年
+      const currentMonthStr = String(endMonth).padStart(2, '0')
+      const allMonths = Array.from({ length: 12 }, (_, i) => String(i + 1).padStart(2, '0'))
+      monthlyComparison = allMonths
+        .filter(month => prevMap.has(month) || currentMap.has(month))
         .map(month => {
-          const current = currentMap.get(month) || 0
+          // 今年未來月份不顯示（設為 0，前端可據此判斷）
+          const current = month <= currentMonthStr ? (currentMap.get(month) || 0) : 0
           const prev = prevMap.get(month) || 0
           return {
             month,
@@ -331,6 +360,9 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       summary: {
         totalRevenue,
+        invoicedRevenue,
+        invoiceCount,
+        unpaidRevenue,
         dealCount,
         avgDealSize,
         period: `${startDate.toISOString().slice(0, 10)} ~ ${endDate.toISOString().slice(0, 10)}`,

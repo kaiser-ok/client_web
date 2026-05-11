@@ -8,6 +8,7 @@ import {
   UserOutlined,
   CloudSyncOutlined,
   ShopOutlined,
+  FileTextOutlined,
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AppLayout from '@/components/layout/AppLayout'
@@ -35,10 +36,12 @@ export default function OdooSettingsPage() {
   const [syncingDeals, setSyncingDeals] = useState(false)
   const [syncingEmployees, setSyncingEmployees] = useState(false)
   const [syncingSuppliers, setSyncingSuppliers] = useState(false)
+  const [syncingInvoices, setSyncingInvoices] = useState(false)
   const [customerResult, setCustomerResult] = useState<SyncResult | null>(null)
   const [dealResult, setDealResult] = useState<SyncResult | null>(null)
   const [employeeResult, setEmployeeResult] = useState<SyncResult | null>(null)
   const [supplierResult, setSupplierResult] = useState<SyncResult | null>(null)
+  const [invoiceResult, setInvoiceResult] = useState<SyncResult | null>(null)
 
   const canSync = role === 'ADMIN' || role === 'FINANCE'
 
@@ -149,6 +152,30 @@ export default function OdooSettingsPage() {
       message.error('同步失敗')
     } finally {
       setSyncingSuppliers(false)
+    }
+  }
+
+  const syncInvoices = async () => {
+    setSyncingInvoices(true)
+    setInvoiceResult(null)
+    try {
+      const res = await fetch('/api/odoo/sync-invoices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({}),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setInvoiceResult(data)
+        message.success(data.message)
+      } else {
+        message.error(data.error || '同步失敗')
+      }
+    } catch (error) {
+      message.error('同步失敗')
+    } finally {
+      setSyncingInvoices(false)
     }
   }
 
@@ -372,6 +399,54 @@ export default function OdooSettingsPage() {
 
         <Divider />
 
+        {/* Invoice Sync */}
+        <div style={{ marginBottom: 24 }}>
+          <Space align="start" size="large">
+            <Button
+              type="primary"
+              icon={<FileTextOutlined />}
+              loading={syncingInvoices}
+              onClick={syncInvoices}
+              size="large"
+            >
+              同步發票資料
+            </Button>
+            <div>
+              <Text strong>發票同步</Text>
+              <br />
+              <Text type="secondary">
+                從 ERP 同步客戶發票，用於銷售報表已開發票總額
+              </Text>
+            </div>
+          </Space>
+
+          {invoiceResult && (
+            <Card size="small" style={{ marginTop: 16, background: '#f6ffed' }}>
+              <Row gutter={16}>
+                <Col span={8}>
+                  <Statistic title="總筆數" value={invoiceResult.stats.total} />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="新增"
+                    value={invoiceResult.stats.created}
+                    styles={{ content: { color: '#52c41a' } }}
+                  />
+                </Col>
+                <Col span={8}>
+                  <Statistic
+                    title="更新"
+                    value={invoiceResult.stats.updated}
+                    styles={{ content: { color: '#1890ff' } }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          )}
+        </div>
+
+        <Divider />
+
         <Alert
           type="info"
           showIcon
@@ -382,6 +457,7 @@ export default function OdooSettingsPage() {
               <li>訂單同步：只同步狀態為「已確認」的訂單</li>
               <li>員工同步：同步 ERP 中有「員工」標籤的聯絡人，需要有 Email 才會建立</li>
               <li>供應商同步：同步 ERP 中有「供應商」標籤的聯絡人</li>
+              <li>發票同步：同步 ERP 中所有客戶發票，用於銷售報表已開發票總額顯示</li>
               <li>重複執行不會產生重複資料，會更新現有記錄</li>
               <li>手動建立的資料不會被覆蓋</li>
             </ul>

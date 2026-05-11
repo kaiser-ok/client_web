@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     }
 
     const deals = await prisma.deal.findMany({
-      where: { partnerId },
+      where: { partnerId, status: 'ACTIVE' },
       orderBy: [
         { closedAt: 'desc' },
         { createdAt: 'desc' },

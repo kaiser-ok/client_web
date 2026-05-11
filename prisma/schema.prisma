@@ -40,6 +40,7 @@ model Partner {
   activities       Activity[]
   openItems        OpenItem[]
   deals            Deal[]
+  invoices         Invoice[]
   views            PartnerView[]
   files            PartnerFile[]
   technicalNotes   TechnicalNote[]
@@ -47,6 +48,9 @@ model Partner {
   endUserProjects  Project[]        @relation("ProjectEndUser") // 作為最終用戶的專案
   quotations       Quotation[]
   contacts         Contact[]
+
+  // Wiki 知識庫
+  wikiPages        WikiPage[]
 
   // LINE 關聯
   lineChannels              LineChannel[]
@@ -195,6 +199,7 @@ model Deal {
   remindDays     Int?      // 到期前提醒天數
   source         String    @default("MANUAL") // MANUAL, ODOO
   status         String    @default("ACTIVE") // ACTIVE | CANCELLED
+  odooState      String?   // Odoo sale_order.state: sale | draft
   odooId         Int?      @unique // Odoo sale_order.id
   notes          String?   @db.Text // 備註
   attachments    String[]  // 附件 URLs
@@ -203,11 +208,39 @@ model Deal {
   updatedAt      DateTime  @updatedAt
 
   project        Project?  // 關聯專案
+  invoices       Invoice[]
 
   @@index([partnerId])
   @@index([closedAt])
   @@index([endDate])
   @@map("deals")
+}
+
+// ============================================
+// 發票（從 Odoo account_move 同步）
+// ============================================
+
+model Invoice {
+  id          String    @id @default(cuid())
+  odooId      Int       @unique // Odoo account_move.id
+  name        String    // 發票號碼如 INV/2026/00015
+  invoiceDate DateTime  // 開票日期
+  amount      Decimal   @db.Decimal(12, 2)
+  amountResidual Decimal @default(0) @db.Decimal(12, 2)
+  state       String    // posted | draft | cancel
+  paymentState String?  // not_paid | partial | paid | reversed
+  origin      String?   // 來源訂單號碼如 S00396
+  dealId      String?
+  deal        Deal?     @relation(fields: [dealId], references: [id])
+  partnerId   String?
+  partner     Partner?  @relation(fields: [partnerId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([invoiceDate])
+  @@index([dealId])
+  @@index([partnerId])
+  @@map("invoices")
 }
 
 // ============================================
@@ -234,6 +267,7 @@ model Project {
   updatedAt    DateTime      @updatedAt
 
   activities   Activity[]    // 相關活動
+  wikiPages    WikiPage[]    // 知識庫頁面
   lineChannels LineChannel[] // 相關 LINE 頻道
   bonusEval    ProjectBonusEval? // 獎金評估
   lineEvents   LineEvent[]   // 相關事件
@@ -984,4 +1018,36 @@ model QuotationTemplate {
   @@index([category])
   @@index([isActive])
   @@map("quotation_templates")
+}
+
+// ============================================
+// Wiki 知識庫
+// ============================================
+
+model WikiPage {
+  id              String    @id @default(cuid())
+  partnerId       String
+  partner         Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  projectId       String?
+  project         Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  type            String    // MEETING | PROFILE
+  title           String
+  content         String    @db.Text
+  // 會議記錄專用欄位（type=MEETING 時使用）
+  meetingDate     DateTime?
+  meetingType     String?   // INTERNAL | CUSTOMER
+  meetingLocation String?
+  participants    String[]
+  // 通用欄位
+  tags            String[]
+  status          String    @default("ACTIVE") // ACTIVE | ARCHIVED
+  createdBy       String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([partnerId])
+  @@index([projectId])
+  @@index([type])
+  @@index([status])
+  @@map("wiki_pages")
 }

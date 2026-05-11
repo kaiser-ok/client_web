@@ -24,6 +24,7 @@ import {
   RiseOutlined,
   FallOutlined,
   ReloadOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons'
 import dynamic from 'next/dynamic'
 import dayjs, { Dayjs } from 'dayjs'
@@ -317,10 +318,10 @@ export default function SalesReportPage() {
         <>
           {/* KPI Cards */}
           <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-            <Col xs={12} sm={6}>
+            <Col xs={12} sm={8}>
               <Card>
                 <Statistic
-                  title="總銷售額"
+                  title="訂單總額"
                   value={data.summary.totalRevenue}
                   prefix={<DollarOutlined />}
                   formatter={(v) => `$${Number(v).toLocaleString()}`}
@@ -328,7 +329,32 @@ export default function SalesReportPage() {
                 />
               </Card>
             </Col>
-            <Col xs={12} sm={6}>
+            <Col xs={12} sm={8}>
+              <Card>
+                <Statistic
+                  title="已開發票總額"
+                  value={data.summary.invoicedRevenue}
+                  prefix={<DollarOutlined />}
+                  formatter={(v) => `$${Number(v).toLocaleString()}`}
+                  styles={{ content: { color: '#52c41a' } }}
+                />
+                <div style={{ marginTop: 4, color: '#999', fontSize: 12 }}>
+                  共 {data.summary.invoiceCount} 張發票
+                </div>
+              </Card>
+            </Col>
+            <Col xs={12} sm={8}>
+              <Card>
+                <Statistic
+                  title="尚未入款"
+                  value={data.summary.unpaidRevenue}
+                  prefix={<ClockCircleOutlined />}
+                  formatter={(v) => `$${Number(v).toLocaleString()}`}
+                  styles={{ content: { color: '#faad14' } }}
+                />
+              </Card>
+            </Col>
+            <Col xs={12} sm={8}>
               <Card>
                 <Statistic
                   title="成交數"
@@ -338,7 +364,7 @@ export default function SalesReportPage() {
                 />
               </Card>
             </Col>
-            <Col xs={12} sm={6}>
+            <Col xs={12} sm={8}>
               <Card>
                 <Statistic
                   title="平均單價"
@@ -348,7 +374,7 @@ export default function SalesReportPage() {
                 />
               </Card>
             </Col>
-            <Col xs={12} sm={6}>
+            <Col xs={12} sm={8}>
               <Card>
                 <Statistic
                   title="YoY 成長"

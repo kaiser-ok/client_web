@@ -224,6 +224,54 @@ export const odooClient = {
   },
 
   /**
+   * Get total invoiced amount from Odoo (posted out_invoices within date range)
+   */
+  async getInvoicedTotal(startDate: Date, endDate: Date): Promise<{ total: number; count: number }> {
+    const result = await odooPool.query(
+      `SELECT COALESCE(SUM(amount_total), 0) as total, COUNT(*) as count
+       FROM account_move
+       WHERE move_type = 'out_invoice'
+         AND state = 'posted'
+         AND invoice_date >= $1
+         AND invoice_date <= $2`,
+      [startDate, endDate]
+    )
+    return {
+      total: Number(result.rows[0].total),
+      count: Number(result.rows[0].count),
+    }
+  },
+
+  /**
+   * Get all invoices from Odoo for full sync (all states, includes invoice_origin)
+   */
+  async getAllInvoicesForSync(fromDate?: Date): Promise<Array<{
+    id: number
+    name: string
+    invoice_date: string
+    amount_total: number
+    amount_residual: number
+    state: string
+    payment_state: string | null
+    invoice_origin: string | null
+    partner_id: number | null
+  }>> {
+    let query = `
+      SELECT id, name, invoice_date, amount_total, amount_residual, state, payment_state, invoice_origin, partner_id
+      FROM account_move
+      WHERE move_type = 'out_invoice'
+        AND invoice_date IS NOT NULL`
+    const params: Date[] = []
+    if (fromDate) {
+      query += ` AND write_date >= $1`
+      params.push(fromDate)
+    }
+    query += ` ORDER BY invoice_date DESC`
+    const result = await odooPool.query(query, params)
+    return result.rows
+  },
+
+  /**
    * Get a single partner by ID
    */
   async getPartnerById(id: number): Promise<OdooPartner | null> {

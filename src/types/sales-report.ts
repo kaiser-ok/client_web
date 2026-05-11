@@ -2,6 +2,9 @@
 
 export interface SalesReportSummary {
   totalRevenue: number
+  invoicedRevenue: number
+  invoiceCount: number
+  unpaidRevenue: number
   dealCount: number
   avgDealSize: number
   period: string

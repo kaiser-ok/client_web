@@ -190,6 +190,7 @@ export async function POST(request: NextRequest) {
         endDate: serviceEndDate,
         source: 'ODOO',
         odooId: order.id,
+        odooState: order.state,
         notes: combinedNotes || null,
         createdBy: session.user?.email || 'system',
       }
@@ -213,6 +214,7 @@ export async function POST(request: NextRequest) {
             deliveryDate: order.commitment_date ? new Date(order.commitment_date) : existingDeal.deliveryDate,
             startDate: serviceStartDate || existingDeal.startDate,
             endDate: serviceEndDate || existingDeal.endDate,
+            odooState: order.state,
             notes: combinedNotes || existingDeal.notes,
           },
         })
