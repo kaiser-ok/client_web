@@ -10,6 +10,7 @@ import type { ColumnsType } from 'antd/es/table'
 import {
   PlusOutlined, UserOutlined, ClockCircleOutlined, ReloadOutlined,
   MessageOutlined, LinkOutlined, HistoryOutlined, BulbOutlined, CheckOutlined, StopOutlined,
+  EyeOutlined,
 } from '@ant-design/icons'
 import AppLayout from '@/components/layout/AppLayout'
 import { EVENT_STATUS, EVENT_PRIORITY, LineEventData } from '@/components/line/LineEventPanel'
@@ -47,6 +48,19 @@ interface Candidate {
     channelName: string
     partner: { id: string; name: string } | null
   }
+}
+
+interface ContextMessage {
+  id: string
+  lineUserId: string
+  displayName: string
+  pictureUrl: string | null
+  identityType: string
+  messageType: string
+  content: string | null
+  mediaUrl: string | null
+  timestamp: string
+  inWindow: boolean
 }
 
 interface StaffUser {
@@ -96,6 +110,12 @@ function LineEventsPageInner() {
   const [actioningId, setActioningId] = useState<string | null>(null)
   const [approveCandidate, setApproveCandidate] = useState<Candidate | null>(null)
   const [approveForm] = Form.useForm()
+  const [contextCandidate, setContextCandidate] = useState<Candidate | null>(null)
+  const [contextMessages, setContextMessages] = useState<ContextMessage[]>([])
+  const [contextWindowStart, setContextWindowStart] = useState<string | null>(null)
+  const [contextWindowEnd, setContextWindowEnd] = useState<string | null>(null)
+  const [loadingContext, setLoadingContext] = useState(false)
+  const contextScrollRef = useRef<HTMLDivElement>(null)
 
   // Filters
   const [filterStatus, setFilterStatus] = useState<string | undefined>()
@@ -267,6 +287,30 @@ function LineEventsPageInner() {
     }
   }
 
+  const loadContextMessages = useCallback(async (candidate: Candidate) => {
+    setContextCandidate(candidate)
+    setContextMessages([])
+    setLoadingContext(true)
+    try {
+      const res = await fetch(`/api/line/line-events/candidates/${candidate.id}/messages`)
+      if (res.ok) {
+        const data = await res.json()
+        setContextMessages(data.messages)
+        setContextWindowStart(data.windowStart)
+        setContextWindowEnd(data.windowEnd)
+        // scroll to first in-window message after render
+        setTimeout(() => {
+          const el = contextScrollRef.current?.querySelector('[data-in-window="true"]') as HTMLElement | null
+          el?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        }, 80)
+      } else {
+        message.error('無法載入訊息上下文')
+      }
+    } finally {
+      setLoadingContext(false)
+    }
+  }, [message])
+
   useEffect(() => {
     if (approveCandidate) {
       approveForm.setFieldsValue({
@@ -275,8 +319,6 @@ function LineEventsPageInner() {
         priority: approveCandidate.suggestedPriority,
         partnerId: approveCandidate.channel?.partner?.id,
       })
-    } else {
-      approveForm.resetFields()
     }
   }, [approveCandidate, approveForm])
 
@@ -685,9 +727,14 @@ function LineEventsPageInner() {
                 },
                 {
                   title: '操作',
-                  width: 140,
+                  width: 190,
                   render: (_: unknown, r: Candidate) => (
                     <Space size={4}>
+                      <Button
+                        size="small" icon={<EyeOutlined />}
+                        style={{ fontSize: 11, height: 24 }}
+                        onClick={() => loadContextMessages(r)}
+                      >上下文</Button>
                       <Button
                         size="small" type="primary" icon={<CheckOutlined />}
                         style={{ fontSize: 11, height: 24 }}
@@ -984,11 +1031,106 @@ function LineEventsPageInner() {
         />
       </Modal>
 
+      {/* Message context modal */}
+      <Modal
+        title={
+          <Space>
+            <MessageOutlined />
+            訊息上下文
+            {contextCandidate && (
+              <Text type="secondary" style={{ fontSize: 12, fontWeight: 400 }}>
+                — {contextCandidate.channel.channelName}
+              </Text>
+            )}
+          </Space>
+        }
+        open={!!contextCandidate}
+        onCancel={() => { setContextCandidate(null); setContextMessages([]) }}
+        footer={null}
+        width={640}
+        styles={{ body: { padding: 0 } }}
+      >
+        {contextWindowStart && contextWindowEnd && (
+          <div style={{ padding: '8px 16px', background: '#fffbe6', borderBottom: '1px solid #ffe58f', fontSize: 12, color: '#ad6800' }}>
+            <ClockCircleOutlined style={{ marginRight: 6 }} />
+            AI 分析時間窗口：{dayjs(contextWindowStart).format('MM/DD HH:mm')} — {dayjs(contextWindowEnd).format('MM/DD HH:mm')}
+            <span style={{ marginLeft: 8, color: '#888' }}>（黃色區塊為觸發內容）</span>
+          </div>
+        )}
+        <div
+          ref={contextScrollRef}
+          style={{ maxHeight: 520, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 10 }}
+        >
+          {loadingContext ? (
+            <div style={{ textAlign: 'center', padding: 40 }}><Spin /></div>
+          ) : contextMessages.length === 0 ? (
+            <Empty description="此時間窗口無訊息紀錄" style={{ margin: '40px 0' }} />
+          ) : (
+            contextMessages.map(msg => {
+              const isStaff = msg.identityType === 'STAFF'
+              const isImage = msg.messageType === 'image'
+              return (
+                <div
+                  key={msg.id}
+                  data-in-window={msg.inWindow ? 'true' : 'false'}
+                  style={{
+                    display: 'flex',
+                    flexDirection: isStaff ? 'row-reverse' : 'row',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                    padding: msg.inWindow ? '6px 8px' : '2px 8px',
+                    borderRadius: 8,
+                    background: msg.inWindow ? '#fffbe6' : 'transparent',
+                    border: msg.inWindow ? '1px solid #ffe58f' : '1px solid transparent',
+                  }}
+                >
+                  <Avatar
+                    size={28}
+                    src={msg.pictureUrl}
+                    icon={<UserOutlined />}
+                    style={{ flexShrink: 0, background: isStaff ? '#1677ff' : '#bfbfbf' }}
+                  />
+                  <div style={{ maxWidth: '75%', display: 'flex', flexDirection: 'column', alignItems: isStaff ? 'flex-end' : 'flex-start', gap: 2 }}>
+                    <Space size={4}>
+                      <Text style={{ fontSize: 11, color: '#888' }}>{msg.displayName}</Text>
+                      <Text style={{ fontSize: 10, color: '#bbb' }}>{dayjs(msg.timestamp).format('HH:mm')}</Text>
+                      {msg.inWindow && <Tag color="gold" style={{ fontSize: 10, lineHeight: '14px', padding: '0 4px', margin: 0 }}>觸發</Tag>}
+                    </Space>
+                    <div style={{
+                      padding: isImage ? 4 : '6px 10px',
+                      borderRadius: 10,
+                      background: isStaff ? '#1677ff' : '#f0f0f0',
+                      color: isStaff ? '#fff' : '#333',
+                      fontSize: 13,
+                      lineHeight: 1.5,
+                      wordBreak: 'break-word',
+                      maxWidth: '100%',
+                    }}>
+                      {isImage && msg.mediaUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={msg.mediaUrl} alt="圖片" style={{ maxWidth: 200, maxHeight: 200, borderRadius: 6, display: 'block' }} />
+                      ) : msg.messageType === 'sticker' ? (
+                        <Text style={{ fontSize: 12, color: isStaff ? '#fff' : '#888' }}>[貼圖]</Text>
+                      ) : msg.messageType === 'file' ? (
+                        <Text style={{ fontSize: 12 }}>📎 {msg.content || '檔案'}</Text>
+                      ) : (
+                        <span style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })
+          )}
+        </div>
+      </Modal>
+
       {/* Approve candidate modal */}
       <Modal
         title={<Space><BulbOutlined />建立 Incident 事件</Space>}
         open={!!approveCandidate}
         onCancel={() => setApproveCandidate(null)}
+        afterClose={() => approveForm.resetFields()}
         onOk={() => approveForm.submit()}
         confirmLoading={!!actioningId}
         okText="建立事件"
