@@ -248,7 +248,7 @@ function BonusReportContent() {
       render: (v: number, record: ProjectSummary) => {
         if (record.isDirectAllocation) {
           return (
-            <Space size={4} direction="vertical" style={{ textAlign: 'right' }}>
+            <Space size={4} orientation="vertical" style={{ textAlign: 'right' }}>
               <Tag color="purple" style={{ margin: 0 }}>點數池直接分配</Tag>
               {record.poolPoints > 0 && (
                 <Text style={{ color: '#722ed1', fontSize: 12 }}>+{record.poolPoints.toFixed(2)} 點</Text>
