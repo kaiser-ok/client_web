@@ -16,6 +16,8 @@ import {
   DatePicker,
   Segmented,
   Tag,
+  Modal,
+  Tooltip,
 } from 'antd'
 import {
   DollarOutlined,
@@ -25,6 +27,8 @@ import {
   FallOutlined,
   ReloadOutlined,
   ClockCircleOutlined,
+  InfoCircleOutlined,
+  DownloadOutlined,
 } from '@ant-design/icons'
 import dynamic from 'next/dynamic'
 import dayjs, { Dayjs } from 'dayjs'
@@ -60,6 +64,20 @@ export default function SalesReportPage() {
   const [salesRep, setSalesRep] = useState<string | undefined>()
   const [projectType, setProjectType] = useState<string | undefined>()
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const [dealsModalOpen, setDealsModalOpen] = useState(false)
+  const [dealsLoading, setDealsLoading] = useState(false)
+  const [dealsList, setDealsList] = useState<{
+    id: string
+    name: string
+    projectName: string | null
+    clientOrderRef: string | null
+    projectType: string | null
+    amount: number
+    salesRep: string | null
+    closedAt: string
+    partnerId: string
+    partnerName: string
+  }[]>([])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -192,6 +210,105 @@ export default function SalesReportPage() {
       items: [{ channel: 'y', valueFormatter: (v: number) => `$${v.toLocaleString()}` }],
     },
   }
+
+  const openDealsModal = async () => {
+    setDealsModalOpen(true)
+    setDealsLoading(true)
+    try {
+      const params = new URLSearchParams({
+        startDate: dateRange[0].format('YYYY-MM-DD'),
+        endDate: dateRange[1].format('YYYY-MM-DD'),
+      })
+      if (salesRep) params.append('salesRep', salesRep)
+      if (projectType) params.append('projectType', projectType)
+      const res = await fetch(`/api/reports/sales/deals?${params}`, { credentials: 'include' })
+      if (res.ok) setDealsList(await res.json())
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setDealsLoading(false)
+    }
+  }
+
+  const downloadCsv = () => {
+    const headers = ['單號', '客戶', '專案名稱', '類型', '業務員', '金額', '成交日期']
+    const rows = dealsList.map(d => [
+      d.name,
+      d.partnerName,
+      d.projectName || '',
+      d.projectType || '',
+      d.salesRep || '',
+      d.amount,
+      d.closedAt.slice(0, 10),
+    ])
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+      .join('\n')
+    const bom = '﻿' // UTF-8 BOM for Excel
+    const blob = new Blob([bom + csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `成交明細_${dateRange[0].format('YYYYMMDD')}-${dateRange[1].format('YYYYMMDD')}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const dealsColumns = [
+    {
+      title: '單號',
+      dataIndex: 'name',
+      key: 'name',
+      width: 120,
+    },
+    {
+      title: '客戶',
+      dataIndex: 'partnerName',
+      key: 'partnerName',
+      render: (name: string, record: { partnerId: string }) => (
+        <Link href={`/customers/${record.partnerId}`} style={{ color: '#1890ff' }}>
+          {name}
+        </Link>
+      ),
+    },
+    {
+      title: '專案名稱',
+      dataIndex: 'projectName',
+      key: 'projectName',
+      render: (v: string | null) => v || '-',
+    },
+    {
+      title: '類型',
+      dataIndex: 'projectType',
+      key: 'projectType',
+      width: 100,
+      render: (v: string | null) => v ? <Tag>{v}</Tag> : '-',
+    },
+    {
+      title: '業務員',
+      dataIndex: 'salesRep',
+      key: 'salesRep',
+      width: 80,
+      render: (v: string | null) => v || '-',
+    },
+    {
+      title: '金額',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 120,
+      render: (v: number) => `$${v.toLocaleString()}`,
+      sorter: (a: { amount: number }, b: { amount: number }) => a.amount - b.amount,
+      defaultSortOrder: 'descend' as const,
+    },
+    {
+      title: '成交日期',
+      dataIndex: 'closedAt',
+      key: 'closedAt',
+      width: 110,
+      render: (v: string) => v.slice(0, 10),
+      sorter: (a: { closedAt: string }, b: { closedAt: string }) => a.closedAt.localeCompare(b.closedAt),
+    },
+  ]
 
   // Top 客戶表格
   const customerColumns = [
@@ -355,13 +472,25 @@ export default function SalesReportPage() {
               </Card>
             </Col>
             <Col xs={12} sm={8}>
-              <Card>
+              <Card
+                hoverable
+                onClick={openDealsModal}
+                style={{ cursor: 'pointer' }}
+              >
                 <Statistic
-                  title="成交數"
+                  title={
+                    <span>
+                      成交數&nbsp;
+                      <Tooltip title="統計狀態為有效（非取消）且非草稿的 Odoo 銷售訂單數量，依所選日期範圍與篩選條件計算">
+                        <InfoCircleOutlined style={{ color: '#999', fontSize: 13 }} />
+                      </Tooltip>
+                    </span>
+                  }
                   value={data.summary.dealCount}
                   prefix={<ShoppingCartOutlined />}
                   suffix="件"
                 />
+                <div style={{ marginTop: 4, color: '#1890ff', fontSize: 12 }}>點擊查看明細</div>
               </Card>
             </Col>
             <Col xs={12} sm={8}>
@@ -447,6 +576,31 @@ export default function SalesReportPage() {
           )}
         </>
       )}
+      <Modal
+        title={`成交明細 — 共 ${dealsList.length} 件`}
+        open={dealsModalOpen}
+        onCancel={() => setDealsModalOpen(false)}
+        footer={
+          <Button
+            icon={<DownloadOutlined />}
+            onClick={downloadCsv}
+            disabled={dealsLoading || dealsList.length === 0}
+          >
+            下載 CSV
+          </Button>
+        }
+        width={900}
+      >
+        <Table
+          dataSource={dealsList}
+          columns={dealsColumns}
+          rowKey="id"
+          loading={dealsLoading}
+          size="small"
+          pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (t) => `共 ${t} 件` }}
+          scroll={{ x: 800 }}
+        />
+      </Modal>
     </AppLayout>
   )
 }
