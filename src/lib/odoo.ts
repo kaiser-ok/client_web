@@ -1,4 +1,9 @@
-import { Pool } from 'pg'
+import { Pool, types } from 'pg'
+
+// Odoo stores timestamps as `timestamp without time zone` in UTC.
+// node-postgres on a UTC+8 server would misinterpret them as local time,
+// shifting every timestamp 8 hours earlier. Parse them explicitly as UTC.
+types.setTypeParser(1114, (val: string) => new Date(val + 'Z'))
 
 // Odoo database connection
 const odooPool = new Pool({

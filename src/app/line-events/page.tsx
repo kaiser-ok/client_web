@@ -143,6 +143,7 @@ function LineEventsPageInner() {
   // Staff list
   const [staffList, setStaffList] = useState<StaffUser[]>([])
   const [partnerList, setPartnerList] = useState<{ id: string; name: string }[]>([])
+  const [partnerTotal, setPartnerTotal] = useState(0)
   const [partnerSearchLoading, setPartnerSearchLoading] = useState(false)
   const [partnerSearchText, setPartnerSearchText] = useState('')
   const partnerSearchTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -193,6 +194,7 @@ function LineEventsPageInner() {
       if (res.ok) {
         const data = await res.json()
         setPartnerList((data.partners ?? []).map((p: { id: string; name: string }) => ({ id: p.id, name: p.name })))
+        setPartnerTotal(data.total ?? 0)
       }
     } finally {
       setPartnerSearchLoading(false)
@@ -1206,6 +1208,16 @@ function LineEventsPageInner() {
               loading={partnerSearchLoading}
               onSearch={handlePartnerSearch}
               notFoundContent={partnerSearchLoading ? <Spin size="small" /> : '查無結果'}
+              dropdownRender={(menu) => (
+                <>
+                  {menu}
+                  {partnerTotal > partnerList.length && (
+                    <div style={{ padding: '6px 12px', color: '#8c8c8c', fontSize: 12, borderTop: '1px solid #f0f0f0' }}>
+                      僅顯示前 {partnerList.length} 筆，共 {partnerTotal} 筆，請輸入關鍵字搜尋更多
+                    </div>
+                  )}
+                </>
+              )}
               options={[
                 ...partnerList.map(p => ({ value: p.id, label: p.name })),
                 ...(partnerSearchText.trim() && !partnerList.some(p => p.name === partnerSearchText.trim())

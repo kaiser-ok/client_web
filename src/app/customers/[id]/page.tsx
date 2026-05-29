@@ -17,6 +17,7 @@ import ProjectsCard from '@/components/projects/ProjectsCard'
 import LineMessagesCard from '@/components/line/LineMessagesCard'
 import SmartQuotationModal from '@/components/quotations/SmartQuotationModal'
 import GraphTab from '@/components/graph/GraphTab'
+import WikiCard from '@/components/wiki/WikiCard'
 import { useCustomer, useCustomers, updateCustomer } from '@/hooks/useCustomer'
 
 interface CustomerDetailPageProps {
@@ -302,6 +303,11 @@ export default function CustomerDetailPage({ params }: CustomerDetailPageProps) 
       key: 'technical-notes',
       label: '技術文件',
       children: <TechnicalNotesCard customerId={id} />,
+    },
+    {
+      key: 'wiki',
+      label: '知識庫',
+      children: <WikiCard partnerId={id} />,
     },
     {
       key: 'line-messages',

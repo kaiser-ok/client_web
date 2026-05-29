@@ -104,8 +104,10 @@ export default function TranscriptionPage() {
   const [loadingCustomers, setLoadingCustomers] = useState(false)
   const [selectedPartnerId, setSelectedPartnerId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [savingToWiki, setSavingToWiki] = useState(false)
   const [savedActivityId, setSavedActivityId] = useState<string | null>(null)
   const [savedTranscriptPath, setSavedTranscriptPath] = useState<string | null>(null)
+  const [savedWikiPageId, setSavedWikiPageId] = useState<string | null>(null)
 
   // Mic recording state
   const [recording, setRecording] = useState(false)
@@ -399,6 +401,44 @@ export default function TranscriptionPage() {
       message.error('儲存失敗')
     } finally {
       setSaving(false)
+    }
+  }
+
+  // 存入知識庫
+  const handleSaveToWiki = async () => {
+    if (!selectedPartnerId) {
+      message.error('請選擇客戶')
+      return
+    }
+    setSavingToWiki(true)
+    try {
+      const res = await fetch('/api/transcriptions/summarize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          action: 'save-to-wiki',
+          partnerId: selectedPartnerId,
+          title: summaryTitle || '會議記錄',
+          summary: summaryText,
+          keyPoints,
+          actionItems,
+          participants,
+          meetingDate: new Date().toISOString(),
+          meetingType: 'CUSTOMER',
+        }),
+      })
+      const data = await res.json()
+      if (res.ok && data.success) {
+        setSavedWikiPageId(data.wikiPageId)
+        message.success('已儲存至知識庫')
+      } else {
+        message.error(data.error || '儲存失敗')
+      }
+    } catch {
+      message.error('儲存失敗')
+    } finally {
+      setSavingToWiki(false)
     }
   }
 
@@ -784,7 +824,7 @@ export default function TranscriptionPage() {
 
                 {/* 存檔 */}
                 <div>
-                  <Text strong>存檔為客戶活動記錄</Text>
+                  <Text strong>存檔</Text>
                   <div style={{ display: 'flex', gap: 12, marginTop: 8, alignItems: 'center', flexWrap: 'wrap' }}>
                     {!selectedPartnerId && (
                       <Select
@@ -806,13 +846,21 @@ export default function TranscriptionPage() {
                       </Tag>
                     )}
                     <Button
-                      type="primary"
                       icon={<SaveOutlined />}
                       loading={saving}
                       onClick={handleSave}
                       disabled={!selectedPartnerId}
                     >
-                      儲存
+                      存入活動記錄
+                    </Button>
+                    <Button
+                      type="primary"
+                      icon={<FileTextOutlined />}
+                      loading={savingToWiki}
+                      onClick={handleSaveToWiki}
+                      disabled={!selectedPartnerId}
+                    >
+                      存入知識庫
                     </Button>
                   </div>
                 </div>
@@ -822,7 +870,7 @@ export default function TranscriptionPage() {
                     type="success"
                     showIcon
                     icon={<CheckCircleOutlined />}
-                    message="已成功儲存"
+                    message="已儲存為客戶活動記錄"
                     description={
                       <Space orientation="vertical" size="small">
                         <a
@@ -838,6 +886,24 @@ export default function TranscriptionPage() {
                           </Text>
                         )}
                       </Space>
+                    }
+                  />
+                )}
+
+                {savedWikiPageId && (
+                  <Alert
+                    type="success"
+                    showIcon
+                    icon={<CheckCircleOutlined />}
+                    message="已儲存至知識庫"
+                    description={
+                      <a
+                        href={`/customers/${selectedPartnerId}?tab=wiki`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        前往查看知識庫
+                      </a>
                     }
                   />
                 )}

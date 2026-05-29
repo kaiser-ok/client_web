@@ -30,8 +30,13 @@ export async function GET(request: NextRequest) {
     const defaultStartDate = new Date(now.getFullYear(), 0, 1)
     const defaultEndDate = now
 
-    const startDate = startDateStr ? new Date(startDateStr) : defaultStartDate
-    const endDate = endDateStr ? new Date(endDateStr) : defaultEndDate
+    // Parse as local midnight (not UTC) to avoid 8-hour offset on UTC+8 server
+    const parseDateLocal = (s: string) => {
+      const [y, m, d] = s.split('-').map(Number)
+      return new Date(y, m - 1, d)
+    }
+    const startDate = startDateStr ? parseDateLocal(startDateStr) : defaultStartDate
+    const endDate = endDateStr ? parseDateLocal(endDateStr) : defaultEndDate
     endDate.setHours(23, 59, 59, 999)
 
     // 去年同期

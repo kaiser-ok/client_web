@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { chatCompletion } from '@/lib/llm'
 import prisma from '@/lib/prisma'
+import { saveDocumentChunk } from '@/lib/embedding'
 import { writeFile, mkdir } from 'fs/promises'
 import path from 'path'
 
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { transcript, action, partnerId, title, summary, keyPoints, actionItems, format } = body
+    const { transcript, action, partnerId, title, summary, keyPoints, actionItems, participants, format, meetingDate, meetingType, meetingLocation } = body
 
     // === Action: summarize ===
     if (action === 'summarize') {
@@ -159,6 +160,52 @@ export async function POST(request: NextRequest) {
         activityId: activity.id,
         transcriptFilePath,
       }, { status: 201 })
+    }
+
+    // === Action: save-to-wiki ===
+    if (action === 'save-to-wiki') {
+      if (!partnerId) {
+        return NextResponse.json({ error: '請選擇客戶' }, { status: 400 })
+      }
+
+      const createdBy = session.user?.email || 'system'
+
+      // 組合 Markdown 內容
+      const contentParts: string[] = []
+      if (summary) contentParts.push(`## 摘要\n${summary}`)
+      if (keyPoints?.length > 0) {
+        contentParts.push(`## 重點\n${keyPoints.map((p: string) => `- ${p}`).join('\n')}`)
+      }
+      if (actionItems?.length > 0) {
+        contentParts.push(`## 待辦事項\n${actionItems.map((a: string) => `- ${a}`).join('\n')}`)
+      }
+
+      const page = await prisma.wikiPage.create({
+        data: {
+          partnerId,
+          type: 'MEETING',
+          title: title || '會議記錄',
+          content: contentParts.join('\n\n') || summary || '',
+          meetingDate: meetingDate ? new Date(meetingDate) : new Date(),
+          meetingType: meetingType || 'CUSTOMER',
+          meetingLocation: meetingLocation || null,
+          participants: participants || [],
+          tags: ['ASR', '會議記錄'],
+          createdBy,
+        },
+      })
+
+      // 非同步建立向量索引
+      const chunkContent = [page.title, ...(participants || []), page.content].join('\n')
+      saveDocumentChunk({
+        sourceType: 'WIKI',
+        sourceId: page.id,
+        partnerId,
+        content: chunkContent,
+        metadata: { type: 'MEETING', title: page.title, meetingDate: page.meetingDate },
+      }).catch(console.error)
+
+      return NextResponse.json({ success: true, wikiPageId: page.id }, { status: 201 })
     }
 
     return NextResponse.json({ error: '未知的 action' }, { status: 400 })
