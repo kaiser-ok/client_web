@@ -1208,7 +1208,7 @@ function LineEventsPageInner() {
               loading={partnerSearchLoading}
               onSearch={handlePartnerSearch}
               notFoundContent={partnerSearchLoading ? <Spin size="small" /> : '查無結果'}
-              dropdownRender={(menu) => (
+              popupRender={(menu) => (
                 <>
                   {menu}
                   {partnerTotal > partnerList.length && (
