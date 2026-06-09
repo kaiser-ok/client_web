@@ -31,11 +31,13 @@ export async function GET(
         orderBy: { timestamp: 'asc' },
         select: {
           id: true,
+          lineMessageId: true,
           lineUserId: true,
           messageType: true,
           content: true,
           mediaUrl: true,
           quoteToken: true,
+          quotedMessageId: true,
           timestamp: true,
           processed: true,
         },
@@ -54,20 +56,43 @@ export async function GET(
       })
       const userMap = new Map(users.map(u => [u.lineUserId, u]))
 
+      // 批次查詢被引用的訊息
+      const quotedIds = newMessages.map(m => m.quotedMessageId).filter(Boolean) as string[]
+      const quotedMsgs = quotedIds.length > 0
+        ? await prisma.lineMessage.findMany({
+            where: { lineMessageId: { in: quotedIds } },
+            select: { lineMessageId: true, lineUserId: true, content: true, messageType: true, mediaUrl: true },
+          })
+        : []
+      const quotedMsgMap = new Map(quotedMsgs.map(q => [q.lineMessageId, q]))
+
       return NextResponse.json({
-        messages: newMessages.map(m => ({
-          id: m.id,
-          lineUserId: m.lineUserId,
-          displayName: userMap.get(m.lineUserId)?.displayName || 'Unknown',
-          pictureUrl: userMap.get(m.lineUserId)?.pictureUrl || null,
-          identityType: userMap.get(m.lineUserId)?.identityType || 'UNKNOWN',
-          messageType: m.messageType,
-          content: m.content,
-          mediaUrl: m.mediaUrl,
-          quoteToken: m.quoteToken,
-          timestamp: m.timestamp,
-          processed: m.processed,
-        })),
+        messages: newMessages.map(m => {
+          const qm = m.quotedMessageId ? quotedMsgMap.get(m.quotedMessageId) : null
+          return {
+            id: m.id,
+            lineMessageId: m.lineMessageId,
+            lineUserId: m.lineUserId,
+            displayName: userMap.get(m.lineUserId)?.displayName || 'Unknown',
+            pictureUrl: userMap.get(m.lineUserId)?.pictureUrl || null,
+            identityType: userMap.get(m.lineUserId)?.identityType || 'UNKNOWN',
+            messageType: m.messageType,
+            content: m.content,
+            mediaUrl: m.mediaUrl,
+            quoteToken: m.quoteToken,
+            quotedMessageId: m.quotedMessageId,
+            quotedMessage: qm
+              ? {
+                  displayName: userMap.get(qm.lineUserId)?.displayName || 'Unknown',
+                  content: qm.content,
+                  messageType: qm.messageType,
+                  mediaUrl: qm.mediaUrl,
+                }
+              : null,
+            timestamp: m.timestamp,
+            processed: m.processed,
+          }
+        }),
       })
     }
 
@@ -111,11 +136,13 @@ export async function GET(
       take: limit,
       select: {
         id: true,
+        lineMessageId: true,
         lineUserId: true,
         messageType: true,
         content: true,
         mediaUrl: true,
         quoteToken: true,
+        quotedMessageId: true,
         timestamp: true,
         processed: true,
       },
@@ -139,6 +166,16 @@ export async function GET(
     })
     const userMap = new Map(users.map(u => [u.lineUserId, u]))
 
+    // 批次查詢被引用的訊息
+    const quotedIds = messages.map(m => m.quotedMessageId).filter(Boolean) as string[]
+    const quotedMsgs = quotedIds.length > 0
+      ? await prisma.lineMessage.findMany({
+          where: { lineMessageId: { in: quotedIds } },
+          select: { lineMessageId: true, lineUserId: true, content: true, messageType: true, mediaUrl: true },
+        })
+      : []
+    const quotedMsgMap = new Map(quotedMsgs.map(q => [q.lineMessageId, q]))
+
     // 判斷是否還有更早的訊息
     const hasMore = messages.length === limit
 
@@ -158,19 +195,32 @@ export async function GET(
         createdAt: channel.createdAt,
         labels: channel.labels || [],
       },
-      messages: messages.map(m => ({
-        id: m.id,
-        lineUserId: m.lineUserId,
-        displayName: userMap.get(m.lineUserId)?.displayName || 'Unknown',
-        pictureUrl: userMap.get(m.lineUserId)?.pictureUrl || null,
-        identityType: userMap.get(m.lineUserId)?.identityType || 'UNKNOWN',
-        messageType: m.messageType,
-        content: m.content,
-        mediaUrl: m.mediaUrl,
-        quoteToken: m.quoteToken,
-        timestamp: m.timestamp,
-        processed: m.processed,
-      })),
+      messages: messages.map(m => {
+        const qm = m.quotedMessageId ? quotedMsgMap.get(m.quotedMessageId) : null
+        return {
+          id: m.id,
+          lineMessageId: m.lineMessageId,
+          lineUserId: m.lineUserId,
+          displayName: userMap.get(m.lineUserId)?.displayName || 'Unknown',
+          pictureUrl: userMap.get(m.lineUserId)?.pictureUrl || null,
+          identityType: userMap.get(m.lineUserId)?.identityType || 'UNKNOWN',
+          messageType: m.messageType,
+          content: m.content,
+          mediaUrl: m.mediaUrl,
+          quoteToken: m.quoteToken,
+          quotedMessageId: m.quotedMessageId,
+          quotedMessage: qm
+            ? {
+                displayName: userMap.get(qm.lineUserId)?.displayName || 'Unknown',
+                content: qm.content,
+                messageType: qm.messageType,
+                mediaUrl: qm.mediaUrl,
+              }
+            : null,
+          timestamp: m.timestamp,
+          processed: m.processed,
+        }
+      }),
       pagination: {
         total: totalMessages,
         hasMore,

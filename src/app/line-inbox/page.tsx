@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
 import {
   Input,
   Button,
@@ -136,6 +136,13 @@ interface LineChannel {
   }>
 }
 
+interface QuotedMessage {
+  displayName: string
+  content: string | null
+  messageType: string
+  mediaUrl: string | null
+}
+
 interface LineMessage {
   id: string
   lineMessageId: string
@@ -147,6 +154,8 @@ interface LineMessage {
   content: string | null
   mediaUrl: string | null
   quoteToken: string | null
+  quotedMessageId: string | null
+  quotedMessage: QuotedMessage | null
   timestamp: string
 }
 
@@ -172,6 +181,221 @@ const TRIAGE_STATUS = {
   follow_up: { label: '追蹤', color: '#1890ff', icon: <ClockCircleOutlined />, tagColor: 'blue' },
 }
 
+interface ChatInputAreaProps {
+  channelId: string
+  quotingMessage: LineMessage | null
+  onCancelQuote: () => void
+  onAfterSend: () => void
+  mentionOptions: { value: string; label: React.ReactNode }[]
+  mentionUserMap: Map<string, string>
+}
+
+const ChatInputArea = memo(function ChatInputArea({
+  channelId,
+  quotingMessage,
+  onCancelQuote,
+  onAfterSend,
+  mentionOptions,
+  mentionUserMap,
+}: ChatInputAreaProps) {
+  const { message } = App.useApp()
+  const [inputMessage, setInputMessage] = useState('')
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const mentionActiveRef = useRef(false)
+
+  const handleSend = async () => {
+    if (!inputMessage.trim() || sending) return
+
+    let fullMessage = inputMessage.trim()
+    let quoteToken: string | null = null
+    if (quotingMessage) {
+      if (quotingMessage.quoteToken) {
+        quoteToken = quotingMessage.quoteToken
+      } else {
+        const quotedContent = quotingMessage.content || `[${quotingMessage.messageType}]`
+        const quotedLine = quotedContent.split('\n').map((l: string) => `> ${l}`).join('\n')
+        fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
+      }
+    }
+
+    type Mentionee = { index: number; length: number; lineUserId: string }
+    const mentionees: Mentionee[] = []
+    for (const [displayName, lineUserId] of mentionUserMap.entries()) {
+      const tag = `@${displayName}`
+      let pos = 0
+      while (true) {
+        const idx = fullMessage.indexOf(tag, pos)
+        if (idx === -1) break
+        mentionees.push({ index: idx, length: tag.length, lineUserId })
+        pos = idx + tag.length
+      }
+    }
+
+    setSending(true)
+    try {
+      const res = await fetch(`/api/line/channels/${channelId}/messages`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: fullMessage,
+          mentionees: mentionees.length > 0 ? mentionees : undefined,
+          quoteToken: quoteToken || undefined,
+          quotedLineMessageId: quotingMessage?.lineMessageId || undefined,
+        }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setInputMessage('')
+        onAfterSend()
+      } else {
+        message.error(data.error || '發送失敗')
+      }
+    } catch {
+      message.error('發送失敗')
+    } finally {
+      setSending(false)
+    }
+  }
+
+  const handleUploadImage = async (file: File) => {
+    setUploadingImage(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/line/channels/${channelId}/messages`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok) {
+        message.success('圖片已發送')
+        onAfterSend()
+      } else {
+        message.error(data.error || '發送失敗')
+      }
+    } catch {
+      message.error('發送失敗')
+    } finally {
+      setUploadingImage(false)
+    }
+    return false
+  }
+
+  const handleUploadFile = async (file: File) => {
+    setUploadingFile(true)
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch(`/api/line/channels/${channelId}/messages`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok) {
+        message.success('檔案已發送')
+        onAfterSend()
+      } else {
+        message.error(data.error || '發送失敗')
+      }
+    } catch {
+      message.error('發送失敗')
+    } finally {
+      setUploadingFile(false)
+    }
+    return false
+  }
+
+  return (
+    <>
+      {quotingMessage && (
+        <div style={{
+          padding: '8px 12px',
+          borderTop: '1px solid #f0f0f0',
+          backgroundColor: '#fafafa',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}>
+          <div style={{ borderLeft: '3px solid #00B900', paddingLeft: 8, flex: 1, minWidth: 0 }}>
+            <Text strong style={{ fontSize: 12, color: '#00B900', display: 'block' }}>
+              {quotingMessage.displayName}
+            </Text>
+            <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
+              {quotingMessage.content || `[${quotingMessage.messageType}]`}
+            </Text>
+          </div>
+          <Button
+            type="text"
+            size="small"
+            icon={<CloseCircleFilled style={{ color: '#999' }} />}
+            onClick={onCancelQuote}
+          />
+        </div>
+      )}
+      <div style={{
+        padding: 12,
+        borderTop: '1px solid #f0f0f0',
+        backgroundColor: '#fff',
+        display: 'flex',
+        gap: 8,
+        alignItems: 'flex-end',
+      }}>
+        <Upload accept="image/*" showUploadList={false} beforeUpload={handleUploadImage} disabled={uploadingImage}>
+          <Button type="text" icon={<PictureOutlined />} loading={uploadingImage} style={{ color: '#666' }} />
+        </Upload>
+        <Upload showUploadList={false} beforeUpload={handleUploadFile} disabled={uploadingFile}>
+          <Button type="text" icon={<PaperClipOutlined />} loading={uploadingFile} style={{ color: '#666' }} title="傳送檔案" />
+        </Upload>
+        <Popover
+          content={
+            <Picker
+              data={emojiData}
+              onEmojiSelect={(emoji: { native: string }) => {
+                setInputMessage(prev => prev + emoji.native)
+                setEmojiPickerOpen(false)
+              }}
+              locale="zh"
+              previewPosition="none"
+              skinTonePosition="none"
+              theme="light"
+            />
+          }
+          trigger="click"
+          open={emojiPickerOpen}
+          onOpenChange={setEmojiPickerOpen}
+          placement="topLeft"
+        >
+          <Button type="text" icon={<SmileOutlined />} style={{ color: '#666' }} />
+        </Popover>
+        <Mentions
+          placeholder="輸入訊息... 輸入 @ 提及用戶"
+          value={inputMessage}
+          onChange={setInputMessage}
+          onSearch={() => { mentionActiveRef.current = true }}
+          onSelect={() => { mentionActiveRef.current = false }}
+          autoSize={{ minRows: 1, maxRows: 4 }}
+          style={{ flex: 1 }}
+          disabled={sending}
+          options={mentionOptions}
+        />
+        <Button
+          type="primary"
+          icon={<SendOutlined />}
+          onClick={handleSend}
+          loading={sending}
+          disabled={!inputMessage.trim()}
+          style={{ backgroundColor: '#00B900', borderColor: '#00B900' }}
+        >
+          發送
+        </Button>
+      </div>
+    </>
+  )
+})
+
 export default function LineInboxPage() {
   const { message } = App.useApp()
   const [channels, setChannels] = useState<LineChannel[]>([])
@@ -183,17 +407,10 @@ export default function LineInboxPage() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMoreMessages, setHasMoreMessages] = useState(false)
   const [totalMessages, setTotalMessages] = useState(0)
-  const [inputMessage, setInputMessage] = useState('')
-  const [sending, setSending] = useState(false)
-  const [uploadingImage, setUploadingImage] = useState(false)
-  const [uploadingFile, setUploadingFile] = useState(false)
-  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
   const [quotingMessage, setQuotingMessage] = useState<LineMessage | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageTimestampRef = useRef<string | null>(null)
-  const mentionActiveRef = useRef(false)
-  const isComposingRef = useRef(false)  // 追蹤 IME 組字狀態（注音、嘸蝦米等）
   const isChannelSwitchRef = useRef(false)  // 切換 channel 時用 instant scroll，避免動畫
   const [filterFollowUp, setFilterFollowUp] = useState(false)
   const [filterStatus, setFilterStatus] = useState<string[]>([])
@@ -478,7 +695,6 @@ export default function LineInboxPage() {
     isChannelSwitchRef.current = true
     setActiveChannel(channel)
     setChatMessages([])
-    setInputMessage('')
     setQuotingMessage(null)
     loadChatMessages(channel.id)
     // Clear updated indicator for this channel
@@ -489,63 +705,11 @@ export default function LineInboxPage() {
     })
   }
 
-  const handleSendMessage = async () => {
-    if (!activeChannel || !inputMessage.trim()) return
-
-    let fullMessage = inputMessage.trim()
-
-    // 使用 LINE 原生 quoteToken；若無（自己發出的訊息或舊訊息）則 fallback 文字引用
-    let quoteToken: string | null = null
-    if (quotingMessage) {
-      if (quotingMessage.quoteToken) {
-        quoteToken = quotingMessage.quoteToken
-      } else {
-        const quotedContent = quotingMessage.content || `[${quotingMessage.messageType}]`
-        const quotedLine = quotedContent.split('\n').map((l: string) => `> ${l}`).join('\n')
-        fullMessage = `${quotingMessage.displayName}：\n${quotedLine}\n\n${fullMessage}`
-      }
-    }
-
-    // Parse @mentions from text → LINE mentionees format
-    type Mentionee = { index: number; length: number; lineUserId: string }
-    const mentionees: Mentionee[] = []
-    for (const [displayName, lineUserId] of mentionUserMap.entries()) {
-      const tag = `@${displayName}`
-      let pos = 0
-      while (true) {
-        const idx = fullMessage.indexOf(tag, pos)
-        if (idx === -1) break
-        mentionees.push({ index: idx, length: tag.length, lineUserId })
-        pos = idx + tag.length
-      }
-    }
-
-    setSending(true)
-    try {
-      const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: fullMessage,
-          mentionees: mentionees.length > 0 ? mentionees : undefined,
-          quoteToken: quoteToken || undefined,
-        }),
-      })
-      const data = await res.json()
-
-      if (res.ok) {
-        setInputMessage('')
-        setQuotingMessage(null)
-        loadChatMessages(activeChannel.id, undefined, true)
-      } else {
-        message.error(data.error || '發送失敗')
-      }
-    } catch {
-      message.error('發送失敗')
-    } finally {
-      setSending(false)
-    }
-  }
+  const handleAfterSend = useCallback(() => {
+    if (!activeChannel) return
+    setQuotingMessage(null)
+    loadChatMessages(activeChannel.id, undefined, true)
+  }, [activeChannel])
 
   const toggleFollowUp = async (channel: LineChannel) => {
     const newValue = !channel.needsFollowUp
@@ -589,62 +753,6 @@ export default function LineInboxPage() {
     } catch {
       message.error('操作失敗')
     }
-  }
-
-  const handleUploadImage = async (file: File) => {
-    if (!activeChannel) return false
-
-    setUploadingImage(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
-        method: 'POST',
-        body: formData,
-      })
-      const data = await res.json()
-
-      if (res.ok) {
-        message.success('圖片已發送')
-        loadChatMessages(activeChannel.id, undefined, true)
-      } else {
-        message.error(data.error || '發送失敗')
-      }
-    } catch {
-      message.error('發送失敗')
-    } finally {
-      setUploadingImage(false)
-    }
-    return false
-  }
-
-  const handleUploadFile = async (file: File) => {
-    if (!activeChannel) return false
-
-    setUploadingFile(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-
-      const res = await fetch(`/api/line/channels/${activeChannel.id}/messages`, {
-        method: 'POST',
-        body: formData,
-      })
-      const data = await res.json()
-
-      if (res.ok) {
-        message.success('檔案已發送')
-        loadChatMessages(activeChannel.id, undefined, true)
-      } else {
-        message.error(data.error || '發送失敗')
-      }
-    } catch {
-      message.error('發送失敗')
-    } finally {
-      setUploadingFile(false)
-    }
-    return false
   }
 
   // Load label definitions
@@ -1456,6 +1564,38 @@ export default function LineInboxPage() {
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexDirection: isStaff ? 'row-reverse' : 'row' }}>
                           <div style={{ flex: '0 1 auto', minWidth: 0 }}>
+                          {msg.quotedMessage && (
+                            <div style={{
+                              marginBottom: 4,
+                              padding: '4px 8px',
+                              borderRadius: 8,
+                              borderLeft: '3px solid #00B900',
+                              backgroundColor: isStaff ? 'rgba(255,255,255,0.2)' : '#f0f0f0',
+                              maxWidth: '100%',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 6,
+                            }}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <Text strong style={{ fontSize: 11, color: isStaff ? 'rgba(255,255,255,0.9)' : '#00B900', display: 'block' }}>
+                                  {msg.quotedMessage.displayName}
+                                </Text>
+                                {(msg.quotedMessage.messageType === 'image' || msg.quotedMessage.messageType === 'sticker') && msg.quotedMessage.mediaUrl ? (
+                                  <img
+                                    src={normalizeMediaUrl(msg.quotedMessage.mediaUrl) || msg.quotedMessage.mediaUrl}
+                                    alt={msg.quotedMessage.messageType === 'sticker' ? '貼圖' : '圖片'}
+                                    style={{ maxHeight: 48, maxWidth: 80, borderRadius: 4, display: 'block', marginTop: 2 }}
+                                  />
+                                ) : (
+                                  <Text ellipsis style={{ fontSize: 11, color: isStaff ? 'rgba(255,255,255,0.75)' : '#666', display: 'block' }}>
+                                    {msg.quotedMessage.messageType === 'file' ? '[檔案]'
+                                      : msg.quotedMessage.content || `[${msg.quotedMessage.messageType}]`}
+                                  </Text>
+                                )}
+                              </div>
+                            </div>
+                          )}
                           {hasMedia ? (
                             <div style={{
                               padding: 4,
@@ -1587,131 +1727,15 @@ export default function LineInboxPage() {
               </div>
             )}
 
-            {/* Quote preview */}
-            {quotingMessage && (
-              <div style={{
-                padding: '8px 12px',
-                borderTop: '1px solid #f0f0f0',
-                backgroundColor: '#fafafa',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}>
-                <div style={{
-                  borderLeft: '3px solid #00B900',
-                  paddingLeft: 8,
-                  flex: 1,
-                  minWidth: 0,
-                }}>
-                  <Text strong style={{ fontSize: 12, color: '#00B900', display: 'block' }}>
-                    {quotingMessage.displayName}
-                  </Text>
-                  <Text type="secondary" ellipsis style={{ fontSize: 12 }}>
-                    {quotingMessage.content || `[${quotingMessage.messageType}]`}
-                  </Text>
-                </div>
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<CloseCircleFilled style={{ color: '#999' }} />}
-                  onClick={() => setQuotingMessage(null)}
-                />
-              </div>
-            )}
-
-            {/* Input area */}
-            <div style={{
-              padding: 12,
-              borderTop: '1px solid #f0f0f0',
-              backgroundColor: '#fff',
-              display: 'flex',
-              gap: 8,
-              alignItems: 'flex-end',
-            }}>
-              <Upload
-                accept="image/*"
-                showUploadList={false}
-                beforeUpload={handleUploadImage}
-                disabled={uploadingImage}
-              >
-                <Button
-                  type="text"
-                  icon={<PictureOutlined />}
-                  loading={uploadingImage}
-                  style={{ color: '#666' }}
-                />
-              </Upload>
-              <Upload
-                showUploadList={false}
-                beforeUpload={handleUploadFile}
-                disabled={uploadingFile}
-              >
-                <Button
-                  type="text"
-                  icon={<PaperClipOutlined />}
-                  loading={uploadingFile}
-                  style={{ color: '#666' }}
-                  title="傳送檔案"
-                />
-              </Upload>
-              <Popover
-                content={
-                  <Picker
-                    data={emojiData}
-                    onEmojiSelect={(emoji: { native: string }) => {
-                      setInputMessage(prev => prev + emoji.native)
-                      setEmojiPickerOpen(false)
-                    }}
-                    locale="zh"
-                    previewPosition="none"
-                    skinTonePosition="none"
-                    theme="light"
-                  />
-                }
-                trigger="click"
-                open={emojiPickerOpen}
-                onOpenChange={setEmojiPickerOpen}
-                placement="topLeft"
-              >
-                <Button
-                  type="text"
-                  icon={<SmileOutlined />}
-                  style={{ color: '#666' }}
-                />
-              </Popover>
-              <Mentions
-                placeholder="輸入訊息... 輸入 @ 提及用戶"
-                value={inputMessage}
-                onChange={setInputMessage}
-                onSearch={() => { mentionActiveRef.current = true }}
-                onSelect={() => { mentionActiveRef.current = false }}
-                onCompositionStart={() => { isComposingRef.current = true }}
-                onCompositionEnd={() => { isComposingRef.current = false }}
-                onKeyDown={e => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    // 忽略 IME 組字中的 Enter（注音、嘸蝦米等輸入法選字確認）
-                    if (isComposingRef.current || e.nativeEvent.isComposing) return
-                    if (mentionActiveRef.current) return
-                    e.preventDefault()
-                    handleSendMessage()
-                  }
-                }}
-                autoSize={{ minRows: 1, maxRows: 4 }}
-                style={{ flex: 1 }}
-                disabled={sending}
-                options={mentionOptions}
-              />
-              <Button
-                type="primary"
-                icon={<SendOutlined />}
-                onClick={handleSendMessage}
-                loading={sending}
-                disabled={!inputMessage.trim()}
-                style={{ backgroundColor: '#00B900', borderColor: '#00B900' }}
-              >
-                發送
-              </Button>
-            </div>
+            <ChatInputArea
+              key={activeChannel.id}
+              channelId={activeChannel.id}
+              quotingMessage={quotingMessage}
+              onCancelQuote={() => setQuotingMessage(null)}
+              onAfterSend={handleAfterSend}
+              mentionOptions={mentionOptions}
+              mentionUserMap={mentionUserMap}
+            />
           </div>
         ) : (
           <div style={{

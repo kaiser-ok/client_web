@@ -639,6 +639,7 @@ model LineMessage {
   mediaUrl        String?                          // 媒體檔案 URL
   replyToken      String?                          // 回覆用 token（有效期短）
   quoteToken      String?                          // 引用回覆用 token（供下一則訊息引用此訊息）
+  quotedMessageId String?                          // 被引用訊息的 lineMessageId（此訊息是對哪則訊息的引用回覆）
   timestamp       DateTime                         // LINE 訊息時間
   processed       Boolean     @default(false)      // 是否已由 LLM 處理
   createdAt       DateTime    @default(now())

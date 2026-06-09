@@ -158,6 +158,7 @@ async function handleMessageEvent(
       mediaUrl,
       replyToken: event.replyToken,
       quoteToken: (event.message as { quoteToken?: string }).quoteToken ?? null,
+      quotedMessageId: (event.message as { quotedMessageId?: string }).quotedMessageId ?? null,
       timestamp: new Date(event.timestamp),
     },
     update: {
