@@ -5,6 +5,7 @@
 
 import prisma from '@/lib/prisma'
 import { calcSLADueDates, DEFAULT_SLA_RULES } from '@/lib/line-event-sla'
+import { enqueueEventPush } from '@/lib/event-push'
 
 // 觸發自動建立事件的標籤
 const AUTO_EVENT_LABEL_MAP: Record<string, { priority: string; titlePrefix: string }> = {
@@ -105,4 +106,7 @@ export async function autoCreateEventFromLabel(
   })
 
   console.log(`[line-event-auto] Auto-created event ${event.id} (${event.priority}) for channel ${channelId} via label '${labelId}' [${source}]`)
+
+  // 推送新事件到外部系統（非阻塞）
+  enqueueEventPush(event.id, 'CREATED')
 }

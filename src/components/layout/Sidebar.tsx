@@ -118,6 +118,11 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
         icon: <AppstoreOutlined />,
         label: '產品管理',
       })
+      settingsChildren.push({
+        key: '/settings/event-push',
+        icon: <AlertOutlined />,
+        label: '事件外送',
+      })
     }
 
 
@@ -257,6 +262,7 @@ export default function Sidebar({ collapsed, onCollapse }: SidebarProps) {
     if (pathname.startsWith('/settings/identity-resolution')) return '/settings/identity-resolution'
     if (pathname.startsWith('/settings/quotation-templates')) return '/settings/quotation-templates'
     if (pathname.startsWith('/settings/products')) return '/settings/products'
+    if (pathname.startsWith('/settings/event-push')) return '/settings/event-push'
     if (pathname === '/settings') return '/settings/odoo' // Default to odoo
     if (pathname.startsWith('/reports/')) return pathname
     if (pathname.startsWith('/line-inbox')) return '/line-inbox'

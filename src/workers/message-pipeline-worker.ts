@@ -26,6 +26,11 @@ import {
   startLineBatchCron,
   stopLineBatchWorker,
 } from '../lib/line-batch-analyzer'
+import {
+  startEventPushSweepWorker,
+  startEventPushSweepCron,
+  stopEventPushSweepWorker,
+} from '../lib/event-push-scheduler'
 
 console.log('[message-pipeline-worker] Starting...')
 
@@ -35,10 +40,12 @@ const slaWorker = startSLAWorker()
 const bonusMonthlyWorker = startBonusMonthlyNotifierWorker()
 const bonusDailyWorker = startBonusDailyNotifierWorker()
 const batchWorker = startLineBatchWorker()
+const eventPushSweepWorker = startEventPushSweepWorker()
 startSLACronJob().catch(err => console.error('[message-pipeline-worker] SLA cron error:', err))
 startBonusMonthlyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus monthly cron error:', err))
 startBonusDailyNotifierCron().catch(err => console.error('[message-pipeline-worker] Bonus daily cron error:', err))
 startLineBatchCron().catch(err => console.error('[message-pipeline-worker] Batch analysis cron error:', err))
+startEventPushSweepCron().catch(err => console.error('[message-pipeline-worker] Event push sweep cron error:', err))
 
 // Graceful shutdown
 async function shutdown(signal: string) {
@@ -50,6 +57,7 @@ async function shutdown(signal: string) {
     await stopBonusMonthlyNotifierWorker(bonusMonthlyWorker)
     await stopBonusDailyNotifierWorker(bonusDailyWorker)
     await stopLineBatchWorker()
+    await stopEventPushSweepWorker(eventPushSweepWorker)
     console.log('[message-pipeline-worker] Shutdown complete')
     process.exit(0)
   } catch (err) {
@@ -84,6 +92,10 @@ bonusDailyWorker.on('error', (err) => {
 
 batchWorker.on('error', (err) => {
   console.error('[message-pipeline-worker] Batch analysis worker error:', err)
+})
+
+eventPushSweepWorker.on('error', (err) => {
+  console.error('[message-pipeline-worker] Event push sweep worker error:', err)
 })
 
 console.log('[message-pipeline-worker] Ready and listening for jobs')

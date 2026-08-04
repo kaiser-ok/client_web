@@ -1052,3 +1052,24 @@ model WikiPage {
   @@index([status])
   @@map("wiki_pages")
 }
+
+/// 事件外送 outbox — LineEvent 建立/狀態變更時推送到外部系統，持久化以支援重送與稽核
+model EventOutbox {
+  id           String    @id @default(cuid())
+  eventId      String                              // 關聯 LineEvent.id
+  eventType    String                              // CREATED | STATUS_CHANGED
+  payload      Json                                // 送出的完整 JSON 快照
+  status       String    @default("PENDING")       // PENDING | SENT | FAILED | DEAD
+  attempts     Int       @default(0)
+  maxAttempts  Int       @default(8)
+  nextRetryAt  DateTime  @default(now())
+  lastError    String?   @db.Text
+  responseCode Int?                                // 對方回應的 HTTP status
+  sentAt       DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status, nextRetryAt])
+  @@index([eventId])
+  @@map("event_outbox")
+}
