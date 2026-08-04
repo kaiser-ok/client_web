@@ -171,6 +171,16 @@ X-API-Key: <雙方約定的共用金鑰>
 > `deliveryId` 則是**每次推送各自唯一**（同一次推送的多次重送才相同）。
 > 去重用 `deliveryId`；要對應/更新同一張事件單則用 `event.id`。
 
+### ⚠️ 遇未知 `event.id` 請 upsert，不要回 400（重要）
+
+你可能收到一筆 `STATUS_CHANGED`，但**從未收過該事件的 `CREATED`**。發生情境：
+- 該事件在整合**啟用前**就已建立（當時我方不會推送）；
+- 或它的 `CREATED` 曾推送失敗。
+
+此時**請勿回 400**——`STATUS_CHANGED` 的 payload 已包含**完整的 `event` 物件**（title、status、priority… 一應俱全），
+請以 `event.id` 做 **upsert**：**有則更新狀態、無則直接用 payload 內的 event 建立**。
+否則這類事件會在我方重試耗盡後永久失敗（`DEAD`）。
+
 ---
 
 ## 5. 重送與退避行為（供你理解時序）
@@ -212,14 +222,9 @@ app.post('/api/incidents', (req, res) => {
   if (seen.has(deliveryId)) return res.sendStatus(200)
   seen.add(deliveryId)
 
-  // 4) 依 eventType 處理
-  if (eventType === 'CREATED') {
-    // upsert 事件單，key = event.id
-    // createIncident(event)
-  } else if (eventType === 'STATUS_CHANGED') {
-    // 更新既有事件單狀態，key = event.id
-    // updateIncidentStatus(event.id, change.to, change.by)
-  }
+  // 4) CREATED 與 STATUS_CHANGED 一律以 event.id 做 upsert（有則更新、無則建立）
+  //    STATUS_CHANGED 也帶完整 event，遇未知 id 請直接建立，切勿回 400
+  upsertIncident(event)   // key = event.id；內部依 event.status 更新狀態
 
   // 5) 成功回 2xx（務必，否則我方會重送）
   return res.sendStatus(200)
@@ -236,7 +241,7 @@ app.listen(3003, () => console.log('incident receiver on :3003'))
 - [ ] 驗證 `X-API-Key`
 - [ ] 用 `deliveryId` 去重
 - [ ] 忽略 `eventType=TEST`
-- [ ] `CREATED` 建單、`STATUS_CHANGED` 依 `event.id` 更新
+- [ ] 一律以 `event.id` **upsert**（有則更新、無則建立）；`STATUS_CHANGED` 遇未知 id **不要回 400**
 - [ ] 成功一律回 2xx，且盡量 < 10 秒
 - [ ] 提供雙方約定的共用金鑰給 client-web 端填入設定
 
