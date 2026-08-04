@@ -1337,7 +1337,7 @@ export default function LineInboxPage() {
 
         {/* Right: Chat area */}
         {activeChannel ? (
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
+          <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', backgroundColor: '#fff' }}>
             {/* Chat header */}
             <div style={{
               padding: '12px 20px',
@@ -1654,6 +1654,7 @@ export default function LineInboxPage() {
                               backgroundColor: isStaff ? '#00B900' : '#fff',
                               color: isStaff ? '#fff' : '#000',
                               boxShadow: '0 1px 2px rgba(0,0,0,0.1)',
+                              overflowWrap: 'anywhere',
                             }}>
                               {msg.content ? (
                                 <LineEmojiText

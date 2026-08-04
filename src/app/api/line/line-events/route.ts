@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { calcSLADueDates, DEFAULT_SLA_RULES } from '@/lib/line-event-sla'
+import { enqueueEventPush } from '@/lib/event-push'
 
 const EVENT_INCLUDE = {
   assignee: { select: { id: true, email: true, name: true, image: true } },
@@ -147,6 +148,9 @@ export async function POST(request: NextRequest) {
         data: { status: 'IN_PROGRESS' },
       })
     }
+
+    // 推送新事件到外部系統（非阻塞）
+    enqueueEventPush(event.id, 'CREATED')
 
     return NextResponse.json(event, { status: 201 })
   } catch (e) {

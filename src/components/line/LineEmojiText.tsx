@@ -61,8 +61,8 @@ export default function LineEmojiText({
 
   // No emojis found, render plain text
   if (parts.length === 0) {
-    return <span style={style}>{content}</span>
+    return <span style={{ ...style, overflowWrap: 'anywhere' }}>{content}</span>
   }
 
-  return <span style={{ ...style, whiteSpace: 'pre-wrap' }}>{parts}</span>
+  return <span style={{ ...style, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{parts}</span>
 }

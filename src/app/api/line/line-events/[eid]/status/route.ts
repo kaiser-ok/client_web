@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { notifyAssigned, notifyEventClosed } from '@/lib/line-event-notifier'
+import { enqueueEventPush } from '@/lib/event-push'
 import createLineClient from '@/lib/line'
 
 type Action = 'assign' | 'start' | 'resolve' | 'close' | 'reopen'
@@ -100,6 +101,15 @@ export async function PUT(
         note: historyNote,
         byEmail: email,
       },
+    })
+
+    // 推送狀態變更到外部系統（非阻塞）
+    const toStatus = (updateData.status as string) ?? existing.status
+    enqueueEventPush(eid, 'STATUS_CHANGED', {
+      from: existing.status,
+      to: toStatus,
+      by: email,
+      action,
     })
 
     // reopen 時，將所有關聯頻道狀態設回 IN_PROGRESS
