@@ -369,7 +369,7 @@ export default function SalesReportPage() {
       render: (v: number) => `$${Math.round(v).toLocaleString()}`,
     },
     {
-      title: '待開票未稅',
+      title: '待開票含稅',
       dataIndex: 'amountToInvoice',
       key: 'amountToInvoice',
       width: 140,
@@ -611,7 +611,7 @@ export default function SalesReportPage() {
               title={
                 <span>
                   已成案未開票&nbsp;
-                  <Tooltip title="Odoo 銷售訂單中 invoice_status = 'to invoice' 且待開票金額大於 0 的訂單，即已確認成案但尚未（或尚未開完）發票的部分。這是目前的即時快照，不受上方日期範圍影響，但仍套用業務與專案類型篩選。">
+                  <Tooltip title="Odoo 銷售訂單中 invoice_status = 'to invoice' 且待開票金額大於 0 的訂單，即已確認成案但尚未（或尚未開完）發票的部分。金額取 sale_order.amount_to_invoice，為含稅（未稅口徑合計為 68,161,901）。這是目前的即時快照，不受上方日期範圍影響，但仍套用業務與專案類型篩選。">
                     <InfoCircleOutlined style={{ color: '#999', fontSize: 13 }} />
                   </Tooltip>
                 </span>
@@ -619,14 +619,14 @@ export default function SalesReportPage() {
               style={{ marginBottom: 16 }}
               extra={
                 <span style={{ color: '#999', fontSize: 12 }}>
-                  待開票金額為未稅；訂單金額為含稅
+                  待開票與訂單金額皆為含稅
                 </span>
               }
             >
               <Row gutter={[16, 16]}>
                 <Col xs={24} lg={7}>
                   <Statistic
-                    title="待開票總額（未稅）"
+                    title="待開票總額（含稅）"
                     value={data.uninvoiced.totalAmountToInvoice}
                     prefix={<ClockCircleOutlined />}
                     formatter={(v) => `$${Math.round(Number(v)).toLocaleString()}`}
@@ -652,7 +652,7 @@ export default function SalesReportPage() {
                           align: 'right' as const,
                         },
                         {
-                          title: '待開票未稅',
+                          title: '待開票含稅',
                           dataIndex: 'amountToInvoice',
                           key: 'amountToInvoice',
                           align: 'right' as const,
@@ -678,7 +678,7 @@ export default function SalesReportPage() {
                           align: 'right' as const,
                         },
                         {
-                          title: '待開票未稅',
+                          title: '待開票含稅',
                           dataIndex: 'amountToInvoice',
                           key: 'amountToInvoice',
                           align: 'right' as const,

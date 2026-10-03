@@ -45,7 +45,7 @@ export interface OdooSaleOrder {
   project_type: string | null      // 專案類型
   note: string | null              // 備註
   invoice_status: string | null    // no | to invoice | invoiced
-  amount_to_invoice: number | null // 未稅待開票金額
+  amount_to_invoice: number | null // 待開票金額（含稅，由 amount_total 推算）
 }
 
 export interface OdooEmployee {

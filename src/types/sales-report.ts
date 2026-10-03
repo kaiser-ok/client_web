@@ -50,7 +50,7 @@ export interface UninvoicedOrder {
   projectType: string | null
   closedAt: string
   amount: number           // 訂單含稅總額
-  amountToInvoice: number  // 未稅待開票金額
+  amountToInvoice: number  // 待開票金額（含稅；Odoo amount_to_invoice 由 amount_total 推算）
   daysOpen: number         // 成交至今天數
 }
 
@@ -62,7 +62,7 @@ export interface UninvoicedBucket {
 
 export interface UninvoicedBacklog {
   orderCount: number
-  totalAmountToInvoice: number   // 未稅
+  totalAmountToInvoice: number   // 含稅
   byAge: UninvoicedBucket[]
   bySalesRep: UninvoicedBucket[]
   orders: UninvoicedOrder[]
