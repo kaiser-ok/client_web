@@ -35,6 +35,7 @@ import dayjs, { Dayjs } from 'dayjs'
 import Link from 'next/link'
 import AppLayout from '@/components/layout/AppLayout'
 import type { SalesReportData, UninvoicedOrder } from '@/types/sales-report'
+import { stripLeadingProjectCode } from '@/lib/project-name'
 
 // Dynamic import for charts to avoid SSR issues
 const Line = dynamic(() => import('@ant-design/charts').then((mod) => mod.Line), { ssr: false })
@@ -341,7 +342,9 @@ export default function SalesReportPage() {
       render: (v: string | null, row: UninvoicedOrder) => {
         const full = v || row.projectType
         if (!full) return <span style={{ color: '#bbb' }}>-</span>
-        const short = full.length > 10 ? `${full.slice(0, 10)}…` : full
+        // 開頭的採購/PO 編號先剝掉，10 個字才留給真正的描述
+        const desc = stripLeadingProjectCode(full)
+        const short = desc.length > 10 ? `${desc.slice(0, 10)}…` : desc
         return (
           <Tooltip title={full}>
             <span style={{ color: v ? undefined : '#bbb' }}>{short}</span>
