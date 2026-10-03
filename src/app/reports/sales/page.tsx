@@ -62,7 +62,7 @@ function DistributionGroup({
   total: number
 }) {
   return (
-    <div style={{ marginTop: 18 }}>
+    <div>
       <div
         style={{
           fontSize: 12,
@@ -100,15 +100,15 @@ function DistributionGroup({
               </div>
               <div
                 style={{
-                  height: 3,
-                  background: '#f0f0f0',
+                  height: 4,
+                  background: '#efefef',
                   borderRadius: 2,
                   marginTop: 5,
                 }}
               >
                 <div
                   style={{
-                    height: 3,
+                    height: 4,
                     width: `${pct}%`,
                     background: '#fa8c16',
                     borderRadius: 2,
@@ -752,45 +752,61 @@ export default function SalesReportPage() {
               title={
                 <span>
                   已成案未開票&nbsp;
-                  <Tooltip title="Odoo 銷售訂單中 invoice_status = 'to invoice' 且待開票金額大於 0 的訂單，即已確認成案但尚未（或尚未開完）發票的部分。金額取 sale_order.amount_to_invoice，為含稅（未稅口徑合計為 68,161,901）。這是目前的即時快照，不受上方日期範圍影響，但仍套用業務與專案類型篩選。">
+                  <Tooltip title="Odoo 銷售訂單中 invoice_status = 'to invoice' 且待開票金額大於 0 的訂單，即已確認成案但尚未（或尚未開完）發票的部分。金額取 sale_order.amount_to_invoice，為含稅（未稅口徑合計為 68,161,901）。訂單號連至 Odoo 的訂單表單。這是目前的即時快照，不受上方日期範圍影響，但仍套用業務與專案類型篩選。">
                     <InfoCircleOutlined style={{ color: '#999', fontSize: 13 }} />
                   </Tooltip>
                 </span>
               }
               style={{ marginBottom: 16 }}
               extra={
-                <span style={{ color: '#999', fontSize: 12 }}>
-                  待開票金額為含稅；訂單號連至 Odoo
-                </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    flexWrap: 'wrap',
+                    gap: 10,
+                  }}
+                >
+                  <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                    待開票總額（含稅）
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 600,
+                      lineHeight: 1,
+                      color: '#fa8c16',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}
+                  >
+                    ${Math.round(data.uninvoiced.totalAmountToInvoice).toLocaleString()}
+                  </span>
+                  <span style={{ fontSize: 12, color: '#8c8c8c' }}>
+                    ／{data.uninvoiced.orderCount} 張訂單
+                  </span>
+                </div>
               }
             >
               <Row gutter={[20, 20]} align="top">
                 <Col xs={24} lg={7}>
-                  {/* 左欄整塊收成一個摘要面板，跟右邊的明細表分出層次 */}
+                  {/* 總額已移到標題區，左欄只留分布，第一行才能與右表表頭齊高 */}
                   <div
                     style={{
                       background: '#fafafa',
                       border: '1px solid #f0f0f0',
                       borderRadius: 8,
-                      padding: '16px 16px 10px',
+                      padding: '12px 16px 14px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: 16,
                     }}
                   >
-                    <Statistic
-                      title="待開票總額（含稅）"
-                      value={data.uninvoiced.totalAmountToInvoice}
-                      prefix={<ClockCircleOutlined />}
-                      formatter={(v) => `$${Math.round(Number(v)).toLocaleString()}`}
-                      styles={{ content: { color: '#fa8c16' } }}
-                    />
-                    <div style={{ marginTop: 2, color: '#8c8c8c', fontSize: 12 }}>
-                      共 {data.uninvoiced.orderCount} 張訂單
-                    </div>
-
                     <DistributionGroup
                       label="帳齡（自成交日）"
                       rows={data.uninvoiced.byAge}
                       total={data.uninvoiced.totalAmountToInvoice}
                     />
+                    <div style={{ borderTop: '1px solid #eee' }} />
                     <DistributionGroup
                       label="業務"
                       rows={data.uninvoiced.bySalesRep}
