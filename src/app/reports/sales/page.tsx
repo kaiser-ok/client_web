@@ -337,15 +337,17 @@ export default function SalesReportPage() {
       title: '專案名稱',
       dataIndex: 'projectName',
       key: 'projectName',
-      ellipsis: true,
-      render: (v: string | null, row: UninvoicedOrder) =>
-        v ? (
-          <Tooltip title={v}>
-            <span>{v}</span>
+      width: 150,
+      render: (v: string | null, row: UninvoicedOrder) => {
+        const full = v || row.projectType
+        if (!full) return <span style={{ color: '#bbb' }}>-</span>
+        const short = full.length > 10 ? `${full.slice(0, 10)}…` : full
+        return (
+          <Tooltip title={full}>
+            <span style={{ color: v ? undefined : '#bbb' }}>{short}</span>
           </Tooltip>
-        ) : (
-          <span style={{ color: '#bbb' }}>{row.projectType || '-'}</span>
-        ),
+        )
+      },
     },
     {
       title: '客戶',
