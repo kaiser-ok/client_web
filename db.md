@@ -118,7 +118,7 @@ ODOO_DB_PASSWORD=p20j2ead0n1y
 | Odoo 資料表 | 對應本地 | 說明 | 方向 |
 |-------------|----------|------|------|
 | res_partner | Partner | 客戶/供應商 | 雙向（讀+寫） |
-| sale_order | Deal | 成交訂單 | 讀取 |
+| sale_order | Deal | 成交訂單（含 invoice_status / amount_to_invoice → 銷售報表「已成案未開票」） | 讀取 |
 | sale_order_line | Deal.productsJson | 訂單產品明細 | 讀取 |
 | account_move | Activity (source=ERP) | 發票 | 讀取 |
 | crm_tag | Partner.odooTags | 訂單標籤 | 讀取 |
@@ -222,7 +222,7 @@ PGPASSWORD=p20j2ead0n1y psql -h 192.168.30.138 -U proj -d odoo -c "\dt"
 | Activity | activities | 活動時間軸（source: JIRA, MANUAL, MEETING, LINE, EMAIL, DOC, SLACK, ERP） |
 | OpenItem | open_items | Jira Issue 本地快照（含 waitingOn, nextAction, dealer） |
 | User | users | 使用者（role: ADMIN, SALES, SUPPORT 等） |
-| Deal | deals | 成交/合約（含 Odoo 同步欄位） |
+| Deal | deals | 成交/合約（含 Odoo 同步欄位 odooState / invoiceStatus / amountToInvoice） |
 | Contact | contacts | 跨通路聯絡人 |
 
 ### 專案與獎金
@@ -278,3 +278,17 @@ PGPASSWORD=p20j2ead0n1y psql -h 192.168.30.138 -U proj -d odoo -c "\dt"
 | IdentityMapping | identity_mappings | 跨通路身分對應（LINE/Slack/Email → Partner/Contact） |
 | ResolutionLog | resolution_logs | 身分解析日誌 |
 | GraphSyncLog | graph_sync_logs | Neo4j 圖譜同步日誌 |
+
+---
+
+## Schema 變更後的部署步驟
+
+改過 `prisma/schema.prisma` 之後，**每個環境**都要各自套用一次（`db push` 只會作用在 `DATABASE_URL` 指到的那一個資料庫）：
+
+```bash
+DATABASE_URL="postgresql://..." npx prisma db push    # 套用 schema
+DATABASE_URL="postgresql://..." npx prisma generate   # 重新產生 Prisma Client
+npm run build && pm2 reload client-web                # production 跑 next start，改完要 build 才生效
+```
+
+**新增的 Odoo 同步欄位不會自己有值**，要等該環境執行一次對應的同步才會填上。例如 `Deal.invoiceStatus` / `Deal.amountToInvoice`（銷售報表「已成案未開票」用）需要跑一次 `POST /api/odoo/sync-deals`；在既有資料很多時也可以寫一次性腳本直接依 `odooId` 回填，避免整批重跑。
