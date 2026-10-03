@@ -47,6 +47,102 @@ const { RangePicker } = DatePicker
 
 type GroupBy = 'month' | 'quarter' | 'year'
 
+/**
+ * 待開票金額的分布列（帳齡／業務共用）。
+ * 刻意不用 antd Table —— Table 會各自自動分配欄寬，兩組並排時數字欄對不齊，
+ * 而且表頭與框線讓左欄看起來像拼貼。這裡用固定的 grid 模板，兩組必然對齊。
+ */
+function DistributionGroup({
+  label,
+  rows,
+  total,
+}: {
+  label: string
+  rows: { bucket: string; orderCount: number; amountToInvoice: number }[]
+  total: number
+}) {
+  return (
+    <div style={{ marginTop: 18 }}>
+      <div
+        style={{
+          fontSize: 12,
+          color: '#8c8c8c',
+          letterSpacing: '0.04em',
+          marginBottom: 6,
+        }}
+      >
+        {label}
+      </div>
+      {rows.map((r) => {
+        const pct = total > 0 ? (r.amountToInvoice / total) * 100 : 0
+        return (
+          <div
+            key={r.bucket}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 30px 92px',
+              alignItems: 'center',
+              columnGap: 8,
+              padding: '6px 0',
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div
+                style={{
+                  fontSize: 13,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+                title={r.bucket}
+              >
+                {r.bucket}
+              </div>
+              <div
+                style={{
+                  height: 3,
+                  background: '#f0f0f0',
+                  borderRadius: 2,
+                  marginTop: 5,
+                }}
+              >
+                <div
+                  style={{
+                    height: 3,
+                    width: `${pct}%`,
+                    background: '#fa8c16',
+                    borderRadius: 2,
+                  }}
+                />
+              </div>
+            </div>
+            <div
+              style={{
+                textAlign: 'right',
+                fontSize: 12,
+                color: '#8c8c8c',
+                fontVariantNumeric: 'tabular-nums',
+              }}
+            >
+              {r.orderCount}
+            </div>
+            <div
+              style={{
+                textAlign: 'right',
+                fontSize: 13,
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ${Math.round(r.amountToInvoice).toLocaleString()}
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 interface ApiResponse extends SalesReportData {
   filters: {
     salesReps: string[]
@@ -668,68 +764,37 @@ export default function SalesReportPage() {
                 </span>
               }
             >
-              <Row gutter={[16, 16]}>
+              <Row gutter={[20, 20]} align="top">
                 <Col xs={24} lg={7}>
-                  <Statistic
-                    title="待開票總額（含稅）"
-                    value={data.uninvoiced.totalAmountToInvoice}
-                    prefix={<ClockCircleOutlined />}
-                    formatter={(v) => `$${Math.round(Number(v)).toLocaleString()}`}
-                    styles={{ content: { color: '#fa8c16' } }}
-                  />
-                  <div style={{ marginTop: 4, color: '#999', fontSize: 12 }}>
-                    共 {data.uninvoiced.orderCount} 張訂單
-                  </div>
-
-                  <div style={{ marginTop: 16 }}>
-                    <Table
-                      dataSource={data.uninvoiced.byAge}
-                      rowKey="bucket"
-                      pagination={false}
-                      size="small"
-                      columns={[
-                        { title: '帳齡（自成交日）', dataIndex: 'bucket', key: 'bucket' },
-                        {
-                          title: '張',
-                          dataIndex: 'orderCount',
-                          key: 'orderCount',
-                          width: 56,
-                          align: 'right' as const,
-                        },
-                        {
-                          title: '待開票含稅',
-                          dataIndex: 'amountToInvoice',
-                          key: 'amountToInvoice',
-                          align: 'right' as const,
-                          render: (v: number) => `$${Math.round(v).toLocaleString()}`,
-                        },
-                      ]}
+                  {/* 左欄整塊收成一個摘要面板，跟右邊的明細表分出層次 */}
+                  <div
+                    style={{
+                      background: '#fafafa',
+                      border: '1px solid #f0f0f0',
+                      borderRadius: 8,
+                      padding: '16px 16px 10px',
+                    }}
+                  >
+                    <Statistic
+                      title="待開票總額（含稅）"
+                      value={data.uninvoiced.totalAmountToInvoice}
+                      prefix={<ClockCircleOutlined />}
+                      formatter={(v) => `$${Math.round(Number(v)).toLocaleString()}`}
+                      styles={{ content: { color: '#fa8c16' } }}
                     />
-                  </div>
+                    <div style={{ marginTop: 2, color: '#8c8c8c', fontSize: 12 }}>
+                      共 {data.uninvoiced.orderCount} 張訂單
+                    </div>
 
-                  <div style={{ marginTop: 16 }}>
-                    <Table
-                      dataSource={data.uninvoiced.bySalesRep}
-                      rowKey="bucket"
-                      pagination={false}
-                      size="small"
-                      columns={[
-                        { title: '業務', dataIndex: 'bucket', key: 'bucket' },
-                        {
-                          title: '張',
-                          dataIndex: 'orderCount',
-                          key: 'orderCount',
-                          width: 56,
-                          align: 'right' as const,
-                        },
-                        {
-                          title: '待開票含稅',
-                          dataIndex: 'amountToInvoice',
-                          key: 'amountToInvoice',
-                          align: 'right' as const,
-                          render: (v: number) => `$${Math.round(v).toLocaleString()}`,
-                        },
-                      ]}
+                    <DistributionGroup
+                      label="帳齡（自成交日）"
+                      rows={data.uninvoiced.byAge}
+                      total={data.uninvoiced.totalAmountToInvoice}
+                    />
+                    <DistributionGroup
+                      label="業務"
+                      rows={data.uninvoiced.bySalesRep}
+                      total={data.uninvoiced.totalAmountToInvoice}
                     />
                   </div>
                 </Col>
@@ -740,7 +805,12 @@ export default function SalesReportPage() {
                     rowKey="id"
                     size="small"
                     scroll={{ x: 'max-content' }}
-                    pagination={{ pageSize: 10, showSizeChanger: true, size: 'small' }}
+                    pagination={{
+                      pageSize: 10,
+                      showSizeChanger: true,
+                      size: 'small',
+                      showTotal: (t) => `共 ${t} 張`,
+                    }}
                   />
                 </Col>
               </Row>
