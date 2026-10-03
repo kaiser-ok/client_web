@@ -338,7 +338,7 @@ export default function SalesReportPage() {
       title: '專案名稱',
       dataIndex: 'projectName',
       key: 'projectName',
-      width: 150,
+      width: 164,
       render: (v: string | null, row: UninvoicedOrder) => {
         const full = v || row.projectType
         if (!full) return <span style={{ color: '#bbb' }}>-</span>
@@ -347,7 +347,9 @@ export default function SalesReportPage() {
         const short = desc.length > 10 ? `${desc.slice(0, 10)}…` : desc
         return (
           <Tooltip title={full}>
-            <span style={{ color: v ? undefined : '#bbb' }}>{short}</span>
+            <span style={{ color: v ? undefined : '#bbb', whiteSpace: 'nowrap' }}>
+              {short}
+            </span>
           </Tooltip>
         )
       },
@@ -356,13 +358,16 @@ export default function SalesReportPage() {
       title: '客戶',
       dataIndex: 'partnerName',
       key: 'partnerName',
-      width: 100,
+      width: 108,
       render: (partnerName: string, row: UninvoicedOrder) => {
         const short =
           partnerName.length > 6 ? `${partnerName.slice(0, 6)}…` : partnerName
         return (
           <Tooltip title={partnerName}>
-            <Link href={`/customers/${row.partnerId}`} style={{ color: '#1890ff' }}>
+            <Link
+              href={`/customers/${row.partnerId}`}
+              style={{ color: '#1890ff', whiteSpace: 'nowrap' }}
+            >
               {short}
             </Link>
           </Tooltip>
@@ -373,8 +378,10 @@ export default function SalesReportPage() {
       title: '業務',
       dataIndex: 'salesRep',
       key: 'salesRep',
-      width: 110,
-      render: (v: string | null) => v || '未指定',
+      width: 104,
+      render: (v: string | null) => (
+        <span style={{ whiteSpace: 'nowrap' }}>{v || '未指定'}</span>
+      ),
     },
     {
       title: '成交日',
@@ -385,14 +392,23 @@ export default function SalesReportPage() {
       render: (v: string) => dayjs(v).format('YYYY-MM-DD'),
     },
     {
-      title: '已掛天數',
+      title: (
+        <Tooltip title="自成交日（Odoo date_order）起算至今的天數">
+          <span style={{ whiteSpace: 'nowrap' }}>天數</span>
+        </Tooltip>
+      ),
       dataIndex: 'daysOpen',
       key: 'daysOpen',
-      width: 100,
+      width: 68,
       align: 'right' as const,
       sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.daysOpen - b.daysOpen,
       render: (v: number) => (
-        <span style={{ color: v > 365 ? '#ff4d4f' : v > 180 ? '#faad14' : undefined }}>
+        <span
+          style={{
+            color: v > 365 ? '#ff4d4f' : v > 180 ? '#faad14' : undefined,
+            whiteSpace: 'nowrap',
+          }}
+        >
           {v.toLocaleString()}
         </span>
       ),
