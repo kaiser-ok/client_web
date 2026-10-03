@@ -17,6 +17,8 @@ const odooPool = new Pool({
   connectionTimeoutMillis: 5000,
 })
 
+let cachedWebBaseUrl: string | null | undefined
+
 export interface OdooPartner {
   id: number
   name: string
@@ -117,6 +119,33 @@ export const odooClient = {
     `
     const result = await odooPool.query(query, [limit])
     return result.rows
+  },
+
+  /**
+   * Odoo 的 web.base.url（用來組出訂單表單的連結）。
+   * 優先吃 ODOO_BASE_URL 環境變數，否則讀 Odoo 的 ir_config_parameter。
+   * 這個值幾乎不會變，所以在 module scope 快取。
+   */
+  async getWebBaseUrl(): Promise<string | null> {
+    if (process.env.ODOO_BASE_URL) return process.env.ODOO_BASE_URL.replace(/\/$/, '')
+    if (cachedWebBaseUrl !== undefined) return cachedWebBaseUrl
+    try {
+      const result = await odooPool.query(
+        `SELECT value FROM ir_config_parameter WHERE key = 'web.base.url' LIMIT 1`
+      )
+      cachedWebBaseUrl = result.rows[0]?.value?.replace(/\/$/, '') ?? null
+    } catch {
+      cachedWebBaseUrl = null
+    }
+    return cachedWebBaseUrl ?? null
+  },
+
+  /**
+   * 組出 Odoo 17 的銷售訂單表單連結（Odoo 17 仍使用 /web# hash 路由）
+   */
+  async getSaleOrderUrl(odooId: number): Promise<string | null> {
+    const base = await this.getWebBaseUrl()
+    return base ? `${base}/web#id=${odooId}&model=sale.order&view_type=form` : null
   },
 
   /**

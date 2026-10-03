@@ -316,20 +316,53 @@ export default function SalesReportPage() {
       title: '訂單',
       dataIndex: 'name',
       key: 'name',
-      render: (name: string, row: UninvoicedOrder) => (
-        <Link href={`/customers/${row.partnerId}`}>{name}</Link>
-      ),
+      width: 92,
+      render: (name: string, row: UninvoicedOrder) =>
+        row.odooUrl ? (
+          <Tooltip title="在 Odoo 開啟此訂單">
+            <a
+              href={row.odooUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#1890ff' }}
+            >
+              {name}
+            </a>
+          </Tooltip>
+        ) : (
+          name
+        ),
+    },
+    {
+      title: '專案名稱',
+      dataIndex: 'projectName',
+      key: 'projectName',
+      ellipsis: true,
+      render: (v: string | null, row: UninvoicedOrder) =>
+        v ? (
+          <Tooltip title={v}>
+            <span>{v}</span>
+          </Tooltip>
+        ) : (
+          <span style={{ color: '#bbb' }}>{row.projectType || '-'}</span>
+        ),
     },
     {
       title: '客戶',
       dataIndex: 'partnerName',
       key: 'partnerName',
-      ellipsis: true,
-      render: (partnerName: string, row: UninvoicedOrder) => (
-        <Tooltip title={row.projectName || row.projectType || partnerName}>
-          <span>{partnerName}</span>
-        </Tooltip>
-      ),
+      width: 100,
+      render: (partnerName: string, row: UninvoicedOrder) => {
+        const short =
+          partnerName.length > 6 ? `${partnerName.slice(0, 6)}…` : partnerName
+        return (
+          <Tooltip title={partnerName}>
+            <Link href={`/customers/${row.partnerId}`} style={{ color: '#1890ff' }}>
+              {short}
+            </Link>
+          </Tooltip>
+        )
+      },
     },
     {
       title: '業務',
@@ -358,15 +391,6 @@ export default function SalesReportPage() {
           {v.toLocaleString()}
         </span>
       ),
-    },
-    {
-      title: '訂單含稅',
-      dataIndex: 'amount',
-      key: 'amount',
-      width: 130,
-      align: 'right' as const,
-      sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.amount - b.amount,
-      render: (v: number) => `$${Math.round(v).toLocaleString()}`,
     },
     {
       title: '待開票含稅',
@@ -619,7 +643,7 @@ export default function SalesReportPage() {
               style={{ marginBottom: 16 }}
               extra={
                 <span style={{ color: '#999', fontSize: 12 }}>
-                  待開票與訂單金額皆為含稅
+                  待開票金額為含稅；訂單號連至 Odoo
                 </span>
               }
             >

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import prisma from '@/lib/prisma'
 import { hasPermission } from '@/constants/roles'
+import { odooClient } from '@/lib/odoo'
 import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
@@ -372,10 +373,14 @@ export async function GET(request: NextRequest) {
         amount: true,
         amountToInvoice: true,
         partnerId: true,
+        odooId: true,
         partner: { select: { name: true } },
       },
       orderBy: { amountToInvoice: 'desc' },
     })
+
+    // 訂單本體在 Odoo，直接組出表單連結（base url 只查一次並快取）
+    const odooBaseUrl = uninvoicedDeals.length > 0 ? await odooClient.getWebBaseUrl() : null
 
     const todayStart = new Date()
     todayStart.setHours(0, 0, 0, 0)
@@ -393,6 +398,9 @@ export async function GET(request: NextRequest) {
       amount: Number(d.amount || 0),
       amountToInvoice: Number(d.amountToInvoice || 0),
       daysOpen: Math.max(0, Math.floor((todayStart.getTime() - d.closedAt.getTime()) / DAY_MS)),
+      odooUrl: odooBaseUrl && d.odooId
+        ? `${odooBaseUrl}/web#id=${d.odooId}&model=sale.order&view_type=form`
+        : null,
     }))
 
     const totalAmountToInvoice = uninvoicedOrders.reduce((sum, o) => sum + o.amountToInvoice, 0)
