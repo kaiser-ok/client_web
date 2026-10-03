@@ -191,6 +191,8 @@ export async function POST(request: NextRequest) {
         source: 'ODOO',
         odooId: order.id,
         odooState: order.state,
+        invoiceStatus: order.invoice_status || null,
+        amountToInvoice: order.amount_to_invoice ?? null,
         notes: combinedNotes || null,
         createdBy: session.user?.email || 'system',
       }
@@ -215,6 +217,8 @@ export async function POST(request: NextRequest) {
             startDate: serviceStartDate || existingDeal.startDate,
             endDate: serviceEndDate || existingDeal.endDate,
             odooState: order.state,
+            invoiceStatus: order.invoice_status || null,
+            amountToInvoice: order.amount_to_invoice ?? null,
             notes: combinedNotes || existingDeal.notes,
           },
         })

@@ -34,7 +34,7 @@ import dynamic from 'next/dynamic'
 import dayjs, { Dayjs } from 'dayjs'
 import Link from 'next/link'
 import AppLayout from '@/components/layout/AppLayout'
-import type { SalesReportData } from '@/types/sales-report'
+import type { SalesReportData, UninvoicedOrder } from '@/types/sales-report'
 
 // Dynamic import for charts to avoid SSR issues
 const Line = dynamic(() => import('@ant-design/charts').then((mod) => mod.Line), { ssr: false })
@@ -311,6 +311,77 @@ export default function SalesReportPage() {
   ]
 
   // Top 客戶表格
+  const uninvoicedColumns = [
+    {
+      title: '訂單',
+      dataIndex: 'name',
+      key: 'name',
+      render: (name: string, row: UninvoicedOrder) => (
+        <Link href={`/customers/${row.partnerId}`}>{name}</Link>
+      ),
+    },
+    {
+      title: '客戶',
+      dataIndex: 'partnerName',
+      key: 'partnerName',
+      ellipsis: true,
+      render: (partnerName: string, row: UninvoicedOrder) => (
+        <Tooltip title={row.projectName || row.projectType || partnerName}>
+          <span>{partnerName}</span>
+        </Tooltip>
+      ),
+    },
+    {
+      title: '業務',
+      dataIndex: 'salesRep',
+      key: 'salesRep',
+      width: 110,
+      render: (v: string | null) => v || '未指定',
+    },
+    {
+      title: '成交日',
+      dataIndex: 'closedAt',
+      key: 'closedAt',
+      width: 110,
+      sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.closedAt.localeCompare(b.closedAt),
+      render: (v: string) => dayjs(v).format('YYYY-MM-DD'),
+    },
+    {
+      title: '已掛天數',
+      dataIndex: 'daysOpen',
+      key: 'daysOpen',
+      width: 100,
+      align: 'right' as const,
+      sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.daysOpen - b.daysOpen,
+      render: (v: number) => (
+        <span style={{ color: v > 365 ? '#ff4d4f' : v > 180 ? '#faad14' : undefined }}>
+          {v.toLocaleString()}
+        </span>
+      ),
+    },
+    {
+      title: '訂單含稅',
+      dataIndex: 'amount',
+      key: 'amount',
+      width: 130,
+      align: 'right' as const,
+      sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.amount - b.amount,
+      render: (v: number) => `$${Math.round(v).toLocaleString()}`,
+    },
+    {
+      title: '待開票未稅',
+      dataIndex: 'amountToInvoice',
+      key: 'amountToInvoice',
+      width: 140,
+      align: 'right' as const,
+      defaultSortOrder: 'descend' as const,
+      sorter: (a: UninvoicedOrder, b: UninvoicedOrder) => a.amountToInvoice - b.amountToInvoice,
+      render: (v: number) => (
+        <strong>${Math.round(v).toLocaleString()}</strong>
+      ),
+    },
+  ]
+
   const customerColumns = [
     {
       title: '排名',
@@ -533,6 +604,103 @@ export default function SalesReportPage() {
               </Card>
             </Col>
           </Row>
+
+          {/* 已成案未開票 */}
+          {data.uninvoiced && data.uninvoiced.orderCount > 0 && (
+            <Card
+              title={
+                <span>
+                  已成案未開票&nbsp;
+                  <Tooltip title="Odoo 銷售訂單中 invoice_status = 'to invoice' 且待開票金額大於 0 的訂單，即已確認成案但尚未（或尚未開完）發票的部分。這是目前的即時快照，不受上方日期範圍影響，但仍套用業務與專案類型篩選。">
+                    <InfoCircleOutlined style={{ color: '#999', fontSize: 13 }} />
+                  </Tooltip>
+                </span>
+              }
+              style={{ marginBottom: 16 }}
+              extra={
+                <span style={{ color: '#999', fontSize: 12 }}>
+                  待開票金額為未稅；訂單金額為含稅
+                </span>
+              }
+            >
+              <Row gutter={[16, 16]}>
+                <Col xs={24} lg={7}>
+                  <Statistic
+                    title="待開票總額（未稅）"
+                    value={data.uninvoiced.totalAmountToInvoice}
+                    prefix={<ClockCircleOutlined />}
+                    formatter={(v) => `$${Math.round(Number(v)).toLocaleString()}`}
+                    styles={{ content: { color: '#fa8c16' } }}
+                  />
+                  <div style={{ marginTop: 4, color: '#999', fontSize: 12 }}>
+                    共 {data.uninvoiced.orderCount} 張訂單
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <Table
+                      dataSource={data.uninvoiced.byAge}
+                      rowKey="bucket"
+                      pagination={false}
+                      size="small"
+                      columns={[
+                        { title: '帳齡（自成交日）', dataIndex: 'bucket', key: 'bucket' },
+                        {
+                          title: '張',
+                          dataIndex: 'orderCount',
+                          key: 'orderCount',
+                          width: 56,
+                          align: 'right' as const,
+                        },
+                        {
+                          title: '待開票未稅',
+                          dataIndex: 'amountToInvoice',
+                          key: 'amountToInvoice',
+                          align: 'right' as const,
+                          render: (v: number) => `$${Math.round(v).toLocaleString()}`,
+                        },
+                      ]}
+                    />
+                  </div>
+
+                  <div style={{ marginTop: 16 }}>
+                    <Table
+                      dataSource={data.uninvoiced.bySalesRep}
+                      rowKey="bucket"
+                      pagination={false}
+                      size="small"
+                      columns={[
+                        { title: '業務', dataIndex: 'bucket', key: 'bucket' },
+                        {
+                          title: '張',
+                          dataIndex: 'orderCount',
+                          key: 'orderCount',
+                          width: 56,
+                          align: 'right' as const,
+                        },
+                        {
+                          title: '待開票未稅',
+                          dataIndex: 'amountToInvoice',
+                          key: 'amountToInvoice',
+                          align: 'right' as const,
+                          render: (v: number) => `$${Math.round(v).toLocaleString()}`,
+                        },
+                      ]}
+                    />
+                  </div>
+                </Col>
+                <Col xs={24} lg={17}>
+                  <Table
+                    dataSource={data.uninvoiced.orders}
+                    columns={uninvoicedColumns}
+                    rowKey="id"
+                    size="small"
+                    scroll={{ x: 'max-content' }}
+                    pagination={{ pageSize: 10, showSizeChanger: true, size: 'small' }}
+                  />
+                </Col>
+              </Row>
+            </Card>
+          )}
 
           {/* Charts Row 1 */}
           <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>

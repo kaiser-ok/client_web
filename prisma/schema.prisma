@@ -200,6 +200,8 @@ model Deal {
   source         String    @default("MANUAL") // MANUAL, ODOO
   status         String    @default("ACTIVE") // ACTIVE | CANCELLED
   odooState      String?   // Odoo sale_order.state: sale | draft
+  invoiceStatus  String?   // Odoo sale_order.invoice_status: no | to invoice | invoiced
+  amountToInvoice Decimal? @db.Decimal(12, 2) // Odoo sale_order.amount_to_invoice（未稅待開票金額）
   odooId         Int?      @unique // Odoo sale_order.id
   notes          String?   @db.Text // 備註
   attachments    String[]  // 附件 URLs
@@ -213,6 +215,7 @@ model Deal {
   @@index([partnerId])
   @@index([closedAt])
   @@index([endDate])
+  @@index([invoiceStatus])
   @@map("deals")
 }
 

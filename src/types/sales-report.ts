@@ -40,6 +40,34 @@ export interface TopCustomer {
   dealCount: number
 }
 
+export interface UninvoicedOrder {
+  id: string
+  name: string
+  projectName: string | null
+  partnerId: string
+  partnerName: string
+  salesRep: string | null
+  projectType: string | null
+  closedAt: string
+  amount: number           // 訂單含稅總額
+  amountToInvoice: number  // 未稅待開票金額
+  daysOpen: number         // 成交至今天數
+}
+
+export interface UninvoicedBucket {
+  bucket: string
+  orderCount: number
+  amountToInvoice: number
+}
+
+export interface UninvoicedBacklog {
+  orderCount: number
+  totalAmountToInvoice: number   // 未稅
+  byAge: UninvoicedBucket[]
+  bySalesRep: UninvoicedBucket[]
+  orders: UninvoicedOrder[]
+}
+
 export interface MonthlyComparison {
   month: string
   currentYear: number
@@ -53,6 +81,7 @@ export interface SalesReportData {
   byProjectType: ProjectTypeBreakdown[]
   bySalesRep: SalesRepBreakdown[]
   topCustomers: TopCustomer[]
+  uninvoiced: UninvoicedBacklog
   monthlyComparison?: MonthlyComparison[]
 }
 

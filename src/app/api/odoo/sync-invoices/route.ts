@@ -42,6 +42,7 @@ export async function POST(request: NextRequest) {
 
     let created = 0
     let updated = 0
+    let skippedNoDate = 0 // Odoo 端尚未有 invoice_date（draft）且本地也沒有紀錄
 
     for (const inv of odooInvoices) {
       const deal = inv.invoice_origin ? dealByName.get(inv.invoice_origin) : null
@@ -50,6 +51,30 @@ export async function POST(request: NextRequest) {
         : (deal?.partnerId ?? null)
 
       const existing = await prisma.invoice.findUnique({ where: { odooId: inv.id } })
+
+      // 被退回 draft 的發票，Odoo 會清掉 invoice_date。這種列仍要同步 state，
+      // 否則本地會永遠停在舊的 posted，讓報表把它當成已開票。
+      if (!inv.invoice_date) {
+        if (existing) {
+          await prisma.invoice.update({
+            where: { odooId: inv.id },
+            data: {
+              name: inv.name,
+              amount: inv.amount_total,
+              amountResidual: inv.amount_residual,
+              state: inv.state,
+              paymentState: inv.payment_state,
+              origin: inv.invoice_origin,
+              dealId: deal?.id ?? null,
+              partnerId,
+            },
+          })
+          updated++
+        } else {
+          skippedNoDate++
+        }
+        continue
+      }
 
       await prisma.invoice.upsert({
         where: { odooId: inv.id },
@@ -85,7 +110,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: `發票同步完成`,
-      stats: { total: odooInvoices.length, created, updated },
+      stats: { total: odooInvoices.length, created, updated, skippedNoDate },
     })
   } catch (error) {
     console.error('Error syncing invoices:', error)

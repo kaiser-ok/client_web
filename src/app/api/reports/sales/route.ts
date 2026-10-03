@@ -348,14 +348,91 @@ export async function GET(request: NextRequest) {
         })
     }
 
-    // 7. 取得所有業務員列表 (用於篩選器)
+    // 7. 已成案但尚未開發票的訂單（在手待開票）
+    //    這是「目前」的快照，不套用報表日期範圍 —— 否則 2024/2025 成交、至今仍未開完的
+    //    訂單會被濾掉，而那正是最需要被看見的部分。業務／專案類型篩選仍然套用。
+    const uninvoicedWhere: Prisma.DealWhereInput = {
+      status: 'ACTIVE',
+      invoiceStatus: 'to invoice',
+      amountToInvoice: { gt: 0 },
+      OR: [{ odooState: null }, { NOT: { odooState: 'draft' } }],
+      ...(salesRepFilter && { salesRep: salesRepFilter }),
+      ...(projectTypeFilter && { projectType: projectTypeFilter }),
+    }
+
+    const uninvoicedDeals = await prisma.deal.findMany({
+      where: uninvoicedWhere,
+      select: {
+        id: true,
+        name: true,
+        projectName: true,
+        projectType: true,
+        salesRep: true,
+        closedAt: true,
+        amount: true,
+        amountToInvoice: true,
+        partnerId: true,
+        partner: { select: { name: true } },
+      },
+      orderBy: { amountToInvoice: 'desc' },
+    })
+
+    const todayStart = new Date()
+    todayStart.setHours(0, 0, 0, 0)
+    const DAY_MS = 24 * 60 * 60 * 1000
+
+    const uninvoicedOrders = uninvoicedDeals.map(d => ({
+      id: d.id,
+      name: d.name,
+      projectName: d.projectName,
+      projectType: d.projectType,
+      partnerId: d.partnerId,
+      partnerName: d.partner.name,
+      salesRep: d.salesRep,
+      closedAt: d.closedAt.toISOString(),
+      amount: Number(d.amount || 0),
+      amountToInvoice: Number(d.amountToInvoice || 0),
+      daysOpen: Math.max(0, Math.floor((todayStart.getTime() - d.closedAt.getTime()) / DAY_MS)),
+    }))
+
+    const totalAmountToInvoice = uninvoicedOrders.reduce((sum, o) => sum + o.amountToInvoice, 0)
+
+    // 帳齡分桶（以成交日距今天數）
+    const AGE_BUCKETS: { bucket: string; max: number }[] = [
+      { bucket: '90 天內', max: 90 },
+      { bucket: '91–180 天', max: 180 },
+      { bucket: '181–365 天', max: 365 },
+      { bucket: '超過一年', max: Infinity },
+    ]
+    const byAge = AGE_BUCKETS.map(({ bucket, max }, i) => {
+      const min = i === 0 ? -Infinity : AGE_BUCKETS[i - 1].max
+      const rows = uninvoicedOrders.filter(o => o.daysOpen > min && o.daysOpen <= max)
+      return {
+        bucket,
+        orderCount: rows.length,
+        amountToInvoice: rows.reduce((sum, o) => sum + o.amountToInvoice, 0),
+      }
+    }).filter(b => b.orderCount > 0)
+
+    const salesRepMap = new Map<string, { orderCount: number; amountToInvoice: number }>()
+    uninvoicedOrders.forEach(o => {
+      const key = o.salesRep || '未指定'
+      const cur = salesRepMap.get(key) || { orderCount: 0, amountToInvoice: 0 }
+      cur.orderCount++
+      cur.amountToInvoice += o.amountToInvoice
+      salesRepMap.set(key, cur)
+    })
+    const uninvoicedBySalesRep = Array.from(salesRepMap, ([bucket, v]) => ({ bucket, ...v }))
+      .sort((a, b) => b.amountToInvoice - a.amountToInvoice)
+
+    // 8. 取得所有業務員列表 (用於篩選器)
     const allSalesReps = await prisma.deal.findMany({
       where: { salesRep: { not: null } },
       select: { salesRep: true },
       distinct: ['salesRep'],
     })
 
-    // 8. 取得所有專案類型列表 (用於篩選器)
+    // 9. 取得所有專案類型列表 (用於篩選器)
     const allProjectTypes = await prisma.deal.findMany({
       where: { projectType: { not: null } },
       select: { projectType: true },
@@ -378,6 +455,13 @@ export async function GET(request: NextRequest) {
       byProjectType,
       bySalesRep,
       topCustomers,
+      uninvoiced: {
+        orderCount: uninvoicedOrders.length,
+        totalAmountToInvoice,
+        byAge,
+        bySalesRep: uninvoicedBySalesRep,
+        orders: uninvoicedOrders,
+      },
       monthlyComparison,
       filters: {
         salesReps: allSalesReps.map(d => d.salesRep).filter(Boolean),

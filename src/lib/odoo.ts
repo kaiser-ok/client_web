@@ -44,6 +44,8 @@ export interface OdooSaleOrder {
   client_order_ref: string | null  // 客戶參照
   project_type: string | null      // 專案類型
   note: string | null              // 備註
+  invoice_status: string | null    // no | to invoice | invoiced
+  amount_to_invoice: number | null // 未稅待開票金額
 }
 
 export interface OdooEmployee {
@@ -144,7 +146,9 @@ export const odooClient = {
         so.project_name,
         so.client_order_ref,
         pt.name as project_type,
-        so.note
+        so.note,
+        so.invoice_status,
+        so.amount_to_invoice
       FROM sale_order so
       JOIN res_partner p ON so.partner_id = p.id
       LEFT JOIN res_users ru ON so.user_id = ru.id
@@ -188,7 +192,9 @@ export const odooClient = {
         so.project_name,
         so.client_order_ref,
         pt.name as project_type,
-        so.note
+        so.note,
+        so.invoice_status,
+        so.amount_to_invoice
       FROM sale_order so
       JOIN res_partner p ON so.partner_id = p.id
       LEFT JOIN res_users ru ON so.user_id = ru.id
@@ -253,7 +259,7 @@ export const odooClient = {
   async getAllInvoicesForSync(fromDate?: Date): Promise<Array<{
     id: number
     name: string
-    invoice_date: string
+    invoice_date: string | null
     amount_total: number
     amount_residual: number
     state: string
@@ -264,8 +270,7 @@ export const odooClient = {
     let query = `
       SELECT id, name, invoice_date, amount_total, amount_residual, state, payment_state, invoice_origin, partner_id
       FROM account_move
-      WHERE move_type = 'out_invoice'
-        AND invoice_date IS NOT NULL`
+      WHERE move_type = 'out_invoice'`
     const params: Date[] = []
     if (fromDate) {
       query += ` AND write_date >= $1`
